@@ -1,0 +1,18 @@
+{
+  "projects": {
+    "default": "tasks-1903"
+  },
+  "targets": {
+    "tasks-1903": {
+      "hosting": {
+        "test": [
+          "tasks-test"
+        ],
+        "production": [
+          "tasks-1903"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
