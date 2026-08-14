@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics_service.dart';
+import '../../../core/firebase/callable_service.dart';
 import '../../../core/firebase/firebase_providers.dart';
-import '../../../core/utils/combine_latest.dart';
 import '../../auth/application/auth_providers.dart';
 import '../data/firestore_habit_repository.dart';
 import '../domain/habit.dart';
+import '../domain/habit_log.dart';
 import '../domain/habit_repository.dart';
 import '../domain/habit_status.dart';
 
@@ -15,16 +16,38 @@ import '../domain/habit_status.dart';
 final habitRepositoryProvider = Provider<HabitRepository?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return null;
-  return FirestoreHabitRepository(ref.watch(firestoreProvider), ref.watch(firebaseFunctionsProvider), uid);
+  return FirestoreHabitRepository(ref.watch(firestoreProvider), ref.watch(callableServiceProvider), uid);
+});
+
+/// Raw habit documents, without streak/completion derived onto them.
+final rawHabitsProvider = StreamProvider<List<Habit>>((ref) {
+  final repository = ref.watch(habitRepositoryProvider);
+  if (repository == null) return Stream.value(const []);
+  return repository.watchHabits();
+});
+
+/// The last 60 days of completion logs.
+///
+/// Exposed as its own provider so the Analytics screen can reuse it. It used
+/// to call `watchRecentLogs(days: 60)` again in its own StreamProvider,
+/// which opened a second Firestore listener on the identical query — the
+/// same documents streamed, and billed, twice.
+final habitLogsProvider = StreamProvider<List<HabitLog>>((ref) {
+  final repository = ref.watch(habitRepositoryProvider);
+  if (repository == null) return Stream.value(const []);
+  return repository.watchRecentLogs();
 });
 
 /// Habits merged with their recent completion logs — streak and
 /// isCompletedToday are already computed by the time the UI sees this.
-final habitsProvider = StreamProvider<List<Habit>>((ref) {
-  final repository = ref.watch(habitRepositoryProvider);
-  if (repository == null) return Stream.value(const []);
-  return combineLatest2(repository.watchHabits(), repository.watchRecentLogs())
-      .map((pair) => mergeHabitsWithLogs(pair.$1, pair.$2));
+///
+/// Combining two providers here rather than two raw streams means Riverpod
+/// handles the subscription lifecycle, and each underlying stream has exactly
+/// one listener no matter how many things read this.
+final habitsProvider = Provider<AsyncValue<List<Habit>>>((ref) {
+  final habits = ref.watch(rawHabitsProvider);
+  final logs = ref.watch(habitLogsProvider);
+  return habits.whenData((items) => mergeHabitsWithLogs(items, logs.valueOrNull ?? const []));
 });
 
 /// Null means "All categories".

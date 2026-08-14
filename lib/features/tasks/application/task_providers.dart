@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics_service.dart';
+import '../../../core/firebase/callable_service.dart';
 import '../../../core/firebase/firebase_providers.dart';
 import '../../auth/application/auth_providers.dart';
 import '../data/firestore_task_repository.dart';
@@ -10,7 +11,7 @@ import '../domain/task_repository.dart';
 final taskRepositoryProvider = Provider<TaskRepository?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return null;
-  return FirestoreTaskRepository(ref.watch(firestoreProvider), ref.watch(firebaseFunctionsProvider), uid);
+  return FirestoreTaskRepository(ref.watch(firestoreProvider), ref.watch(callableServiceProvider), uid);
 });
 
 final tasksProvider = StreamProvider<List<TaskItem>>((ref) {

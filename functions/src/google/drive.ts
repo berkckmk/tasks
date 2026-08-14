@@ -4,6 +4,7 @@ import { Readable } from "stream";
 
 import { db } from "../lib/admin";
 import { assertPlan } from "../lib/plan";
+import { googleSecrets } from "../lib/secrets";
 import { getAuthorizedClient } from "./oauth";
 
 const BACKUP_COLLECTIONS = [
@@ -19,7 +20,9 @@ const BACKUP_COLLECTIONS = [
   "content_items",
 ];
 
-export const backupToGoogleDrive = onCall(async (request) => {
+export const backupToGoogleDrive = onCall(
+  { secrets: googleSecrets, memory: "1GiB", timeoutSeconds: 540 },
+  async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Sign in required.");
   await assertPlan(uid, ["complete"]);
@@ -42,6 +45,13 @@ export const backupToGoogleDrive = onCall(async (request) => {
       });
       folderId = folder.data.id ?? undefined;
       if (!folderId) throw new HttpsError("internal", "Failed to create backup folder.");
+
+      // Persisted immediately, not at the end with the rest of the result.
+      // If the backup itself then failed (quota, timeout, OOM), the folder
+      // id was lost and the next attempt created another one — a user
+      // retrying a failing backup accumulated "Steady Progress Backups"
+      // folders in their Drive without limit.
+      await integrationRef.set({ folderId }, { merge: true });
     }
 
     const backup: Record<string, unknown[]> = {};

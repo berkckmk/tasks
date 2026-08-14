@@ -1,11 +1,16 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/app_button.dart';
 import '../application/auth_actions.dart';
 import '../data/auth_repository.dart';
+import 'widgets/google_web_sign_in_button.dart';
 
 enum _AuthMode { signIn, signUp }
 
@@ -28,12 +33,55 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   bool _isSubmitting = false;
   bool _isGoogleSubmitting = false;
   String? _errorMessage;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _googleAuthSub;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) {
+      // Web has no imperative authenticate() call (see auth_repository.dart)
+      // — Google's own rendered button (below) drives sign-in, and the
+      // result arrives here instead of as a return value.
+      _googleAuthSub = GoogleSignIn.instance.authenticationEvents.listen(
+        _handleGoogleAuthEvent,
+        onError: (Object e) => setState(() => _errorMessage = 'Google sign-in failed. Please try again.'),
+      );
+    }
+  }
 
   @override
   void dispose() {
+    _googleAuthSub?.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleGoogleAuthEvent(GoogleSignInAuthenticationEvent event) async {
+    if (event is! GoogleSignInAuthenticationEventSignIn) return;
+    setState(() {
+      _isGoogleSubmitting = true;
+      _errorMessage = null;
+    });
+    try {
+      await ref.read(authActionsProvider).signInWithGoogle(account: event.user);
+      // On success, authStateChangesProvider fires and the router redirects.
+    } on AuthException catch (e) {
+      // `mounted` is checked here too: on the success path the router
+      // redirects and disposes this screen while _bootstrapProfileIfNeeded
+      // may still be awaiting Firestore, so a late failure would otherwise
+      // call setState on a dead State.
+      if (mounted) setState(() => _errorMessage = e.message);
+    } catch (e) {
+      // Bootstrap failures (profile/subscription doc writes, Firestore
+      // rules rejections, ...) land here rather than as AuthException —
+      // logged so they're diagnosable from the browser/device console
+      // instead of just showing the same generic message for every cause.
+      debugPrint('Google sign-in bootstrap failed: $e');
+      if (mounted) setState(() => _errorMessage = 'Google sign-in failed. Please try again.');
+    } finally {
+      if (mounted) setState(() => _isGoogleSubmitting = false);
+    }
   }
 
   Future<void> _submit() async {
@@ -56,9 +104,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       }
       // On success, authStateChangesProvider fires and the router redirects.
     } on AuthException catch (e) {
-      setState(() => _errorMessage = e.message);
+      // `mounted` is checked here too: on the success path the router
+      // redirects and disposes this screen while _bootstrapProfileIfNeeded
+      // may still be awaiting Firestore, so a late failure would otherwise
+      // call setState on a dead State.
+      if (mounted) setState(() => _errorMessage = e.message);
     } catch (e) {
-      setState(() => _errorMessage = 'Something went wrong. Please try again.');
+      debugPrint('Email auth bootstrap failed: $e');
+      if (mounted) setState(() => _errorMessage = 'Something went wrong. Please try again.');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -73,9 +126,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       await ref.read(authActionsProvider).signInWithGoogle();
       // On success, authStateChangesProvider fires and the router redirects.
     } on AuthException catch (e) {
-      setState(() => _errorMessage = e.message);
+      // `mounted` is checked here too: on the success path the router
+      // redirects and disposes this screen while _bootstrapProfileIfNeeded
+      // may still be awaiting Firestore, so a late failure would otherwise
+      // call setState on a dead State.
+      if (mounted) setState(() => _errorMessage = e.message);
     } catch (e) {
-      setState(() => _errorMessage = 'Google sign-in failed. Please try again.');
+      debugPrint('Google sign-in bootstrap failed: $e');
+      if (mounted) setState(() => _errorMessage = 'Google sign-in failed. Please try again.');
     } finally {
       if (mounted) setState(() => _isGoogleSubmitting = false);
     }
@@ -199,15 +257,27 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    AppButton(
-                      label: _isGoogleSubmitting ? 'Please wait...' : 'Continue with Google',
-                      variant: AppButtonVariant.secondary,
-                      icon: Icons.g_mobiledata,
-                      expand: true,
-                      onPressed: (_isSubmitting || _isGoogleSubmitting)
-                          ? null
-                          : _continueWithGoogle,
-                    ),
+                    if (kIsWeb)
+                      // Google Identity Services requires its own rendered
+                      // button on web (GoogleSignIn.authenticate() throws
+                      // there) — see google_web_sign_in_button.dart.
+                      SizedBox(
+                        height: 44,
+                        width: double.infinity,
+                        child: _isGoogleSubmitting
+                            ? const Center(child: CircularProgressIndicator())
+                            : renderGoogleWebButton(),
+                      )
+                    else
+                      AppButton(
+                        label: _isGoogleSubmitting ? 'Please wait...' : 'Continue with Google',
+                        variant: AppButtonVariant.secondary,
+                        icon: Icons.g_mobiledata,
+                        expand: true,
+                        onPressed: (_isSubmitting || _isGoogleSubmitting)
+                            ? null
+                            : _continueWithGoogle,
+                      ),
                   ],
                 ),
               ),

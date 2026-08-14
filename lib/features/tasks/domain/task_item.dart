@@ -88,7 +88,7 @@ class TaskItem {
       'priority': priority.name,
       'status': status.name,
       'relatedGoalId': relatedGoalId,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

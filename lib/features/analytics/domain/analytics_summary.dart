@@ -1,7 +1,7 @@
 import '../../goals/domain/goal.dart';
 import '../../habits/domain/habit.dart';
 import '../../habits/domain/habit_log.dart';
-import '../../habits/domain/habit_status.dart' show formatLogDate;
+import '../../habits/domain/habit_status.dart' show addCalendarDays, formatLogDate;
 import '../../tasks/domain/task_item.dart';
 
 class WeekCompletion {
@@ -56,30 +56,43 @@ AnalyticsSummary buildAnalyticsSummary({
     completedDatesByHabit.putIfAbsent(log.habitId, () => {}).add(log.date);
   }
 
+  final todayLabel = formatLogDate(today);
+
   final weeks = <WeekCompletion>[];
   for (var i = 3; i >= 0; i--) {
-    final weekStart = _mostRecentMonday(today).subtract(Duration(days: 7 * i));
-    final weekEnd = weekStart.add(const Duration(days: 6));
+    final weekStart = addCalendarDays(_mostRecentMonday(today), -7 * i);
+    // Exclusive: the instant the next week starts. Comparing against
+    // midnight on Sunday excluded every task due later that same Sunday from
+    // *both* this week and the next — they were counted in no week at all.
+    final weekEndExclusive = addCalendarDays(weekStart, 7);
 
     var completedHabitDays = 0;
+    // Only days that have actually happened count toward the denominator.
+    // Dividing by a full 7 while the numerator stopped at today made the
+    // current week structurally understate: a user with a perfect record
+    // showed 14% on Monday and 43% on Wednesday, and since productivityScore
+    // is computed from the latest week, the headline number on the Analytics
+    // screen was wrong six days out of seven.
+    var elapsedDays = 0;
     for (var d = 0; d < 7; d++) {
-      final day = weekStart.add(Duration(days: d));
-      if (day.isAfter(today)) break;
+      final day = addCalendarDays(weekStart, d);
       final dayLabel = formatLogDate(day);
+      if (dayLabel.compareTo(todayLabel) > 0) break;
+      elapsedDays++;
       for (final habit in habits) {
         if (completedDatesByHabit[habit.id]?.contains(dayLabel) ?? false) {
           completedHabitDays++;
         }
       }
     }
-    final possibleHabitDays = habits.length * 7;
+    final possibleHabitDays = habits.length * elapsedDays;
     final habitRate = possibleHabitDays == 0 ? 0.0 : completedHabitDays / possibleHabitDays;
 
     final tasksDueThisWeek = tasks.where(
       (t) =>
           t.dueDate != null &&
           !t.dueDate!.isBefore(weekStart) &&
-          !t.dueDate!.isAfter(weekEnd),
+          t.dueDate!.isBefore(weekEndExclusive),
     );
     final dueCount = tasksDueThisWeek.length;
     final doneCount = tasksDueThisWeek.where((t) => t.isDone).length;
@@ -95,9 +108,21 @@ AnalyticsSummary buildAnalyticsSummary({
   }
 
   final bestStreak = habits.isEmpty ? 0 : habits.map((h) => h.streak).reduce((a, b) => a > b ? a : b);
+  // Consistency is how often the habit was completed across the whole log
+  // window, not the current streak — a habit completed 50 of the last 60
+  // days is more consistent than one with a 5-day streak and nothing before
+  // it, and the label says "most consistent", not "longest streak" (which
+  // bestStreak above already reports).
   final mostConsistent = habits.isEmpty
       ? null
-      : habits.reduce((a, b) => a.streak >= b.streak ? a : b).name;
+      : habits
+          .reduce(
+            (a, b) => (completedDatesByHabit[a.id]?.length ?? 0) >=
+                    (completedDatesByHabit[b.id]?.length ?? 0)
+                ? a
+                : b,
+          )
+          .name;
 
   final goalProgressAverage =
       goals.isEmpty ? 0.0 : goals.map((g) => g.progress).reduce((a, b) => a + b) / goals.length;
@@ -120,7 +145,7 @@ AnalyticsSummary buildAnalyticsSummary({
 
 DateTime _mostRecentMonday(DateTime date) {
   final d = DateTime(date.year, date.month, date.day);
-  return d.subtract(Duration(days: d.weekday - 1));
+  return addCalendarDays(d, -(d.weekday - 1));
 }
 
 const _monthNames = [

@@ -7,8 +7,9 @@ import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
-import '../../../core/widgets/module_lock_view.dart';
-import '../../subscription/application/subscription_providers.dart';
+import '../../pricing/domain/plan_module.dart';
+import '../../subscription/presentation/guarded_create.dart';
+import '../../subscription/presentation/widgets/requires_module.dart';
 import '../application/goal_providers.dart';
 import 'widgets/goal_card.dart';
 
@@ -17,28 +18,29 @@ class GoalsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canAccess = ref.watch(planEnforcementProvider).canAccessGoalPlanner;
+    return RequiresModule(
+      title: 'Goals',
+      module: PlanModule.goalPlanner,
+      featureName: 'Goal planner',
+      benefit: 'Break big goals into milestones and connect them to your daily '
+          'habits and tasks.',
+      requiredPlanName: 'Growth',
+      icon: Icons.flag_outlined,
+      builder: (context) => _GoalsBody(),
+    );
+  }
+}
 
-    if (!canAccess) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Goals')),
-        body: const ModuleLockView(
-          featureName: 'Goal planner',
-          benefit: 'Break big goals into milestones and connect them to your daily '
-              'habits and tasks.',
-          requiredPlanName: 'Growth',
-          icon: Icons.flag_outlined,
-        ),
-      );
-    }
-
+class _GoalsBody extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final goalsAsync = ref.watch(goalsProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Goals')),
       floatingActionButton: FloatingActionButton(
         heroTag: 'goalsFab',
-        onPressed: () => context.push('/goals/new'),
+        onPressed: () => GuardedCreate.goal(context, ref),
         backgroundColor: AppColors.deepGreen,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -50,7 +52,7 @@ class GoalsScreen extends ConsumerWidget {
               title: 'No goals yet',
               message: 'Set a goal to connect your daily habits and tasks to something bigger.',
               actionLabel: 'Add goal',
-              onAction: () => context.push('/goals/new'),
+              onAction: () => GuardedCreate.goal(context, ref),
             );
           }
 

@@ -2,6 +2,16 @@ import { getMessaging } from "firebase-admin/messaging";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 
 import { db } from "../lib/admin";
+import {
+  currentHourMinuteInTimeZone,
+  parseReminderTime,
+  plainDateInTimeZone,
+  safeTimeZone,
+} from "../lib/datetime";
+import { forEachUser } from "../lib/users";
+
+/** How often sendHabitReminders runs; also the width of its match window. */
+const REMINDER_SLOT_MINUTES = 15;
 
 async function sendToUserTokens(uid: string, title: string, body: string): Promise<void> {
   const tokensSnapshot = await db.collection("users").doc(uid).collection("fcmTokens").get();
@@ -32,93 +42,97 @@ function isUnregisteredError(code: string | undefined): boolean {
   );
 }
 
-function parseReminderTime(label: string | undefined): [number, number] {
-  if (!label) return [9, 0];
-  const match = /(\d{1,2}):(\d{2})\s*(AM|PM)?/i.exec(label);
-  if (!match) return [9, 0];
-  let hour = parseInt(match[1], 10);
-  const minute = parseInt(match[2], 10);
-  const meridiem = match[3]?.toUpperCase();
-  if (meridiem === "PM" && hour < 12) hour += 12;
-  if (meridiem === "AM" && hour === 12) hour = 0;
-  return [hour, minute];
-}
-
-function currentHourMinuteInTimezone(timezone: string): [number, number] {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    hour: "numeric",
-    minute: "numeric",
-    hourCycle: "h23",
-  });
-  const parts = formatter.formatToParts(new Date());
-  const hour = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0", 10);
-  const minute = parseInt(parts.find((p) => p.type === "minute")?.value ?? "0", 10);
-  return [hour, minute];
-}
-
 /**
  * Runs every 15 minutes. For each user with notifications enabled, checks
- * whether any habit's reminder time falls in the current window — computed
- * in *that user's own timezone* — and sends a push if so.
- *
- * Scales by scanning every user document — fine at this app's current
- * size. Before that becomes a bottleneck, replace the full scan with a
- * fan-out (a Pub/Sub message per user, or a precomputed "next reminder at"
- * index queried directly) instead.
+ * whether any habit's reminder time falls in the current slot — computed in
+ * *that user's own timezone* — and sends a push if so.
  */
-export const sendHabitReminders = onSchedule("every 15 minutes", async () => {
-  const usersSnapshot = await db.collection("users").get();
+export const sendHabitReminders = onSchedule(
+  { schedule: "every 15 minutes", timeoutSeconds: 540, memory: "512MiB" },
+  async () => {
+    await forEachUser(async (userDoc) => {
+      const user = userDoc.data();
+      if (user.appPreferences?.notificationsEnabled === false) return;
 
-  for (const userDoc of usersSnapshot.docs) {
-    const user = userDoc.data();
-    if (user.appPreferences?.notificationsEnabled === false) continue;
+      const timezone = safeTimeZone(user.timezone as string | undefined);
+      const [nowHour, nowMinute] = currentHourMinuteInTimeZone(timezone);
+      // Half-open [slotStart, slotStart + 15) window. The previous check was
+      // `abs(reminderMinute - nowMinute) < 15`, which is 29 minutes wide and
+      // overlaps the neighbouring run: a 09:10 reminder matched both the
+      // 09:00 and 09:15 runs (two pushes), while 09:59 matched neither,
+      // because it also required reminderHour === nowHour.
+      const nowSlot = Math.floor((nowHour * 60 + nowMinute) / REMINDER_SLOT_MINUTES);
+      const today = plainDateInTimeZone(new Date(), timezone);
 
-    const timezone = (user.timezone as string) || "UTC";
-    const [nowHour, nowMinute] = currentHourMinuteInTimezone(timezone);
+      const habitsSnapshot = await userDoc.ref.collection("habits").get();
+      for (const habitDoc of habitsSnapshot.docs) {
+        const habit = habitDoc.data();
+        const reminderLabel = habit.reminderTimeLabel as string | undefined;
+        if (!reminderLabel) continue;
 
-    const habitsSnapshot = await userDoc.ref.collection("habits").get();
-    for (const habitDoc of habitsSnapshot.docs) {
-      const habit = habitDoc.data();
-      const reminderLabel = habit.reminderTimeLabel as string | undefined;
-      if (!reminderLabel) continue;
+        const parsed = parseReminderTime(reminderLabel);
+        if (!parsed) continue;
+        const [reminderHour, reminderMinute] = parsed;
+        if (Math.floor((reminderHour * 60 + reminderMinute) / REMINDER_SLOT_MINUTES) !== nowSlot) {
+          continue;
+        }
 
-      const [reminderHour, reminderMinute] = parseReminderTime(reminderLabel);
-      if (reminderHour === nowHour && Math.abs(reminderMinute - nowMinute) < 15) {
+        // Idempotency marker. onSchedule retries a failed run, and without
+        // this every habit already notified in that run gets a second push.
+        const alreadySentFor = habit.lastReminderSentOn as string | undefined;
+        if (alreadySentFor === today) continue;
+
         await sendToUserTokens(userDoc.id, "Habit reminder", `Time for: ${habit.name as string}`);
+        await habitDoc.ref.update({ lastReminderSentOn: today });
       }
-    }
+    });
   }
-});
+);
 
 /**
- * Runs once daily. Sends one digest push per user listing how many tasks
- * are due "today". Today is computed in UTC for simplicity — good enough
- * for a first version; true per-timezone scheduling would need a per-user
- * cron rather than one global scheduled function.
+ * Runs hourly and sends each user one digest of the tasks due today, at
+ * 08:00 *in their own timezone*.
+ *
+ * It has to run hourly rather than once daily because "08:00 local" happens
+ * at a different UTC instant for every zone; the hourly pass sends only to
+ * users whose local clock currently reads 08:xx, and the per-user
+ * `lastDigestSentOn` marker keeps that to one send per local day.
  */
-export const sendDailyTaskDigest = onSchedule("every day 08:00", async () => {
-  const usersSnapshot = await db.collection("users").get();
-  const todayStr = new Date().toISOString().slice(0, 10);
+export const sendDailyTaskDigest = onSchedule(
+  { schedule: "every 60 minutes", timeoutSeconds: 540, memory: "512MiB" },
+  async () => {
+    await forEachUser(async (userDoc) => {
+      const user = userDoc.data();
+      if (user.appPreferences?.notificationsEnabled === false) return;
 
-  for (const userDoc of usersSnapshot.docs) {
-    const user = userDoc.data();
-    if (user.appPreferences?.notificationsEnabled === false) continue;
+      const timezone = safeTimeZone(user.timezone as string | undefined);
+      const [localHour] = currentHourMinuteInTimeZone(timezone);
+      if (localHour !== 8) return;
 
-    const tasksSnapshot = await userDoc.ref.collection("tasks").get();
-    const dueToday = tasksSnapshot.docs.filter((doc) => {
-      const data = doc.data();
-      if (data.status === "done") return false;
-      const dueDate = data.dueDate as FirebaseFirestore.Timestamp | undefined;
-      return dueDate && dueDate.toDate().toISOString().slice(0, 10) === todayStr;
+      const today = plainDateInTimeZone(new Date(), timezone);
+      if ((user.lastDigestSentOn as string | undefined) === today) return;
+
+      const tasksSnapshot = await userDoc.ref.collection("tasks").get();
+      const dueToday = tasksSnapshot.docs.filter((doc) => {
+        const data = doc.data();
+        if (data.status === "done") return false;
+        const dueDate = data.dueDate as FirebaseFirestore.Timestamp | undefined;
+        // Compared in the user's zone, so "due today" means the same thing
+        // here as it does on their screen.
+        return dueDate && plainDateInTimeZone(dueDate.toDate(), timezone) === today;
+      });
+
+      // The marker is written even when there's nothing to send, so a user
+      // with no tasks due isn't re-checked every hour for the rest of the day.
+      await userDoc.ref.update({ lastDigestSentOn: today });
+
+      if (dueToday.length > 0) {
+        await sendToUserTokens(
+          userDoc.id,
+          "Today's tasks",
+          `You have ${dueToday.length} task${dueToday.length === 1 ? "" : "s"} due today.`
+        );
+      }
     });
-
-    if (dueToday.length > 0) {
-      await sendToUserTokens(
-        userDoc.id,
-        "Today's tasks",
-        `You have ${dueToday.length} task${dueToday.length === 1 ? "" : "s"} due today.`
-      );
-    }
   }
-});
+);

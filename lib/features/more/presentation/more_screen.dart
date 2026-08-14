@@ -119,7 +119,10 @@ class _ModuleRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      onTap: onTap,
+      // A locked row routes to /pricing instead of opening the module and
+      // showing its lock screen — the row already displays a lock icon, so
+      // the tap should go where the lock is resolved.
+      onTap: unlocked ? onTap : () => context.push('/pricing'),
       child: Row(
         children: [
           Container(

@@ -7,19 +7,24 @@ import '../domain/finance_repository.dart';
 import '../domain/finance_transaction.dart';
 import '../domain/savings_goal.dart';
 
-final financeRepositoryProvider = Provider<FinanceRepository?>((ref) {
+// Module streams below are `autoDispose`: each is watched only by its own
+// screen, so the Firestore listener closes when the user navigates away
+// instead of staying open for the rest of the session. Nothing outside the
+// widget tree watches them, which is what makes this safe — a non-autoDispose
+// provider cannot watch an autoDispose one.
+final financeRepositoryProvider = Provider.autoDispose<FinanceRepository?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return null;
   return FirestoreFinanceRepository(ref.watch(firestoreProvider), uid);
 });
 
-final financeTransactionsProvider = StreamProvider<List<FinanceTransaction>>((ref) {
+final financeTransactionsProvider = StreamProvider.autoDispose<List<FinanceTransaction>>((ref) {
   final repository = ref.watch(financeRepositoryProvider);
   if (repository == null) return Stream.value(const []);
   return repository.watchTransactions();
 });
 
-final savingsGoalsProvider = StreamProvider<List<SavingsGoal>>((ref) {
+final savingsGoalsProvider = StreamProvider.autoDispose<List<SavingsGoal>>((ref) {
   final repository = ref.watch(financeRepositoryProvider);
   if (repository == null) return Stream.value(const []);
   return repository.watchSavingsGoals();

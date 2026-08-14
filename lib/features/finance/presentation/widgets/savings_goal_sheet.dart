@@ -30,10 +30,13 @@ class _SavingsGoalSheet extends ConsumerStatefulWidget {
 
 class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
   late final _titleController = TextEditingController(text: widget.existing?.title ?? '');
+  // toStringAsFixed(2), not (0): seeding these inputs with a rounded value
+  // meant simply opening an existing savings goal and saving it again
+  // silently discarded the cents.
   late final _targetController =
-      TextEditingController(text: widget.existing?.targetAmount.toStringAsFixed(0) ?? '');
+      TextEditingController(text: widget.existing?.targetAmount.toStringAsFixed(2) ?? '');
   late final _currentController =
-      TextEditingController(text: widget.existing?.currentAmount.toStringAsFixed(0) ?? '0');
+      TextEditingController(text: widget.existing?.currentAmount.toStringAsFixed(2) ?? '0');
   bool _isSaving = false;
 
   @override

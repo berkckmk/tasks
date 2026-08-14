@@ -67,7 +67,7 @@ class LearningItem {
       'rating': rating,
       'notes': notes,
       'keyTakeaways': keyTakeaways,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 }

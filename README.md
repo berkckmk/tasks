@@ -16,14 +16,34 @@ integrations.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run                 # Android/iOS
+flutter run -d chrome       # Web
+```
 
-A few resources to get you started if this is your first Flutter project:
+Verification used throughout development:
+
+```bash
+flutter analyze
+flutter test
+(cd functions && npx tsc --noEmit)
+firebase deploy --only firestore:rules --dry-run   # rules compile check
+```
+
+## Plans and access
+
+The app is in a **closed beta**: every signed-in account is granted the
+Complete plan for free by the `kBetaAllAccess` flag in
+[`lib/features/subscription/domain/beta_access.dart`](lib/features/subscription/domain/beta_access.dart),
+which is mirrored in `functions/src/lib/plan.ts` and `firestore.rules`.
+
+Entitlement itself (`users/{uid}/subscription/status`) is Admin-SDK-only —
+only the verified Stripe webhook and Play purchase check may grant a paid
+plan. See `docs/GOOGLE_INTEGRATIONS_AND_PRODUCTION.md` §7 for the exact steps
+to end the beta and switch on real billing.
+
+## Learning Flutter
 
 - [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- [Flutter documentation](https://docs.flutter.dev/)

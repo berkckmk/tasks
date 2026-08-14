@@ -56,7 +56,13 @@ void main() async {
   try {
     await GoogleSignIn.instance.initialize(
       clientId: kIsWeb ? GoogleAuthConfig.webClientId : null,
-      serverClientId: GoogleAuthConfig.serverClientId,
+      // Must be null on web: google_sign_in_web asserts
+      // `serverClientId == null`, so passing it made initialize() throw in
+      // any build with asserts enabled (i.e. `flutter run -d chrome`) while
+      // release web builds — where asserts are stripped — worked fine. The
+      // catch below then swallowed it and every later GoogleSignIn call on
+      // web failed with no obvious cause.
+      serverClientId: kIsWeb ? null : GoogleAuthConfig.serverClientId,
     );
   } catch (e) {
     debugPrint('GoogleSignIn.initialize failed (expected until configured): $e');

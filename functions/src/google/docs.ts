@@ -3,6 +3,7 @@ import { google } from "googleapis";
 
 import { db } from "../lib/admin";
 import { assertPlan } from "../lib/plan";
+import { googleSecrets } from "../lib/secrets";
 import { getAuthorizedClient } from "./oauth";
 
 interface ReportSummary {
@@ -14,7 +15,9 @@ interface ReportSummary {
   learningItemsCompleted: number;
 }
 
-export const generateGoogleDocsReport = onCall(async (request) => {
+export const generateGoogleDocsReport = onCall(
+  { secrets: googleSecrets, memory: "512MiB", timeoutSeconds: 300 },
+  async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Sign in required.");
   await assertPlan(uid, ["complete"]);

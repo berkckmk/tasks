@@ -32,7 +32,19 @@ class AvatarActions {
 
     final bytes = await picked.readAsBytes();
     final photoUrl = await _ref.read(avatarRepositoryProvider).uploadAvatar(uid, bytes);
-    await _ref.read(userProfileRepositoryProvider).updatePhotoUrl(uid, photoUrl);
+
+    // Avatars always live at the same Storage path, so getDownloadURL()
+    // returns a byte-identical URL after a re-upload — and Flutter's
+    // ImageCache is keyed by URL, so the old picture stayed on screen until
+    // the app was restarted. The version parameter is ignored by Storage but
+    // makes the URL (and therefore the cache key) new.
+    final versioned = Uri.parse(photoUrl).replace(
+      queryParameters: {
+        ...Uri.parse(photoUrl).queryParameters,
+        'v': DateTime.now().millisecondsSinceEpoch.toString(),
+      },
+    ).toString();
+    await _ref.read(userProfileRepositoryProvider).updatePhotoUrl(uid, versioned);
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/module_lock_view.dart';
 import '../../../core/widgets/progress_ring.dart';
 import '../../../core/widgets/stat_card.dart';
@@ -31,11 +32,25 @@ class AnalyticsScreen extends ConsumerWidget {
       );
     }
 
-    final summary = ref.watch(analyticsSummaryProvider);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Analytics')),
-      body: ListView(
+      body: ref.watch(analyticsSummaryProvider).when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => ErrorState(error: error),
+            data: (summary) => _SummaryBody(summary: summary),
+          ),
+    );
+  }
+}
+
+class _SummaryBody extends StatelessWidget {
+  const _SummaryBody({required this.summary});
+
+  final AnalyticsSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.md,
@@ -127,7 +142,6 @@ class AnalyticsScreen extends ConsumerWidget {
             ),
           ),
         ],
-      ),
     );
   }
 }

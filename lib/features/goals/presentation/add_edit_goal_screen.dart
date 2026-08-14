@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/widgets/edit_target.dart';
 import '../../../core/widgets/app_button.dart';
 import '../application/goal_providers.dart';
 import '../domain/goal.dart';
@@ -51,13 +52,18 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
     _initialized = true;
   }
 
+  int _milestoneSeq = 0;
+
   void _addMilestone() {
     final text = _milestoneController.text.trim();
     if (text.isEmpty) return;
     setState(() {
       _milestones = [
         ..._milestones,
-        Milestone(id: 'm_${DateTime.now().millisecondsSinceEpoch}', title: text),
+        // Counter-suffixed: two milestones added in the same millisecond
+        // (easy with repeated onSubmitted) shared an id, and toggling or
+        // deleting one then matched both.
+        Milestone(id: 'm_${DateTime.now().microsecondsSinceEpoch}_${_milestoneSeq++}', title: text),
       ];
       _milestoneController.clear();
     });
@@ -95,25 +101,37 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.goalId != null;
-    final goalsAsync = ref.watch(goalsProvider);
-    final goals = goalsAsync.maybeWhen(data: (d) => d, orElse: () => const <Goal>[]);
+    final title = isEditing ? 'Edit goal' : 'New goal';
 
-    Goal? existing;
-    if (isEditing) {
-      for (final g in goals) {
-        if (g.id == widget.goalId) {
-          existing = g;
-          break;
-        }
-      }
-      _initFromExisting(existing);
+    final target = EditTarget.resolve<Goal>(
+      id: widget.goalId,
+      async: ref.watch(goalsProvider),
+      idOf: (goal) => goal.id,
+    );
+
+    final Goal? existing;
+    switch (target) {
+      case EditTargetLoading():
+        return EditTargetLoadingScreen(title: title);
+      case EditTargetFailed(:final error):
+        return EditTargetMissingScreen(title: title, message: '', error: error);
+      case EditTargetMissing():
+        return EditTargetMissingScreen(
+          title: title,
+          message: "This goal no longer exists. It may have been deleted on another device.",
+        );
+      case EditTargetFound(:final item):
+        existing = item;
+        _initFromExisting(existing);
+      case EditTargetCreating():
+        existing = null;
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit goal' : 'New goal'),
+        title: Text(title),
         actions: [
-          if (isEditing && existing != null)
+          if (existing != null)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Delete goal',
@@ -155,11 +173,20 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
             onPressed: () async {
+              // initialDate must sit within [firstDate, lastDate] or
+              // showDatePicker trips an assertion and crashes. Editing a goal
+              // whose target date is over a year old did exactly that, so the
+              // bounds are widened to include it rather than clamped (which
+              // would silently move the user's date).
+              final now = DateTime.now();
+              final initial = _targetDate ?? now;
+              final firstDate = _earliest(now.subtract(const Duration(days: 365)), initial);
+              final lastDate = _latest(now.add(const Duration(days: 365 * 3)), initial);
               final picked = await showDatePicker(
                 context: context,
-                initialDate: _targetDate ?? DateTime.now(),
-                firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+                initialDate: initial,
+                firstDate: firstDate,
+                lastDate: lastDate,
               );
               if (picked != null) setState(() => _targetDate = picked);
             },
@@ -278,3 +305,6 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
     );
   }
 }
+
+DateTime _earliest(DateTime a, DateTime b) => a.isBefore(b) ? a : b;
+DateTime _latest(DateTime a, DateTime b) => a.isAfter(b) ? a : b;

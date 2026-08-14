@@ -6,8 +6,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
-import '../../subscription/application/subscription_providers.dart';
-import '../../subscription/presentation/widgets/plan_limit_dialog.dart';
+import '../../subscription/presentation/guarded_create.dart';
 import '../application/habit_providers.dart';
 import '../domain/habit.dart';
 import 'widgets/habit_card.dart';
@@ -15,21 +14,6 @@ import 'widgets/habit_card.dart';
 class HabitsScreen extends ConsumerWidget {
   const HabitsScreen({super.key});
 
-  void _addHabit(BuildContext context, WidgetRef ref) {
-    final enforcement = ref.read(planEnforcementProvider);
-    if (!enforcement.canCreateHabit) {
-      showPlanLimitDialog(
-        context,
-        message:
-            'The ${enforcement.plan.name} plan allows up to '
-            '${enforcement.plan.limits.maxActiveHabits} active habits. '
-            'Upgrade to Growth for unlimited habits.',
-        requiredPlanName: 'Growth',
-      );
-      return;
-    }
-    context.push('/habits/new');
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,7 +24,7 @@ class HabitsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Habits')),
       floatingActionButton: FloatingActionButton(
         heroTag: 'habitsFab',
-        onPressed: () => _addHabit(context, ref),
+        onPressed: () => GuardedCreate.habit(context, ref),
         backgroundColor: AppColors.deepGreen,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -83,7 +67,7 @@ class HabitsScreen extends ConsumerWidget {
                         title: 'No habits yet',
                         message: 'Add your first habit to start building momentum.',
                         actionLabel: 'Add habit',
-                        onAction: () => _addHabit(context, ref),
+                        onAction: () => GuardedCreate.habit(context, ref),
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.fromLTRB(

@@ -1,14 +1,13 @@
-import 'dart:async';
-
+import 'package:firebase_auth/firebase_auth.dart' show User;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/firebase/firebase_providers.dart';
 import '../../core/widgets/responsive_scaffold.dart';
 import '../../features/analytics/presentation/analytics_screen.dart';
 import '../../features/auth/application/auth_providers.dart';
 import '../../features/auth/presentation/auth_screen.dart';
+import '../../features/auth/presentation/verify_email_screen.dart';
 import '../../features/content/presentation/content_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/finance/presentation/finance_screen.dart';
@@ -39,7 +38,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
-    refreshListenable: GoRouterRefreshStream(ref.read(firebaseAuthProvider).authStateChanges()),
+    // Driven by authStateChangesProvider itself (not a second, independent
+    // subscription to FirebaseAuth.authStateChanges() — see the fixed bug
+    // this used to have, below) so `redirect` always reads the exact state
+    // that just triggered the refresh.
+    refreshListenable: _RouterRefreshNotifier(ref),
     redirect: (context, state) {
       final authState = ref.read(authStateChangesProvider);
 
@@ -47,10 +50,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // screen show instead of guessing.
       if (authState.isLoading && !authState.hasValue) return null;
 
-      final isSignedIn = authState.valueOrNull != null;
+      final user = authState.valueOrNull;
+      final isSignedIn = user != null;
       final isPublic = _publicPaths.contains(state.matchedLocation);
+      // Google accounts arrive pre-verified, so this only ever gates the
+      // email/password path — see AuthRepository.signUpWithEmail.
+      final needsVerification = isSignedIn && !user.emailVerified;
+      final onVerifyScreen = state.matchedLocation == '/verify-email';
 
       if (!isSignedIn && !isPublic) return '/auth';
+      if (isSignedIn && needsVerification && !onVerifyScreen) return '/verify-email';
+      if (isSignedIn && !needsVerification && onVerifyScreen) return '/dashboard';
       if (isSignedIn && state.matchedLocation == '/auth') return '/dashboard';
       return null;
     },
@@ -58,6 +68,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
       GoRoute(path: '/auth', builder: (context, state) => const AuthScreen()),
+      GoRoute(path: '/verify-email', builder: (context, state) => const VerifyEmailScreen()),
       GoRoute(
         path: '/pricing',
         parentNavigatorKey: _rootNavigatorKey,
@@ -185,21 +196,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-/// Bridges a [Stream] (Firebase auth state changes) to a [Listenable] so
-/// go_router's `refreshListenable` re-runs `redirect` whenever auth state
-/// changes on its own — not just when the user taps something that
-/// triggers navigation.
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
-  }
-
-  late final StreamSubscription<dynamic> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
+/// Bridges [authStateChangesProvider] to a [Listenable] so go_router's
+/// `refreshListenable` re-runs `redirect` whenever auth state changes on
+/// its own — not just when the user taps something that triggers
+/// navigation.
+///
+/// This used to independently `.listen()` to
+/// `FirebaseAuth.authStateChanges()` directly, as a *second* subscription
+/// alongside the one backing `authStateChangesProvider`. That was a real
+/// bug: on sign-in, this notifier could fire (queuing a `redirect` re-run)
+/// *before* `authStateChangesProvider`'s own subscription had processed
+/// the same event — `redirect()` reads that provider via `ref.read`, so it
+/// would see the stale pre-sign-in value (still signed out), decide
+/// there's nothing to do, and never get asked again until some *other*
+/// navigation happened to trigger a fresh `redirect` call. From the user's
+/// side this looked exactly like "the backend account gets created but
+/// the app just sits on the sign-in screen" — sign-in had genuinely
+/// succeeded, the router just never found out in time to act on it.
+///
+/// Listening to the provider itself instead of a second raw stream fixes
+/// this categorically: `ref.listen`'s callback only ever fires *after*
+/// Riverpod has already updated the provider's cached value, so by the
+/// time `redirect()` reads it via `ref.read`, it's never stale.
+class _RouterRefreshNotifier extends ChangeNotifier {
+  _RouterRefreshNotifier(Ref ref) {
+    ref.listen<AsyncValue<User?>>(
+      authStateChangesProvider,
+      (previous, next) => notifyListeners(),
+    );
   }
 }
 

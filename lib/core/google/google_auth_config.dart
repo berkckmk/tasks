@@ -1,25 +1,22 @@
-// PLACEHOLDER — replace with the real OAuth client IDs from the Google
-// Cloud Console project behind your Firebase project (APIs & Services >
-// Credentials), after:
-//   1. Running `flutterfire configure` (see firebase_options.dart).
-//   2. Enabling the Google sign-in provider in Firebase Console > Authentication.
-//   3. Creating an OAuth 2.0 Client ID of type "Web application" for
-//      [webClientId] (Google Cloud Console > Credentials > Create
-//      Credentials > OAuth client ID). Add your web app's origin
-//      (e.g. https://steadyprogress.app) under "Authorized JavaScript origins".
-//   4. Android's OAuth client is normally auto-linked via
-//      android/app/google-services.json (from flutterfire configure) using
-//      your release/debug SHA-1 — no separate constant needed for it.
-//   5. [serverClientId] is the "Web application" client ID used for the
-//      *server-side* token exchange in Cloud Functions (see
-//      functions/src/google/oauth.ts). It can be the same client ID as
-//      [webClientId], or a dedicated one — either way, its **client secret**
-//      must only ever live in Cloud Functions config/Secret Manager, never
-//      in this app.
+// Web OAuth client from the "Web SDK configuration" panel of the Google
+// sign-in provider (Firebase Console > Authentication > Sign-in method),
+// tasks-1903 project. [serverClientId] reuses the same client for now
+// (sign-in doesn't need a dedicated one); if the Calendar/Sheets/Drive/Docs
+// server-side token exchange (functions/src/google/oauth.ts) ever needs a
+// separate client, split them here and set functions/.env's
+// GOOGLE_OAUTH_CLIENT_ID to match whichever one is used server-side — its
+// client secret must only ever live in Cloud Functions config/Secret
+// Manager, never in this app.
+//
+// Android's OAuth client is auto-linked via android/app/google-services.json
+// (from `flutterfire configure`) using the app's debug/release SHA-1 —
+// still pending, see the note where GoogleAuthConfig is used.
 class GoogleAuthConfig {
   GoogleAuthConfig._();
 
-  static const webClientId = 'REPLACE_WITH_WEB_OAUTH_CLIENT_ID.apps.googleusercontent.com';
+  static const webClientId =
+      '1012303591315-95nekgj63ffhc26sbrjrt3sm3i48pm0r.apps.googleusercontent.com';
 
-  static const serverClientId = 'REPLACE_WITH_SERVER_OAUTH_CLIENT_ID.apps.googleusercontent.com';
+  static const serverClientId =
+      '1012303591315-95nekgj63ffhc26sbrjrt3sm3i48pm0r.apps.googleusercontent.com';
 }

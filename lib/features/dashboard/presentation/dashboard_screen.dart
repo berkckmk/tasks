@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
+import '../../subscription/presentation/guarded_create.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
@@ -181,19 +181,19 @@ class DashboardScreen extends ConsumerWidget {
                       label: 'Add habit',
                       variant: AppButtonVariant.secondary,
                       icon: Icons.add,
-                      onPressed: () => context.push('/habits/new'),
+                      onPressed: () => GuardedCreate.habit(context, ref),
                     ),
                     AppButton(
                       label: 'Add task',
                       variant: AppButtonVariant.secondary,
                       icon: Icons.add,
-                      onPressed: () => context.push('/tasks/new'),
+                      onPressed: () => GuardedCreate.task(context, ref),
                     ),
                     AppButton(
                       label: 'Add goal',
                       variant: AppButtonVariant.secondary,
                       icon: Icons.add,
-                      onPressed: () => context.push('/goals/new'),
+                      onPressed: () => GuardedCreate.goal(context, ref),
                     ),
                   ],
                 ),

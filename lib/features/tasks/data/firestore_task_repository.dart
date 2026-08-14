@@ -1,14 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 
+import '../../../core/firebase/callable_service.dart';
+import '../../../core/firebase/query_limits.dart';
 import '../domain/task_item.dart';
 import '../domain/task_repository.dart';
 
 class FirestoreTaskRepository implements TaskRepository {
-  FirestoreTaskRepository(this._firestore, this._functions, this._uid);
+  FirestoreTaskRepository(this._firestore, this._callables, this._uid);
 
   final FirebaseFirestore _firestore;
-  final FirebaseFunctions _functions;
+  final CallableService _callables;
   final String _uid;
 
   CollectionReference<Map<String, dynamic>> get _tasksRef =>
@@ -16,7 +17,7 @@ class FirestoreTaskRepository implements TaskRepository {
 
   @override
   Stream<List<TaskItem>> watchTasks() {
-    return _tasksRef.orderBy('createdAt', descending: true).snapshots().map(
+    return _tasksRef.orderBy('createdAt', descending: true).limit(kListPageLimit).snapshots().map(
           (snapshot) =>
               snapshot.docs.map((doc) => TaskItem.fromFirestore(doc.id, doc.data())).toList(),
         );
@@ -38,7 +39,7 @@ class FirestoreTaskRepository implements TaskRepository {
       // collection outright. This is the only way the Starter plan's
       // 20-active-task limit can be enforced server-side (rules can't
       // count a collection's size). See functions/src/tasks/createTask.ts.
-      await _functions.httpsCallable('createTask').call<Map<String, dynamic>>({
+      await _callables.call('createTask', {
         'title': title,
         'description': description,
         'dueDate': dueDate?.toIso8601String(),
@@ -69,7 +70,7 @@ class FirestoreTaskRepository implements TaskRepository {
   Future<void> setDone(String taskId, bool done) async {
     await _tasksRef.doc(taskId).update({
       'status': (done ? TaskStatus.done : TaskStatus.todo).name,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 

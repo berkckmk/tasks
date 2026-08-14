@@ -23,19 +23,24 @@ final subscriptionStatusProvider = StreamProvider<SubscriptionStatus?>((ref) {
 
 /// Defaults to Starter while the subscription doc is still loading (or for
 /// a signed-out user), so gated UI never flashes an unlocked state.
+/// [resolveActivePlanId] also downgrades a lapsed/cancelled subscription and
+/// applies the closed-beta all-access override — see `domain/beta_access.dart`.
 final currentPlanProvider = Provider<Plan>((ref) {
-  final planId = ref.watch(subscriptionStatusProvider).valueOrNull?.planId ?? 'starter';
-  return planById(planId);
+  final status = ref.watch(subscriptionStatusProvider).valueOrNull;
+  return planById(resolveActivePlanId(status));
 });
 
 final planEnforcementProvider = Provider<PlanEnforcement>((ref) {
   final plan = ref.watch(currentPlanProvider);
-  final activeHabitCount = ref.watch(habitsProvider).valueOrNull?.length ?? 0;
-  final activeTaskCount =
-      ref.watch(tasksProvider).valueOrNull?.where((t) => !t.isDone).length ?? 0;
+  // `null` (still loading, or errored) is deliberately NOT collapsed to 0
+  // here: a count of 0 would read as "well under the limit" and let the UI
+  // offer a create button the server would then reject. PlanEnforcement
+  // treats an unknown count as "can't confirm there's room" instead.
+  final habitCount = ref.watch(habitsProvider).valueOrNull?.length;
+  final taskCount = ref.watch(tasksProvider).valueOrNull?.where((t) => !t.isDone).length;
   return PlanEnforcement(
     plan: plan,
-    activeHabitCount: activeHabitCount,
-    activeTaskCount: activeTaskCount,
+    activeHabitCount: habitCount,
+    activeTaskCount: taskCount,
   );
 });

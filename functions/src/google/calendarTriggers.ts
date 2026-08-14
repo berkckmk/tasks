@@ -1,6 +1,8 @@
+import { FieldValue } from "firebase-admin/firestore";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 import { google } from "googleapis";
 
+import { googleSecrets } from "../lib/secrets";
 import { getAuthorizedClient } from "./oauth";
 
 /**
@@ -21,33 +23,42 @@ async function deleteCalendarEvent(uid: string, eventId: string): Promise<void> 
 }
 
 export const onTaskWriteCleanupCalendarEvent = onDocumentWritten(
-  "users/{uid}/tasks/{taskId}",
-  async (event) => {
-    const before = event.data?.before?.data();
-    const after = event.data?.after?.data();
-    const eventId = before?.googleCalendarEventId as string | undefined;
-    if (!eventId) return;
-
-    const wasDeleted = !after;
-    const syncTurnedOff = after !== undefined && after.syncEnabled !== true;
-    if (wasDeleted || syncTurnedOff) {
-      await deleteCalendarEvent(event.params.uid, eventId);
-    }
-  }
+  { document: "users/{uid}/tasks/{taskId}", secrets: googleSecrets },
+  (event) => cleanupOnWrite(event, "googleCalendarEventId")
 );
 
 export const onHabitWriteCleanupCalendarEvent = onDocumentWritten(
-  "users/{uid}/habits/{habitId}",
-  async (event) => {
-    const before = event.data?.before?.data();
-    const after = event.data?.after?.data();
-    const eventId = before?.googleCalendarReminderEventId as string | undefined;
-    if (!eventId) return;
+  { document: "users/{uid}/habits/{habitId}", secrets: googleSecrets },
+  (event) => cleanupOnWrite(event, "googleCalendarReminderEventId")
+);
 
-    const wasDeleted = !after;
-    const syncTurnedOff = after !== undefined && after.syncEnabled !== true;
-    if (wasDeleted || syncTurnedOff) {
-      await deleteCalendarEvent(event.params.uid, eventId);
+async function cleanupOnWrite(
+  event: {
+    data?: {
+      before?: FirebaseFirestore.DocumentSnapshot;
+      after?: FirebaseFirestore.DocumentSnapshot;
+    };
+    params: { uid: string };
+  },
+  idField: string
+): Promise<void> {
+  const before = event.data?.before?.data();
+  const after = event.data?.after?.data();
+  const eventId = before?.[idField] as string | undefined;
+  if (!eventId) return;
+
+  const stillExists = after !== undefined;
+  const syncTurnedOff = stillExists && after.syncEnabled !== true;
+  if (!stillExists || syncTurnedOff) {
+    await deleteCalendarEvent(event.params.uid, eventId);
+
+    // Clear the stored id too. Leaving it behind on a document that still
+    // exists points at an event that no longer does, so the next sync would
+    // patch a deleted event and fail — permanently, since nothing else ever
+    // clears it. Guarded against a write loop: this only runs when the id
+    // was set, and it unsets it.
+    if (stillExists && after[idField] !== undefined) {
+      await event.data!.after!.ref.update({ [idField]: FieldValue.delete() });
     }
   }
-);
+}

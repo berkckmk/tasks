@@ -36,7 +36,7 @@ class HabitLog {
       'habitId': habitId,
       'date': date,
       'completed': completed,
-      'completedAt': completed ? Timestamp.now() : null,
+      'completedAt': completed ? FieldValue.serverTimestamp() : null,
     };
   }
 }

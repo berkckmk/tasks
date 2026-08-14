@@ -50,35 +50,35 @@ class UserProfileRepository {
   Future<void> updateSelectedPlan(String uid, String planId) async {
     await _doc(uid).update({
       'selectedPlan': planId,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   Future<void> updateAppPreferences(String uid, Map<String, dynamic> appPreferences) async {
     await _doc(uid).update({
       'appPreferences': appPreferences,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   Future<void> markOnboardingCompleted(String uid) async {
     await _doc(uid).update({
       'onboardingCompleted': true,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   Future<void> updateLinkedProviders(String uid, List<String> providerIds) async {
     await _doc(uid).update({
       'linkedProviders': providerIds,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
   Future<void> updatePhotoUrl(String uid, String photoUrl) async {
     await _doc(uid).update({
       'photoUrl': photoUrl,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 }

@@ -1,5 +1,5 @@
 name: steady_progress
-description: "A new Flutter project."
+description: "Calm, premium productivity tracking — habits, tasks, goals, and premium modules, on Flutter + Firebase."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -44,6 +44,12 @@ dependencies:
   cloud_firestore: ^5.5.0
   cloud_functions: ^5.1.5
   google_sign_in: ^7.1.0
+  # Direct dependency (not just transitive via google_sign_in) because
+  # auth_screen.dart imports google_sign_in_web/web_only.dart directly to
+  # render Google's own Sign-In button — required on web, where
+  # GoogleSignIn.authenticate() isn't supported. See
+  # lib/features/auth/presentation/widgets/google_web_sign_in_button_web.dart.
+  google_sign_in_web: ^1.1.0
   url_launcher: ^6.3.1
   firebase_storage: ^12.3.7
   image_picker: ^1.1.2

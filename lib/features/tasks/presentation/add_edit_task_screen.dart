@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/widgets/edit_target.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../goals/application/goal_providers.dart';
@@ -82,20 +83,33 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.taskId != null;
-    final tasksAsync = ref.watch(tasksProvider);
-    final tasks = tasksAsync.maybeWhen(data: (d) => d, orElse: () => const <TaskItem>[]);
-    final goalsAsync = ref.watch(goalsProvider);
-    final goals = goalsAsync.maybeWhen(data: (d) => d, orElse: () => const <Goal>[]);
+    final title = isEditing ? 'Edit task' : 'New task';
+    // The goal list only populates a dropdown, so an empty fallback is fine
+    // here — unlike the task itself, resolved strictly below.
+    final goals = ref.watch(goalsProvider).valueOrNull ?? const <Goal>[];
 
-    TaskItem? existing;
-    if (isEditing) {
-      for (final t in tasks) {
-        if (t.id == widget.taskId) {
-          existing = t;
-          break;
-        }
-      }
-      _initFromExisting(existing);
+    final target = EditTarget.resolve<TaskItem>(
+      id: widget.taskId,
+      async: ref.watch(tasksProvider),
+      idOf: (task) => task.id,
+    );
+
+    final TaskItem? existing;
+    switch (target) {
+      case EditTargetLoading():
+        return EditTargetLoadingScreen(title: title);
+      case EditTargetFailed(:final error):
+        return EditTargetMissingScreen(title: title, message: '', error: error);
+      case EditTargetMissing():
+        return EditTargetMissingScreen(
+          title: title,
+          message: "This task no longer exists. It may have been deleted on another device.",
+        );
+      case EditTargetFound(:final item):
+        existing = item;
+        _initFromExisting(existing);
+      case EditTargetCreating():
+        existing = null;
     }
 
     final calendarConnected =
@@ -103,9 +117,9 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit task' : 'New task'),
+        title: Text(title),
         actions: [
-          if (isEditing && existing != null)
+          if (existing != null)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Delete task',

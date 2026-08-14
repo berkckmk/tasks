@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/pricing_card.dart';
-import '../../subscription/application/dev_billing_service.dart';
+import '../../subscription/application/beta_billing_service.dart';
 import '../../subscription/application/subscription_providers.dart';
 import '../application/plan_providers.dart';
 

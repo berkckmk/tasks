@@ -20,6 +20,9 @@ class FirestoreSubscriptionRepository implements SubscriptionRepository {
     });
   }
 
+  /// Pinned to `starter`: firestore.rules only allows the client to *create*
+  /// this document, and only with that plan. Anything paid arrives later
+  /// from a billing webhook via the Admin SDK.
   @override
   Future<void> createInitialStatus(String uid) async {
     await _doc(uid).set(
@@ -33,20 +36,4 @@ class FirestoreSubscriptionRepository implements SubscriptionRepository {
     );
   }
 
-  @override
-  Future<void> setPlan({
-    required String uid,
-    required String planId,
-    required String billingProvider,
-  }) async {
-    await _doc(uid).set({
-      'planId': planId,
-      'status': SubscriptionState.active.name,
-      'startedAt': Timestamp.now(),
-      'billingProvider': billingProvider,
-      'isTrialActive': false,
-      'expiresAt': null,
-      'trialEndsAt': null,
-    }, SetOptions(merge: true));
-  }
 }

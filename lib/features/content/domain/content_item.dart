@@ -50,7 +50,7 @@ class ContentItem {
       'platform': platform,
       'publishDate': publishDate == null ? null : Timestamp.fromDate(publishDate!),
       'status': status.name,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 }

@@ -1,4 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Declared explicitly rather than relying on manifest merging from
+         firebase_messaging. The release build only had network access because
+         that plugin happened to contribute INTERNET; dropping or replacing FCM
+         would have removed it with no compile-time error. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- Requested at runtime by PushNotificationsRepository.requestPermission. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:label="Steady Progress"
         android:name="${applicationName}"

@@ -7,19 +7,24 @@ import '../domain/exercise_log.dart';
 import '../domain/workout.dart';
 import '../domain/workout_repository.dart';
 
-final workoutRepositoryProvider = Provider<WorkoutRepository?>((ref) {
+// Module streams below are `autoDispose`: each is watched only by its own
+// screen, so the Firestore listener closes when the user navigates away
+// instead of staying open for the rest of the session. Nothing outside the
+// widget tree watches them, which is what makes this safe — a non-autoDispose
+// provider cannot watch an autoDispose one.
+final workoutRepositoryProvider = Provider.autoDispose<WorkoutRepository?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return null;
   return FirestoreWorkoutRepository(ref.watch(firestoreProvider), uid);
 });
 
-final workoutsProvider = StreamProvider<List<Workout>>((ref) {
+final workoutsProvider = StreamProvider.autoDispose<List<Workout>>((ref) {
   final repository = ref.watch(workoutRepositoryProvider);
   if (repository == null) return Stream.value(const []);
   return repository.watchWorkouts();
 });
 
-final exerciseLogsProvider = StreamProvider<List<ExerciseLog>>((ref) {
+final exerciseLogsProvider = StreamProvider.autoDispose<List<ExerciseLog>>((ref) {
   final repository = ref.watch(workoutRepositoryProvider);
   if (repository == null) return Stream.value(const []);
   return repository.watchExerciseLogs();

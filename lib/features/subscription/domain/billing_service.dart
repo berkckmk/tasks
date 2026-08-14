@@ -4,8 +4,8 @@ import 'purchase_result.dart';
 /// interface — never to a payment SDK directly — so swapping in Stripe,
 /// RevenueCat, Google Play Billing, Lemon Squeezy, or Paddle later is a
 /// single provider override (see `billingServiceProvider`), not a UI
-/// rewrite. See DevBillingService for the current placeholder and notes on
-/// what a real implementation needs to do differently.
+/// rewrite. See BetaBillingService for the placeholder used during the
+/// closed beta, and `beta_access.dart` for how to switch to the real ones.
 abstract class BillingService {
   Future<PurchaseResult> purchasePlan(String planId, {required bool yearly});
 

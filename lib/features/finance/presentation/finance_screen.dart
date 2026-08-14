@@ -17,7 +17,11 @@ import '../domain/savings_goal.dart';
 import 'widgets/add_transaction_sheet.dart';
 import 'widgets/savings_goal_sheet.dart';
 
-final _currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+// Two decimals, deliberately: with decimalDigits: 0 a \$10.50 expense
+// rendered as "\$11", and because the per-row values and the totals were
+// each rounded independently for display, the total on screen could disagree
+// with the sum of the rows the user could see.
+final _currencyFormat = NumberFormat.currency(symbol: '\$', decimalDigits: 2);
 
 class FinanceScreen extends ConsumerWidget {
   const FinanceScreen({super.key});

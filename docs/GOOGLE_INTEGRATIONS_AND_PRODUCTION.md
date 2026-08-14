@@ -92,8 +92,9 @@ version in git history for the full write-up — summarized here):
 - `verifyPlayPurchase` — calls the Android Publisher API
   (`androidpublisher.purchases.subscriptions.get`) to confirm a purchase
   token is real and active before granting the plan.
-- **`billingServiceProvider` still points at `DevBillingService`** (see
-  §7 — this is intentional, not an oversight).
+- **`billingServiceProvider` returns `BetaBillingService`** during the
+  closed beta (see §7). Unlike the `DevBillingService` it replaced, it cannot
+  write entitlement — `subscription/status` is Admin-SDK-only now.
 
 ---
 
@@ -175,7 +176,7 @@ Flutter app.)*
 |---|---|---|
 | `fcmTokens/{token}` | ✅ (own) | ✅ (own) — a device token isn't a credential for the user's account, so client-write is an acceptable trade-off to avoid a Cloud Function round-trip just to register a device |
 | `storage: users/{uid}/avatar.jpg` | ✅ (public) | ✅ (own uid, ≤5MB, must be `image/*`) |
-| `subscription/status` | ✅ (own) | ⚠️ still client-writable (DevBillingService) — see §7 for the exact lock-down step |
+| `subscription/status` | ✅ (own) | `create` only, pinned to `planId: 'starter'` (the sign-up bootstrap). `update`/`delete` denied — entitlement is Admin-SDK-only, written by `handleBillingWebhook` / `verifyPlayPurchase` |
 
 Everything from the previous phase (`integrations/*`, `secureTokens/*`,
 `reports/*` all function-only) is unchanged.
@@ -239,35 +240,43 @@ actual subscription products in Play Console and prices in the Stripe
 Dashboard, and testing a real purchase — both need accounts/consoles this
 environment has no access to.
 
-**`billingServiceProvider` is deliberately still `DevBillingService`.**
-Pointing it at the real services before Play Console/Stripe are configured
-would replace working dev-mode plan switching with calls that fail with
-"not configured" errors, which would break the app's current testing flow
-for no benefit. To go live, once the accounts above are set up:
+**`billingServiceProvider` currently returns `BetaBillingService`**, because
+the app is in a closed beta where every account is granted the Complete plan
+for free — see `lib/features/subscription/domain/beta_access.dart`.
+
+That free access comes from the `kBetaAllAccess` flag, **not** from a
+client-writable entitlement document. `subscription/status` is now
+Admin-SDK-only (`allow update, delete: if false`), which is what makes every
+plan check trustworthy: previously both `firestore.rules`' `userPlan()` and
+`functions/src/lib/plan.ts`' `getUserPlanId()` read a document the account
+being gated could write, so any user could grant themselves Complete with a
+single console write, and `BetaBillingService` cannot grant anything at all.
+
+To go live, once Play Console/Stripe are set up:
 
 1. Fill in real IDs in
-   `lib/features/subscription/domain/billing_product_ids.dart`.
-2. In `lib/features/subscription/application/dev_billing_service.dart`,
-   change:
-   ```dart
-   final billingServiceProvider = Provider<BillingService>((ref) => DevBillingService(ref));
-   ```
-   to:
-   ```dart
-   final billingServiceProvider = Provider<BillingService>((ref) {
-     if (kIsWeb) return StripeCheckoutService(ref.watch(firebaseFunctionsProvider));
-     return PlayBillingService(ref.watch(firebaseFunctionsProvider));
-   });
-   ```
-3. **Before that switch ships**, lock down `subscription/status` in
-   `firestore.rules` — change its `allow create, update` to `if false`.
-   Once a real provider is active, the ONLY writers should be
-   `handleBillingWebhook` (Stripe) and `verifyPlayPurchase` (Play), both
-   using the Admin SDK. Skipping this means a user could still call
-   `purchasePlan()` and grant themselves Complete for free, even with a
-   "real" provider selected — the client-writable rule is what actually
-   makes DevBillingService's shortcut work, and it doesn't stop working
-   just because the client-side class changed.
+   `lib/features/subscription/domain/billing_product_ids.dart`, and set
+   `STRIPE_PRICE_GROWTH` / `STRIPE_PRICE_COMPLETE` / `APP_ALLOWED_ORIGINS` in
+   `functions/.env` (unknown price IDs are rejected — the mapping fails
+   closed).
+2. Set the three secrets with `firebase functions:secrets:set`
+   (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
+   `GOOGLE_OAUTH_CLIENT_SECRET`). They're declared via `defineSecret` in
+   `functions/src/lib/secrets.ts` and bound per function; a secret that isn't
+   bound is never injected.
+3. Turn off the closed beta by flipping **all three** mirrors in one commit:
+   `kBetaAllAccess` (`beta_access.dart`), `BETA_ALL_ACCESS`
+   (`functions/src/lib/plan.ts`), and `betaAllAccess()` (`firestore.rules`).
+   Then delete the `kBetaAllAccess` branch in `billingServiceProvider` so it
+   returns the real Stripe/Play services.
+4. Update `test/app_flow_test.dart`'s "closed beta unlocks premium modules"
+   case — it asserts `kBetaAllAccess` is true precisely so that turning the
+   beta off surfaces here rather than silently changing behaviour.
+
+Entitlement expiry is already enforced on both sides: `getUserPlanId` and
+`firestore.rules` both resolve a cancelled/expired subscription (or one whose
+`expiresAt` has passed) to `starter`, so a webhook that never arrives can't
+leave a paid plan granted forever.
 
 | Platform | Provider | Status |
 |---|---|---|

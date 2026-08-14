@@ -2,8 +2,9 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import { db } from "../lib/admin";
 import { assertPlan } from "../lib/plan";
-import { deleteTokens } from "../lib/tokens";
-import { exchangeAndStoreCode } from "./oauth";
+import { googleSecrets } from "../lib/secrets";
+import { deleteTokens, getTokens } from "../lib/tokens";
+import { exchangeAndStoreCode, revokeRefreshToken } from "./oauth";
 
 export const VALID_INTEGRATIONS = ["calendar", "sheets", "drive", "docs"] as const;
 export type IntegrationId = (typeof VALID_INTEGRATIONS)[number];
@@ -33,7 +34,7 @@ function assertIntegration(value: unknown): asserts value is IntegrationId {
  * never all four integrations' scopes at once. See
  * lib/features/google_integrations/application/google_integrations_actions.dart.
  */
-export const connectGoogleIntegration = onCall(async (request) => {
+export const connectGoogleIntegration = onCall({ secrets: googleSecrets }, async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Sign in required.");
   await assertPlan(uid, ["complete"]);
@@ -68,12 +69,20 @@ export const connectGoogleIntegration = onCall(async (request) => {
   return { ok: true };
 });
 
-export const disconnectGoogleIntegration = onCall(async (request) => {
+export const disconnectGoogleIntegration = onCall({ secrets: googleSecrets }, async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Sign in required.");
 
   const { integration } = request.data as { integration?: unknown };
   assertIntegration(integration);
+
+  // Revoke at Google before deleting our copy. Deleting alone left the
+  // grant live on the user's Google account indefinitely, so "disconnect"
+  // didn't actually withdraw the access it claimed to.
+  const stored = await getTokens(uid, integration);
+  if (stored?.refreshToken) {
+    await revokeRefreshToken(stored.refreshToken);
+  }
 
   await deleteTokens(uid, integration);
   await db

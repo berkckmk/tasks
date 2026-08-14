@@ -6,8 +6,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
-import '../../subscription/application/subscription_providers.dart';
-import '../../subscription/presentation/widgets/plan_limit_dialog.dart';
+import '../../subscription/presentation/guarded_create.dart';
 import '../application/task_providers.dart';
 import '../domain/task_item.dart';
 import 'widgets/task_card.dart';
@@ -15,21 +14,6 @@ import 'widgets/task_card.dart';
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
 
-  void _addTask(BuildContext context, WidgetRef ref) {
-    final enforcement = ref.read(planEnforcementProvider);
-    if (!enforcement.canCreateTask) {
-      showPlanLimitDialog(
-        context,
-        message:
-            'The ${enforcement.plan.name} plan allows up to '
-            '${enforcement.plan.limits.maxActiveTasks} active tasks. '
-            'Upgrade to Growth for unlimited tasks.',
-        requiredPlanName: 'Growth',
-      );
-      return;
-    }
-    context.push('/tasks/new');
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +23,7 @@ class TasksScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Tasks')),
       floatingActionButton: FloatingActionButton(
         heroTag: 'tasksFab',
-        onPressed: () => _addTask(context, ref),
+        onPressed: () => GuardedCreate.task(context, ref),
         backgroundColor: AppColors.deepGreen,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -51,7 +35,7 @@ class TasksScreen extends ConsumerWidget {
               title: 'No tasks yet',
               message: 'Add a task to start planning your day.',
               actionLabel: 'Add task',
-              onAction: () => _addTask(context, ref),
+              onAction: () => GuardedCreate.task(context, ref),
             );
           }
 

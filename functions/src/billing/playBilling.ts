@@ -64,27 +64,55 @@ export const verifyPlayPurchase = onCall(async (request) => {
     const expiryTimeMillis = Number(response.data.expiryTimeMillis ?? 0);
     const isActive = expiryTimeMillis > Date.now();
 
-    if (isActive) {
-      await db
-        .collection("users")
-        .doc(uid)
-        .collection("subscription")
-        .doc("status")
-        .set(
-          {
-            planId: planIdFromProductId(productId),
-            status: "active",
-            billingProvider: "play_billing",
-            startedAt: new Date(),
-            expiresAt: new Date(expiryTimeMillis),
-          },
-          { merge: true }
-        );
+    const planId = planIdFromProductId(productId);
+    if (planId === "starter") {
+      console.warn(`Play purchase for unknown productId ${productId}; refusing to grant.`);
+      return { granted: false };
     }
 
-    return { granted: isActive };
+    if (!isActive) return { granted: false };
+
+    const subscriptionDoc = db
+      .collection("users")
+      .doc(uid)
+      .collection("subscription")
+      .doc("status");
+    const existing = await subscriptionDoc.get();
+
+    await subscriptionDoc.set(
+      {
+        planId,
+        status: "active",
+        billingProvider: "play_billing",
+        // Preserved rather than restamped, so re-verifying an existing
+        // purchase (which the client does on every launch) doesn't keep
+        // moving the subscription's start date forward.
+        startedAt: existing.data()?.startedAt ?? new Date(),
+        expiresAt: new Date(expiryTimeMillis),
+        isTrialActive: false,
+        playPurchaseToken: purchaseToken,
+      },
+      { merge: true }
+    );
+
+    // Acknowledge server-side, and only now that the purchase is verified
+    // and entitlement is stored. Play auto-refunds a purchase that isn't
+    // acknowledged within three days; the client used to acknowledge even
+    // when verification had failed, which defeated that safety net.
+    if (response.data.acknowledgementState === 0) {
+      await androidPublisher.purchases.subscriptions.acknowledge({
+        packageName,
+        subscriptionId: productId,
+        token: purchaseToken,
+        requestBody: {},
+      });
+    }
+
+    return { granted: true };
   } catch (error) {
     console.error("Play purchase verification failed:", error);
-    return { granted: false };
+    // A Play API outage is not the same as a forged token, and telling a
+    // paying user "couldn't be verified" with no retry is the worse failure.
+    throw new HttpsError("internal", "Could not verify the purchase right now. Please try again.");
   }
 });

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/firebase/query_limits.dart';
 import '../domain/goal.dart';
 import '../domain/goal_repository.dart';
 import '../domain/milestone.dart';
@@ -15,7 +16,7 @@ class FirestoreGoalRepository implements GoalRepository {
 
   @override
   Stream<List<Goal>> watchGoals() {
-    return _goalsRef.orderBy('createdAt', descending: true).snapshots().map(
+    return _goalsRef.orderBy('createdAt', descending: true).limit(kListPageLimit).snapshots().map(
           (snapshot) => snapshot.docs.map((doc) => Goal.fromFirestore(doc.id, doc.data())).toList(),
         );
   }
@@ -43,7 +44,7 @@ class FirestoreGoalRepository implements GoalRepository {
     ).toFirestore();
 
     if (id == null) {
-      await _goalsRef.add({...data, 'createdAt': Timestamp.now()});
+      await _goalsRef.add({...data, 'createdAt': FieldValue.serverTimestamp()});
     } else {
       await _goalsRef.doc(id).set(data, SetOptions(merge: true));
     }

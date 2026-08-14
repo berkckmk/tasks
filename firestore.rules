@@ -7,12 +7,41 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // email_verified is required so a password-signup account can't touch
+    // any user data until the owner actually clicks the link from
+    // AuthRepository.signUpWithEmail's verification email — the anti-abuse
+    // measure requested alongside this. Google accounts arrive with
+    // email_verified already true (Google verifies it), so this never
+    // blocks them. The corresponding Flutter-side gate is the /verify-email
+    // redirect in app/router/app_router.dart, but that alone only hides
+    // UI — this is what actually stops a signed-in-but-unverified account
+    // from writing directly to Firestore with its own valid ID token.
+    //
+    // Because of this, the profile/subscription bootstrap for password
+    // signups can't happen at signUp() time (the token doesn't carry
+    // email_verified: true yet) — it's deferred to
+    // AuthActions.checkEmailVerified(), which forces an ID token refresh
+    // via User.getIdToken(true) right after confirming verification, so
+    // the token Firestore sees is actually current.
     function isOwner(uid) {
-      return isSignedIn() && request.auth.uid == uid;
+      return isSignedIn() && request.auth.uid == uid && request.auth.token.email_verified == true;
     }
 
     function isNonEmptyString(value) {
       return value is string && value.size() > 0;
+    }
+
+    // Closed-beta switch — mirrors `kBetaAllAccess` in
+    // lib/features/subscription/domain/beta_access.dart and
+    // `BETA_ALL_ACCESS` in functions/src/lib/plan.ts. While true, every
+    // signed-in owner is treated as being on the `complete` plan. See the
+    // Dart file for why this exists and for the full flip-list.
+    //
+    // Note this is checked *before* userPlan() below, and `||`
+    // short-circuits, so during the beta these rules never issue the
+    // subscription get() at all — no extra document read per write.
+    function betaAllAccess() {
+      return true;
     }
 
     // Server-side plan enforcement. Mirrors PlanEnforcement on the Flutter
@@ -22,15 +51,42 @@ service cloud.firestore {
     // credentials (e.g. from the browser console). This get() is what
     // actually closes that gap for security-rule-enforced collections.
     //
-    // Fails closed: if the subscription doc doesn't exist yet (e.g. the
-    // brief window right after sign-up), get() errors and the surrounding
-    // allow rule evaluates to false rather than granting access.
+    // This is only trustworthy because subscription/status is NOT
+    // client-writable (see its match block below). When it was, this whole
+    // check was circular — the account being gated could write the very
+    // document that gates it.
+    //
+    // Fails closed at every step: a missing subscription doc (e.g. the brief
+    // window right after sign-up) makes get() error and the surrounding
+    // allow rule evaluate to false; a cancelled/expired subscription, or one
+    // whose expiresAt has passed, resolves to no plan rather than the stale
+    // paid one.
+    // Every field is read with .get(key, default) rather than dot access:
+    // a document written before these fields existed would otherwise make
+    // the whole rule error out instead of evaluating.
+    function subscriptionIsLive(sub) {
+      return !(sub.get('status', 'active') in ['expired', 'canceled'])
+        && (sub.get('expiresAt', null) == null || request.time < sub.expiresAt)
+        && (sub.get('status', 'active') != 'trialing'
+            || sub.get('trialEndsAt', null) == null
+            || request.time < sub.trialEndsAt);
+    }
+
+    function planFromSubscription(sub) {
+      return subscriptionIsLive(sub) ? sub.get('planId', 'starter') : 'starter';
+    }
+
+    // Note the single get(): `subscriptionIsLive` and the planId read both
+    // work off one already-fetched snapshot, so a write costs at most one
+    // extra document read (and none at all while the beta short-circuits).
     function userPlan(uid) {
-      return get(/databases/$(database)/documents/users/$(uid)/subscription/status).data.planId;
+      return planFromSubscription(
+        get(/databases/$(database)/documents/users/$(uid)/subscription/status).data
+      );
     }
 
     function hasPlanAtLeast(uid, plans) {
-      return isOwner(uid) && userPlan(uid) in plans;
+      return isOwner(uid) && (betaAllAccess() || userPlan(uid) in plans);
     }
 
     // users/{uid} — the profile document itself.
@@ -124,22 +180,35 @@ service cloud.firestore {
         allow read, write: if isOwner(uid);
       }
 
-      // subscription/status — the single doc read by PlanEnforcement.
+      // subscription/status — the entitlement document read by
+      // userPlan() above and by getUserPlanId() in the Cloud Functions.
       //
-      // IMPORTANT: this is client-writable ONLY because no real payment
-      // provider is connected yet (DevBillingService writes it directly to
-      // simulate a purchase for development/testing). The moment a real
-      // BillingService is wired up, change `allow update` here to
-      // `if false` and have a Cloud Function (verified against the
-      // provider's webhook) write this doc with the Admin SDK instead —
-      // otherwise a user could grant themselves Complete for free by
-      // calling this write directly.
+      // Upgrades are Admin-SDK-only: only handleBillingWebhook (verified
+      // against Stripe's signature) and verifyPlayPurchase (verified against
+      // the Play Developer API) may change the plan. If the client could
+      // write this, every plan check in this file and in functions/ would be
+      // circular — the account being gated writing the document that gates
+      // it — and any user could grant themselves Complete for free with one
+      // console write. That was previously the case; it is the single most
+      // important thing on this file not to regress.
+      //
+      // `create` stays open but is pinned to a free starter document so the
+      // sign-up bootstrap (AuthActions._bootstrapProfileIfNeeded ->
+      // FirestoreSubscriptionRepository.createInitialStatus) still works
+      // without a Cloud Function round-trip. It grants nothing: `update` and
+      // `delete` are both denied, so the doc can't be escalated afterwards
+      // and can't be deleted and re-created to reset it either.
+      //
+      // Free access during the closed beta is granted by betaAllAccess()
+      // above, deliberately NOT by writing 'complete' here — that keeps the
+      // grant in one auditable place instead of scattered across every
+      // tester's user document.
       match /subscription/{statusDoc} {
         allow read: if isOwner(uid);
-        allow create, update: if isOwner(uid)
-          && request.resource.data.planId in ['starter', 'growth', 'complete']
+        allow create: if isOwner(uid)
+          && request.resource.data.planId == 'starter'
           && request.resource.data.billingProvider is string;
-        allow delete: if isOwner(uid);
+        allow update, delete: if false;
       }
 
       // finance_transactions/{transactionId} — Complete plan only. Reads

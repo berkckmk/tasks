@@ -28,6 +28,14 @@ class AuthRepository {
   List<String> get linkedProviderIds =>
       _auth.currentUser?.providerData.map((info) => info.providerId).toList() ?? [];
 
+  /// Sends a verification email after creating the account — the anti-abuse
+  /// measure for the email/password path (Google accounts arrive
+  /// pre-verified, so this only ever applies here). Best-effort: a failure
+  /// to *send* the email shouldn't undo an otherwise-successful signup, so
+  /// it's swallowed rather than thrown; [needsEmailVerification] still
+  /// gates the app shell on `emailVerified`, so the user isn't let in
+  /// without one either way — see AuthActions.resendVerificationEmail for
+  /// the retry path if sending genuinely failed.
   Future<User> signUpWithEmail({required String email, required String password}) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
@@ -36,10 +44,60 @@ class AuthRepository {
       );
       final user = credential.user;
       if (user == null) throw AuthException('Sign up failed. Please try again.');
+      try {
+        await user.sendEmailVerification();
+      } catch (_) {
+        // Swallowed — see doc comment above.
+      }
       return user;
     } on FirebaseAuthException catch (e) {
       throw AuthException(_messageFor(e));
     }
+  }
+
+  /// True once a signed-in user still needs to click the link from
+  /// [signUpWithEmail]'s verification email before using the app. Google
+  /// sign-in accounts are verified by Google already, so this is only ever
+  /// true for the email/password path.
+  bool get needsEmailVerification {
+    final user = _auth.currentUser;
+    return user != null && !user.emailVerified;
+  }
+
+  Future<void> resendVerificationEmail() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    try {
+      await user.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'too-many-requests') {
+        throw AuthException('Please wait a bit before requesting another email.');
+      }
+      throw AuthException(_messageFor(e));
+    }
+  }
+
+  /// Refreshes the cached [User] from the server so a just-verified email
+  /// is reflected in [needsEmailVerification] — `emailVerified` doesn't
+  /// update on its own just because the user clicked the link in another
+  /// tab.
+  ///
+  /// On the transition to verified, also force-refreshes the ID token
+  /// (`getIdToken(true)`). `reload()` alone only updates the cached [User]
+  /// object — firestore.rules checks `request.auth.token.email_verified`,
+  /// which comes from the *token's* claims and won't pick up the change
+  /// until the token itself is reissued. Without this, the very next
+  /// Firestore write (the deferred profile bootstrap — see
+  /// AuthActions.checkEmailVerified) would still be rejected as
+  /// unverified even though the user just verified.
+  Future<bool> reloadAndCheckEmailVerified() async {
+    await _auth.currentUser?.reload();
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    if (user.emailVerified) {
+      await user.getIdToken(true);
+    }
+    return user.emailVerified;
   }
 
   Future<User> signInWithEmail({required String email, required String password}) async {
@@ -57,8 +115,23 @@ class AuthRepository {
   /// using a different provider (e.g. email/password), Firebase refuses the
   /// sign-in with `account-exists-with-different-credential` — we surface a
   /// clear message rather than silently failing or auto-merging accounts.
+  ///
+  /// Only works on Android/iOS — `GoogleSignIn.authenticate()` isn't
+  /// supported on web (see [signInWithGoogleAccount] for the web path).
   Future<User> signInWithGoogle() async {
-    final credential = await _googleCredential();
+    final account = await _googleAccount();
+    return signInWithGoogleAccount(account);
+  }
+
+  /// Completes Firebase sign-in for a [GoogleSignInAccount] already obtained
+  /// some other way — specifically, the web flow, where Google Identity
+  /// Services requires its own rendered button
+  /// (`GoogleSignIn.authenticate()` throws `UnimplementedError` on web) and
+  /// the resulting account arrives via `GoogleSignIn.authenticationEvents`
+  /// instead of a direct return value. See google_web_sign_in_button.dart
+  /// and its use in auth_screen.dart.
+  Future<User> signInWithGoogleAccount(GoogleSignInAccount account) async {
+    final credential = _credentialFromAccount(account);
     try {
       final result = await _auth.signInWithCredential(credential);
       final user = result.user;
@@ -83,7 +156,8 @@ class AuthRepository {
     final user = _auth.currentUser;
     if (user == null) throw AuthException('You need to be signed in first.');
 
-    final credential = await _googleCredential();
+    final account = await _googleAccount();
+    final credential = _credentialFromAccount(account);
     try {
       final result = await user.linkWithCredential(credential);
       return result.user ?? user;
@@ -134,20 +208,25 @@ class AuthRepository {
     await GoogleSignIn.instance.signOut();
   }
 
-  Future<AuthCredential> _googleCredential() async {
+  /// Only works on Android/iOS — see [signInWithGoogleAccount] for why web
+  /// can't use this.
+  Future<GoogleSignInAccount> _googleAccount() async {
     try {
-      final account = await GoogleSignIn.instance.authenticate();
-      final idToken = account.authentication.idToken;
-      if (idToken == null) {
-        throw AuthException("Google didn't return an ID token. Please try again.");
-      }
-      return GoogleAuthProvider.credential(idToken: idToken);
+      return await GoogleSignIn.instance.authenticate();
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
         throw AuthException('Google sign-in was canceled.');
       }
       throw AuthException('Google sign-in failed: ${e.description ?? e.code}');
     }
+  }
+
+  AuthCredential _credentialFromAccount(GoogleSignInAccount account) {
+    final idToken = account.authentication.idToken;
+    if (idToken == null) {
+      throw AuthException("Google didn't return an ID token. Please try again.");
+    }
+    return GoogleAuthProvider.credential(idToken: idToken);
   }
 
   Future<void> signOut() async {

@@ -85,7 +85,7 @@ class Goal {
       'progressType': progressType.name,
       'manualProgress': manualProgress,
       'milestones': milestones.map((m) => m.toMap()).toList(),
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

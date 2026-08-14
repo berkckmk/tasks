@@ -9,7 +9,10 @@ abstract class SubscriptionRepository {
   /// state stream has necessarily caught up.
   Future<void> createInitialStatus(String uid);
 
-  /// Called by [BillingService] implementations once a purchase is
-  /// confirmed (today, that's immediately — see DevBillingService).
-  Future<void> setPlan({required String uid, required String planId, required String billingProvider});
+  // There is deliberately no `setPlan` here. Entitlement is written only by
+  // the Admin SDK — handleBillingWebhook (Stripe signature verified) and
+  // verifyPlayPurchase (Play Developer API verified) — and firestore.rules
+  // denies `update` on subscription/status outright, so a client-side setter
+  // could not succeed even if something called it. Plan changes reach the
+  // app by flowing back down through [watchStatus].
 }

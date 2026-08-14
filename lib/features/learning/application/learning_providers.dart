@@ -6,13 +6,18 @@ import '../data/firestore_learning_repository.dart';
 import '../domain/learning_item.dart';
 import '../domain/learning_repository.dart';
 
-final learningRepositoryProvider = Provider<LearningRepository?>((ref) {
+// Module streams below are `autoDispose`: each is watched only by its own
+// screen, so the Firestore listener closes when the user navigates away
+// instead of staying open for the rest of the session. Nothing outside the
+// widget tree watches them, which is what makes this safe — a non-autoDispose
+// provider cannot watch an autoDispose one.
+final learningRepositoryProvider = Provider.autoDispose<LearningRepository?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return null;
   return FirestoreLearningRepository(ref.watch(firestoreProvider), uid);
 });
 
-final learningItemsProvider = StreamProvider<List<LearningItem>>((ref) {
+final learningItemsProvider = StreamProvider.autoDispose<List<LearningItem>>((ref) {
   final repository = ref.watch(learningRepositoryProvider);
   if (repository == null) return Stream.value(const []);
   return repository.watchItems();

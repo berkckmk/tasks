@@ -7,6 +7,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/edit_target.dart';
 import '../../google_integrations/application/google_integrations_providers.dart';
 import '../../google_integrations/domain/google_sync_status.dart';
 import '../application/habit_providers.dart';
@@ -87,18 +88,32 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.habitId != null;
-    final habitsAsync = ref.watch(habitsProvider);
-    final habits = habitsAsync.maybeWhen(data: (d) => d, orElse: () => const <Habit>[]);
+    final title = isEditing ? 'Edit habit' : 'New habit';
 
-    Habit? existing;
-    if (isEditing) {
-      for (final h in habits) {
-        if (h.id == widget.habitId) {
-          existing = h;
-          break;
-        }
-      }
-      _initFromExisting(existing);
+    // Never falls through to the create path when the habit can't be
+    // resolved — see EditTarget for why that used to produce duplicates.
+    final target = EditTarget.resolve<Habit>(
+      id: widget.habitId,
+      async: ref.watch(habitsProvider),
+      idOf: (habit) => habit.id,
+    );
+
+    final Habit? existing;
+    switch (target) {
+      case EditTargetLoading():
+        return EditTargetLoadingScreen(title: title);
+      case EditTargetFailed(:final error):
+        return EditTargetMissingScreen(title: title, message: '', error: error);
+      case EditTargetMissing():
+        return EditTargetMissingScreen(
+          title: title,
+          message: "This habit no longer exists. It may have been deleted on another device.",
+        );
+      case EditTargetFound(:final item):
+        existing = item;
+        _initFromExisting(existing);
+      case EditTargetCreating():
+        existing = null;
     }
 
     final calendarConnected =
@@ -106,9 +121,9 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit habit' : 'New habit'),
+        title: Text(title),
         actions: [
-          if (isEditing && existing != null)
+          if (existing != null)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Delete habit',

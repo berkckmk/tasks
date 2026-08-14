@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/firebase/query_limits.dart';
 import '../domain/content_item.dart';
 import '../domain/content_repository.dart';
 
@@ -14,7 +15,7 @@ class FirestoreContentRepository implements ContentRepository {
 
   @override
   Stream<List<ContentItem>> watchItems() {
-    return _itemsRef.orderBy('createdAt', descending: true).snapshots().map(
+    return _itemsRef.orderBy('createdAt', descending: true).limit(kListPageLimit).snapshots().map(
           (snapshot) =>
               snapshot.docs.map((doc) => ContentItem.fromFirestore(doc.id, doc.data())).toList(),
         );
@@ -37,7 +38,7 @@ class FirestoreContentRepository implements ContentRepository {
     ).toFirestore();
 
     if (id == null) {
-      await _itemsRef.add({...data, 'createdAt': Timestamp.now()});
+      await _itemsRef.add({...data, 'createdAt': FieldValue.serverTimestamp()});
     } else {
       await _itemsRef.doc(id).set(data, SetOptions(merge: true));
     }

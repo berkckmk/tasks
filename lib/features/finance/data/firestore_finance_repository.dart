@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../core/firebase/query_limits.dart';
 import '../domain/finance_repository.dart';
 import '../domain/finance_transaction.dart';
 import '../domain/savings_goal.dart';
@@ -18,7 +19,7 @@ class FirestoreFinanceRepository implements FinanceRepository {
 
   @override
   Stream<List<FinanceTransaction>> watchTransactions() {
-    return _transactionsRef.orderBy('date', descending: true).snapshots().map(
+    return _transactionsRef.orderBy('date', descending: true).limit(kListPageLimit).snapshots().map(
           (snapshot) => snapshot.docs
               .map((doc) => FinanceTransaction.fromFirestore(doc.id, doc.data()))
               .toList(),
@@ -42,7 +43,7 @@ class FirestoreFinanceRepository implements FinanceRepository {
         note: note,
         date: date,
       ).toFirestore(),
-      'createdAt': Timestamp.now(),
+      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 
@@ -53,7 +54,7 @@ class FirestoreFinanceRepository implements FinanceRepository {
 
   @override
   Stream<List<SavingsGoal>> watchSavingsGoals() {
-    return _savingsGoalsRef.orderBy('createdAt', descending: true).snapshots().map(
+    return _savingsGoalsRef.orderBy('createdAt', descending: true).limit(kListPageLimit).snapshots().map(
           (snapshot) =>
               snapshot.docs.map((doc) => SavingsGoal.fromFirestore(doc.id, doc.data())).toList(),
         );
@@ -76,7 +77,7 @@ class FirestoreFinanceRepository implements FinanceRepository {
     ).toFirestore();
 
     if (id == null) {
-      await _savingsGoalsRef.add({...data, 'createdAt': Timestamp.now()});
+      await _savingsGoalsRef.add({...data, 'createdAt': FieldValue.serverTimestamp()});
     } else {
       await _savingsGoalsRef.doc(id).set(data, SetOptions(merge: true));
     }

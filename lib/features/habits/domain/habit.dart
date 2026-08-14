@@ -80,7 +80,7 @@ class Habit {
       'frequencyLabel': frequencyLabel,
       'colorValue': colorValue,
       'reminderTimeLabel': reminderTimeLabel,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
   }
 

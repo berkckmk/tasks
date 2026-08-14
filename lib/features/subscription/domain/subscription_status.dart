@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'beta_access.dart';
+
 enum SubscriptionState { active, trialing, expired, canceled }
 
 /// Mirrors `users/{uid}/subscription/status`. This is the single source of
@@ -43,6 +45,26 @@ class SubscriptionStatus {
     );
   }
 
+  /// Whether this subscription still entitles the user to [planId] right
+  /// now. `expired`/`canceled` never entitle, and an `active` subscription
+  /// stops entitling once [expiresAt] has passed — a webhook that never
+  /// arrived (failed delivery, a Play purchase refunded out-of-band) must
+  /// not leave a paid plan granted forever.
+  bool isEntitledAt(DateTime now) {
+    switch (status) {
+      case SubscriptionState.expired:
+      case SubscriptionState.canceled:
+        return false;
+      case SubscriptionState.trialing:
+        final trialEnd = trialEndsAt;
+        if (trialEnd != null && !now.isBefore(trialEnd)) return false;
+      case SubscriptionState.active:
+        break;
+    }
+    final expiry = expiresAt;
+    return expiry == null || now.isBefore(expiry);
+  }
+
   Map<String, dynamic> toFirestore() {
     return {
       'planId': planId,
@@ -54,4 +76,19 @@ class SubscriptionStatus {
       'trialEndsAt': trialEndsAt == null ? null : Timestamp.fromDate(trialEndsAt!),
     };
   }
+}
+
+/// The plan the app should actually behave as, given a (possibly absent)
+/// subscription document.
+///
+/// Falls back to `starter` for a missing document or a lapsed subscription,
+/// so a still-loading stream or a webhook that never landed can never
+/// silently unlock a paid module. While [kBetaAllAccess] is on this returns
+/// [kBetaPlanId] for everyone — see `beta_access.dart` for why and for how
+/// to turn it off.
+String resolveActivePlanId(SubscriptionStatus? status, {DateTime? now}) {
+  if (kBetaAllAccess) return kBetaPlanId;
+  if (status == null) return 'starter';
+  if (!status.isEntitledAt(now ?? DateTime.now())) return 'starter';
+  return status.planId;
 }

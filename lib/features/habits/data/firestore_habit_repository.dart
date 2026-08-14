@@ -1,16 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 
+import '../../../core/firebase/callable_service.dart';
+import '../../../core/firebase/query_limits.dart';
+import '../../../core/firebase/firestore_batch.dart';
 import '../domain/habit.dart';
 import '../domain/habit_log.dart';
 import '../domain/habit_repository.dart';
 import '../domain/habit_status.dart' show formatLogDate;
 
 class FirestoreHabitRepository implements HabitRepository {
-  FirestoreHabitRepository(this._firestore, this._functions, this._uid);
+  FirestoreHabitRepository(this._firestore, this._callables, this._uid);
 
   final FirebaseFirestore _firestore;
-  final FirebaseFunctions _functions;
+  final CallableService _callables;
   final String _uid;
 
   CollectionReference<Map<String, dynamic>> get _habitsRef =>
@@ -21,7 +23,7 @@ class FirestoreHabitRepository implements HabitRepository {
 
   @override
   Stream<List<Habit>> watchHabits() {
-    return _habitsRef.orderBy('createdAt').snapshots().map(
+    return _habitsRef.orderBy('createdAt').limit(kListPageLimit).snapshots().map(
           (snapshot) =>
               snapshot.docs.map((doc) => Habit.fromFirestore(doc.id, doc.data())).toList(),
         );
@@ -51,7 +53,7 @@ class FirestoreHabitRepository implements HabitRepository {
       // collection outright. This is the only way the Starter plan's
       // 3-habit limit can be enforced server-side (rules can't count a
       // collection's size). See functions/src/habits/createHabit.ts.
-      await _functions.httpsCallable('createHabit').call<Map<String, dynamic>>({
+      await _callables.call('createHabit', {
         'name': name,
         'category': category.name,
         'frequencyLabel': frequencyLabel,
@@ -67,22 +69,22 @@ class FirestoreHabitRepository implements HabitRepository {
       'frequencyLabel': frequencyLabel,
       'colorValue': colorValue,
       'reminderTimeLabel': reminderTimeLabel,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     };
     await _habitsRef.doc(id).set(data, SetOptions(merge: true));
   }
 
   @override
   Future<void> deleteHabit(String habitId) async {
-    await _habitsRef.doc(habitId).delete();
-
-    // Clean up this habit's logs so deleting it doesn't leave orphaned data.
+    // Logs first, habit last. The habit document is what makes this habit
+    // visible and re-deletable; deleting it first meant that if the log
+    // cleanup then failed (offline, rules, or the batch limit below), the
+    // habit was already gone and its logs were orphaned with no way to
+    // retry.
     final orphanedLogs = await _logsRef.where('habitId', isEqualTo: habitId).get();
-    final batch = _firestore.batch();
-    for (final doc in orphanedLogs.docs) {
-      batch.delete(doc.reference);
-    }
-    await batch.commit();
+    await deleteAllInBatches(_firestore, orphanedLogs.docs.map((doc) => doc.reference));
+
+    await _habitsRef.doc(habitId).delete();
   }
 
   @override

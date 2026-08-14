@@ -42,7 +42,7 @@ class PushNotificationsRepository {
     await _firestore.collection('users').doc(uid).collection('fcmTokens').doc(token).set({
       'token': token,
       'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
-      'updatedAt': Timestamp.now(),
+      'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 }

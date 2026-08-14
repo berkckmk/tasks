@@ -13,8 +13,11 @@ class PlanEnforcement {
   });
 
   final Plan plan;
-  final int activeHabitCount;
-  final int activeTaskCount;
+
+  /// `null` while the habit/task stream hasn't produced a value yet (or has
+  /// errored). Treated as "unknown", not as zero — see [_withinLimit].
+  final int? activeHabitCount;
+  final int? activeTaskCount;
 
   bool get canCreateHabit => _withinLimit(plan.limits.maxActiveHabits, activeHabitCount);
 
@@ -36,5 +39,13 @@ class PlanEnforcement {
 
   bool canAccessModule(PlanModule module) => plan.hasModule(module);
 
-  static bool _withinLimit(int? limit, int count) => limit == null || count < limit;
+  /// Unlimited plans (`limit == null`) always pass. Otherwise an unknown
+  /// count fails closed: offering "add habit" on a still-loading list would
+  /// just produce a `resource-exhausted` error from the createHabit Cloud
+  /// Function instead of the upgrade dialog the user should see.
+  static bool _withinLimit(int? limit, int? count) {
+    if (limit == null) return true;
+    if (count == null) return false;
+    return count < limit;
+  }
 }

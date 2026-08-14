@@ -65,8 +65,8 @@ instead of guessing.
 *calling* Firebase user. A purchase token obtained for one Google account
 could in principle be replayed against a different Firebase uid to grant
 that account a plan for free. Not exploitable today (`billingServiceProvider`
-still points at `DevBillingService`, not `PlayBillingService`), but a real
-gap for whenever Play Billing goes live.
+did not point at `PlayBillingService`), but a real gap for whenever Play
+Billing goes live.
 
 **The fix:** `PlayBillingService.purchasePlan` now sets
 `PurchaseParam.applicationUserName` to the current Firebase uid (this maps
@@ -128,6 +128,69 @@ navigation to the add screen before the server round-trip); the Cloud
 Function is the backstop that makes the limit actually enforced, catching
 both direct-Firestore bypass attempts and legitimate races (e.g. the same
 account creating from two devices at once).
+
+### 6. Email/password sign-up had no anti-abuse gate — FIXED
+
+**The problem:** anyone could create an account with any email address —
+one they don't own, a disposable one, a script iterating through
+addresses — and get full app access immediately. Firebase's own
+`signUpWithEmail` never required proof the caller actually controls the
+inbox.
+
+**The fix:** `AuthRepository.signUpWithEmail` now sends a verification
+email on signup, and `firestore.rules`' `isOwner(uid)` — the base check
+almost every collection's rules build on — now also requires
+`request.auth.token.email_verified == true`. Google accounts arrive with
+that already true (Google verifies it), so this never affects them; it
+only ever gates the email/password path. The Flutter router mirrors this
+with a `/verify-email` redirect (`app/router/app_router.dart`), but that
+alone is only UX — the rules change is what actually stops an
+unverified account from writing to Firestore directly with its own valid
+ID token, the same class of gap as findings #1 and #5.
+
+This forced one real ordering change: the profile/subscription bootstrap
+that used to happen immediately in `AuthActions.signUp()` had to move to
+`AuthActions.checkEmailVerified()` (fired from the verify-email screen,
+either on a manual "I've verified" tap or a silent check on screen load),
+since the ID token doesn't carry `email_verified: true` until *after*
+verification completes — writing the profile doc at the old point would
+now be rejected. `reloadAndCheckEmailVerified()` force-refreshes the ID
+token (`getIdToken(true)`) right after confirming verification, since
+`User.reload()` alone updates the cached `User` object but not the active
+token's claims that rules actually check.
+
+### 7. The entitlement document that finding #1 depends on was client-writable — FIXED
+
+**The problem:** finding #1 above closed the "plan enforcement is client-only"
+gap by having `firestore.rules` and `functions/src/lib/plan.ts` read the
+user's plan from `users/{uid}/subscription/status`. But that document was
+itself client-writable — the rule allowed `create`/`update` with any
+`planId` — because `DevBillingService` wrote it directly to simulate a
+purchase. That made the whole check **circular**: the account being gated
+could write the very document that gates it. One console write
+(`{planId: 'complete', billingProvider: 'x'}`) unlocked every Growth/Complete
+collection and every `assertPlan`-guarded Cloud Function, with no Stripe or
+Play interaction. The rule's own comment noted this was only safe "because no
+real payment provider is connected yet" — but `webhook.ts`, `stripe.ts` and
+`playBilling.ts` were already written and exported, so that premise had
+lapsed.
+
+Related: nothing anywhere read `status`, `expiresAt` or `trialEndsAt`. A
+cancelled, refunded or lapsed subscription kept its `planId` forever, so a
+failed `customer.subscription.deleted` delivery meant permanent free access.
+
+**The fix:**
+- `subscription/status` is now Admin-SDK-only: `allow update, delete: if
+  false`. `create` remains, pinned to `planId == 'starter'`, purely so the
+  sign-up bootstrap works without a Cloud Function round-trip — it grants
+  nothing, and the document can't be deleted and re-created to reset it.
+- `DevBillingService` is deleted. `BetaBillingService` replaces it and cannot
+  write entitlement at all.
+- Free access during the closed beta comes from an explicit `kBetaAllAccess`
+  flag mirrored in the client, the functions and the rules — one auditable
+  switch instead of a writable field on every tester's document.
+- Both `getUserPlanId()` and `firestore.rules`' `userPlan()` now resolve
+  expired/cancelled/lapsed subscriptions to `starter`.
 
 ## What this review did NOT cover
 
