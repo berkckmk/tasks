@@ -3,6 +3,7 @@ import { google } from "googleapis";
 import { Readable } from "stream";
 
 import { db } from "../lib/admin";
+import { assertPlan } from "../lib/plan";
 import { getAuthorizedClient } from "./oauth";
 
 const BACKUP_COLLECTIONS = [
@@ -21,6 +22,7 @@ const BACKUP_COLLECTIONS = [
 export const backupToGoogleDrive = onCall(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Sign in required.");
+  await assertPlan(uid, ["complete"]);
 
   const oauthClient = await getAuthorizedClient(uid, "drive");
   const drive = google.drive({ version: "v3", auth: oauthClient });

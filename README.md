@@ -9,6 +9,10 @@ integrations.
 > [`docs/GOOGLE_INTEGRATIONS_AND_PRODUCTION.md`](docs/GOOGLE_INTEGRATIONS_AND_PRODUCTION.md)
 > first.** It documents what's implemented, what's design-only (and why),
 > the security model for OAuth tokens, and the exact deploy steps left.
+>
+> Also see [`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md) for a
+> full-project security audit (server-side plan enforcement, billing
+> correctness, habit/task count limits).
 
 ## Getting Started
 

@@ -10,7 +10,7 @@ import '../domain/task_repository.dart';
 final taskRepositoryProvider = Provider<TaskRepository?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return null;
-  return FirestoreTaskRepository(ref.watch(firestoreProvider), uid);
+  return FirestoreTaskRepository(ref.watch(firestoreProvider), ref.watch(firebaseFunctionsProvider), uid);
 });
 
 final tasksProvider = StreamProvider<List<TaskItem>>((ref) {

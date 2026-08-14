@@ -1,6 +1,8 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import Stripe from "stripe";
 
+import { planIdFromPriceId } from "./priceMapping";
+
 function getStripeClient(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) {
@@ -35,6 +37,11 @@ export const createStripeCheckoutSession = onCall(async (request) => {
     throw new HttpsError("invalid-argument", "Missing priceId/successUrl/cancelUrl.");
   }
 
+  // Derived from priceId server-side (never trust a client-supplied planId)
+  // so the webhook knows exactly which plan was purchased without having to
+  // fetch/expand line items later.
+  const planId = planIdFromPriceId(priceId);
+
   const stripe = getStripeClient();
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -42,8 +49,8 @@ export const createStripeCheckoutSession = onCall(async (request) => {
     success_url: successUrl,
     cancel_url: cancelUrl,
     client_reference_id: uid,
-    subscription_data: { metadata: { uid } },
-    metadata: { uid },
+    subscription_data: { metadata: { uid, planId } },
+    metadata: { uid, planId },
   });
 
   if (!session.url) throw new HttpsError("internal", "Stripe did not return a checkout URL.");

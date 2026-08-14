@@ -15,7 +15,7 @@ import '../domain/habit_status.dart';
 final habitRepositoryProvider = Provider<HabitRepository?>((ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) return null;
-  return FirestoreHabitRepository(ref.watch(firestoreProvider), uid);
+  return FirestoreHabitRepository(ref.watch(firestoreProvider), ref.watch(firebaseFunctionsProvider), uid);
 });
 
 /// Habits merged with their recent completion logs — streak and

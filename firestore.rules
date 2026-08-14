@@ -15,6 +15,24 @@ service cloud.firestore {
       return value is string && value.size() > 0;
     }
 
+    // Server-side plan enforcement. Mirrors PlanEnforcement on the Flutter
+    // side (features/subscription/domain/plan_enforcement.dart) — that
+    // client-side check alone only hides UI, it doesn't stop a signed-in
+    // user from writing directly to Firestore with their own valid
+    // credentials (e.g. from the browser console). This get() is what
+    // actually closes that gap for security-rule-enforced collections.
+    //
+    // Fails closed: if the subscription doc doesn't exist yet (e.g. the
+    // brief window right after sign-up), get() errors and the surrounding
+    // allow rule evaluates to false rather than granting access.
+    function userPlan(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)/subscription/status).data.planId;
+    }
+
+    function hasPlanAtLeast(uid, plans) {
+      return isOwner(uid) && userPlan(uid) in plans;
+    }
+
     // users/{uid} — the profile document itself.
     match /users/{uid} {
       allow read: if isOwner(uid);
@@ -37,9 +55,18 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
 
       // habits/{habitId}
+      //
+      // `create` is Admin-SDK-only (the createHabit Cloud Function) — never
+      // client-writable. Security rules have no way to count how many
+      // habit docs already exist in this collection, so there's no rule
+      // that could enforce the Starter plan's 3-habit limit here; the
+      // function counts the real collection with an aggregation query
+      // before writing. `update`/`delete` stay client-direct since neither
+      // can increase the count.
       match /habits/{habitId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
+        allow create: if false;
+        allow update: if isOwner(uid)
           && isNonEmptyString(request.resource.data.name)
           && request.resource.data.category in ['morning', 'evening', 'health', 'work'];
       }
@@ -54,18 +81,23 @@ service cloud.firestore {
       }
 
       // tasks/{taskId}
+      //
+      // `create` is Admin-SDK-only (the createTask Cloud Function) — same
+      // reasoning as habits/{habitId} above, enforcing the Starter plan's
+      // 20-active-task limit via an aggregation query rules can't express.
       match /tasks/{taskId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
+        allow create: if false;
+        allow update: if isOwner(uid)
           && isNonEmptyString(request.resource.data.title)
           && request.resource.data.priority in ['low', 'medium', 'high']
           && request.resource.data.status in ['todo', 'inProgress', 'done'];
       }
 
-      // goals/{goalId}
+      // goals/{goalId} — goal planner requires Growth or above.
       match /goals/{goalId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
+        allow create, update: if hasPlanAtLeast(uid, ['growth', 'complete'])
           && isNonEmptyString(request.resource.data.title)
           && request.resource.data.manualProgress is number
           && request.resource.data.manualProgress >= 0
@@ -110,51 +142,54 @@ service cloud.firestore {
         allow delete: if isOwner(uid);
       }
 
-      // finance_transactions/{transactionId} — Complete plan.
+      // finance_transactions/{transactionId} — Complete plan only. Reads
+      // stay owner-only (so a downgraded user can still see/export old
+      // data) but new writes require an active Complete plan.
       match /finance_transactions/{transactionId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
+        allow create, update: if hasPlanAtLeast(uid, ['complete'])
           && request.resource.data.type in ['income', 'expense']
           && request.resource.data.amount is number
           && request.resource.data.amount > 0;
       }
 
-      // savings_goals/{goalId} — Complete plan.
+      // savings_goals/{goalId} — Complete plan only.
       match /savings_goals/{goalId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
+        allow create, update: if hasPlanAtLeast(uid, ['complete'])
           && isNonEmptyString(request.resource.data.title)
           && request.resource.data.targetAmount is number
           && request.resource.data.targetAmount > 0;
       }
 
-      // workouts/{workoutId} — Complete plan.
+      // workouts/{workoutId} — Complete plan only.
       match /workouts/{workoutId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid) && isNonEmptyString(request.resource.data.name);
+        allow create, update: if hasPlanAtLeast(uid, ['complete'])
+          && isNonEmptyString(request.resource.data.name);
       }
 
-      // exercise_logs/{logId} — Complete plan.
+      // exercise_logs/{logId} — Complete plan only.
       match /exercise_logs/{logId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
+        allow create, update: if hasPlanAtLeast(uid, ['complete'])
           && isNonEmptyString(request.resource.data.workoutId)
           && isNonEmptyString(request.resource.data.name);
       }
 
-      // learning_items/{itemId} — Complete plan.
+      // learning_items/{itemId} — Complete plan only.
       match /learning_items/{itemId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
+        allow create, update: if hasPlanAtLeast(uid, ['complete'])
           && isNonEmptyString(request.resource.data.title)
           && request.resource.data.type in ['book', 'course', 'podcast']
           && request.resource.data.status in ['planned', 'inProgress', 'completed'];
       }
 
-      // content_items/{itemId} — Complete plan.
+      // content_items/{itemId} — Complete plan only.
       match /content_items/{itemId} {
         allow read, delete: if isOwner(uid);
-        allow create, update: if isOwner(uid)
+        allow create, update: if hasPlanAtLeast(uid, ['complete'])
           && isNonEmptyString(request.resource.data.title)
           && request.resource.data.status in ['idea', 'drafted', 'scheduled', 'published'];
       }

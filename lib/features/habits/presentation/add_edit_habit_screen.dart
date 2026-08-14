@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -233,6 +234,12 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
                             reminderTimeLabel: _reminderTimeLabel,
                           );
                       if (context.mounted) context.pop();
+                    } on FirebaseFunctionsException catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(e.message ?? "Couldn't save habit.")),
+                        );
+                      }
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(

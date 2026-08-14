@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../domain/billing_product_ids.dart';
@@ -52,9 +53,25 @@ class PlayBillingService implements BillingService {
       );
     }
 
+    // applicationUserName maps to Google Play's "obfuscated account ID" —
+    // stamping the Firebase uid here lets verifyPlayPurchase confirm the
+    // purchase token actually belongs to the account calling it, not one
+    // replayed from a different Google account. See the matching check in
+    // functions/src/billing/playBilling.ts.
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return const PurchaseResult(
+        status: PurchaseResultStatus.error,
+        message: 'You need to be signed in to purchase a plan.',
+      );
+    }
+
     _pendingPurchase = Completer<PurchaseResult>();
     final started = await _iap.buyNonConsumable(
-      purchaseParam: PurchaseParam(productDetails: response.productDetails.first),
+      purchaseParam: PurchaseParam(
+        productDetails: response.productDetails.first,
+        applicationUserName: uid,
+      ),
     );
     if (!started) {
       final completer = _pendingPurchase;

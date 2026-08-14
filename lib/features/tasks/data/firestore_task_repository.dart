@@ -1,12 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 import '../domain/task_item.dart';
 import '../domain/task_repository.dart';
 
 class FirestoreTaskRepository implements TaskRepository {
-  FirestoreTaskRepository(this._firestore, this._uid);
+  FirestoreTaskRepository(this._firestore, this._functions, this._uid);
 
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
   final String _uid;
 
   CollectionReference<Map<String, dynamic>> get _tasksRef =>
@@ -30,8 +32,24 @@ class FirestoreTaskRepository implements TaskRepository {
     required TaskStatus status,
     required String? relatedGoalId,
   }) async {
+    if (id == null) {
+      // Creation goes through the createTask Cloud Function, not a direct
+      // Firestore write — firestore.rules denies `create` on this
+      // collection outright. This is the only way the Starter plan's
+      // 20-active-task limit can be enforced server-side (rules can't
+      // count a collection's size). See functions/src/tasks/createTask.ts.
+      await _functions.httpsCallable('createTask').call<Map<String, dynamic>>({
+        'title': title,
+        'description': description,
+        'dueDate': dueDate?.toIso8601String(),
+        'priority': priority.name,
+        'relatedGoalId': relatedGoalId,
+      });
+      return;
+    }
+
     final data = TaskItem(
-      id: id ?? '',
+      id: id,
       title: title,
       description: description,
       dueDate: dueDate,
@@ -39,12 +57,7 @@ class FirestoreTaskRepository implements TaskRepository {
       status: status,
       relatedGoalId: relatedGoalId,
     ).toFirestore();
-
-    if (id == null) {
-      await _tasksRef.add({...data, 'createdAt': Timestamp.now()});
-    } else {
-      await _tasksRef.doc(id).set(data, SetOptions(merge: true));
-    }
+    await _tasksRef.doc(id).set(data, SetOptions(merge: true));
   }
 
   @override

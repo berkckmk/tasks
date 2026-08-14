@@ -2,6 +2,7 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { google } from "googleapis";
 
 import { db } from "../lib/admin";
+import { assertPlan } from "../lib/plan";
 import { getAuthorizedClient } from "./oauth";
 
 interface ReportSummary {
@@ -16,6 +17,7 @@ interface ReportSummary {
 export const generateGoogleDocsReport = onCall(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Sign in required.");
+  await assertPlan(uid, ["complete"]);
 
   const { type, periodStart, periodEnd } = request.data as {
     type?: unknown;

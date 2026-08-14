@@ -2,6 +2,7 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { google, sheets_v4 } from "googleapis";
 
 import { db } from "../lib/admin";
+import { assertPlan } from "../lib/plan";
 import { getAuthorizedClient } from "./oauth";
 
 const MODULE_COLLECTIONS: Record<string, string> = {
@@ -18,6 +19,7 @@ const MODULE_COLLECTIONS: Record<string, string> = {
 export const exportToGoogleSheets = onCall(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Sign in required.");
+  await assertPlan(uid, ["complete"]);
 
   const { modules } = request.data as { modules?: unknown };
   const selected =

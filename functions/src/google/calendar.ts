@@ -2,6 +2,7 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { calendar_v3, google } from "googleapis";
 
 import { db } from "../lib/admin";
+import { assertPlan } from "../lib/plan";
 import { getAuthorizedClient } from "./oauth";
 
 interface SyncResult {
@@ -15,6 +16,11 @@ interface SyncResult {
  * googleCalendarReminderEventId is patched in place, not re-inserted.
  */
 export async function syncForUser(uid: string): Promise<SyncResult> {
+  // Checked here (not just in the syncGoogleCalendar callable) so a user
+  // who downgrades after connecting also stops being synced by
+  // scheduledCalendarSync, which calls this function directly.
+  await assertPlan(uid, ["complete"]);
+
   const oauthClient = await getAuthorizedClient(uid, "calendar");
   const calendar = google.calendar({ version: "v3", auth: oauthClient });
 

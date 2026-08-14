@@ -50,6 +50,17 @@ export const verifyPlayPurchase = onCall(async (request) => {
       token: purchaseToken,
     });
 
+    // The purchase's obfuscated account ID must match the caller's own
+    // Firebase uid (set client-side via PurchaseParam.applicationUserName —
+    // see PlayBillingService.purchasePlan). Without this check, a valid
+    // purchase token obtained through any means for a DIFFERENT Google
+    // account could be replayed here to grant a plan to this account for
+    // free.
+    if (response.data.obfuscatedExternalAccountId !== uid) {
+      console.warn(`Play purchase account mismatch for ${uid}: token belongs to a different account.`);
+      return { granted: false };
+    }
+
     const expiryTimeMillis = Number(response.data.expiryTimeMillis ?? 0);
     const isActive = expiryTimeMillis > Date.now();
 

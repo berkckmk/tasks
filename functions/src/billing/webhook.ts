@@ -2,15 +2,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import Stripe from "stripe";
 
 import { db } from "../lib/admin";
-
-function planIdFromPriceId(priceId: string | undefined): string {
-  if (!priceId) return "growth";
-  const map: Record<string, string> = {
-    [process.env.STRIPE_PRICE_GROWTH ?? "__unset_growth__"]: "growth",
-    [process.env.STRIPE_PRICE_COMPLETE ?? "__unset_complete__"]: "complete",
-  };
-  return map[priceId] ?? "growth";
-}
+import { planIdFromPriceId } from "./priceMapping";
 
 async function setSubscriptionPlan(
   uid: string,
@@ -68,9 +60,15 @@ export const handleBillingWebhook = onRequest(async (req, res) => {
       const session = event.data.object as Stripe.Checkout.Session;
       const uid = session.client_reference_id ?? session.metadata?.uid;
       if (uid) {
+        // planId is stamped into metadata by createStripeCheckoutSession at
+        // session-creation time (derived server-side from the price the
+        // user actually checked out with) — NOT hardcoded, so a Complete
+        // purchase doesn't get silently downgraded to Growth. The fallback
+        // only matters for a session created before this field existed.
+        const planId = session.metadata?.planId ?? "growth";
         await setSubscriptionPlan(
           uid,
-          "growth",
+          planId,
           "active",
           typeof session.subscription === "string" ? session.subscription : null
         );

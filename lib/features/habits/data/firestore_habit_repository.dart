@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 import '../domain/habit.dart';
 import '../domain/habit_log.dart';
@@ -6,9 +7,10 @@ import '../domain/habit_repository.dart';
 import '../domain/habit_status.dart' show formatLogDate;
 
 class FirestoreHabitRepository implements HabitRepository {
-  FirestoreHabitRepository(this._firestore, this._uid);
+  FirestoreHabitRepository(this._firestore, this._functions, this._uid);
 
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
   final String _uid;
 
   CollectionReference<Map<String, dynamic>> get _habitsRef =>
@@ -43,6 +45,22 @@ class FirestoreHabitRepository implements HabitRepository {
     required int colorValue,
     String? reminderTimeLabel,
   }) async {
+    if (id == null) {
+      // Creation goes through the createHabit Cloud Function, not a direct
+      // Firestore write — firestore.rules denies `create` on this
+      // collection outright. This is the only way the Starter plan's
+      // 3-habit limit can be enforced server-side (rules can't count a
+      // collection's size). See functions/src/habits/createHabit.ts.
+      await _functions.httpsCallable('createHabit').call<Map<String, dynamic>>({
+        'name': name,
+        'category': category.name,
+        'frequencyLabel': frequencyLabel,
+        'colorValue': colorValue,
+        'reminderTimeLabel': reminderTimeLabel,
+      });
+      return;
+    }
+
     final data = {
       'name': name,
       'category': category.name,
@@ -51,11 +69,7 @@ class FirestoreHabitRepository implements HabitRepository {
       'reminderTimeLabel': reminderTimeLabel,
       'updatedAt': Timestamp.now(),
     };
-    if (id == null) {
-      await _habitsRef.add({...data, 'createdAt': Timestamp.now()});
-    } else {
-      await _habitsRef.doc(id).set(data, SetOptions(merge: true));
-    }
+    await _habitsRef.doc(id).set(data, SetOptions(merge: true));
   }
 
   @override

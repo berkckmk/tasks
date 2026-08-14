@@ -1,6 +1,7 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import { db } from "../lib/admin";
+import { assertPlan } from "../lib/plan";
 import { deleteTokens } from "../lib/tokens";
 import { exchangeAndStoreCode } from "./oauth";
 
@@ -35,6 +36,7 @@ function assertIntegration(value: unknown): asserts value is IntegrationId {
 export const connectGoogleIntegration = onCall(async (request) => {
   const uid = request.auth?.uid;
   if (!uid) throw new HttpsError("unauthenticated", "Sign in required.");
+  await assertPlan(uid, ["complete"]);
 
   const { integration, authCode } = request.data as { integration?: unknown; authCode?: unknown };
   assertIntegration(integration);
