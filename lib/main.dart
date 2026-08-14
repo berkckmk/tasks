@@ -1,0 +1,66 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import 'app/app.dart';
+import 'core/google/google_auth_config.dart';
+import 'firebase_options.dart';
+
+/// Must be a top-level function — the OS calls this in a separate isolate
+/// when a push arrives while the app is backgrounded or terminated. Keep it
+/// minimal: there's no UI here, and it needs its own Firebase.initializeApp()
+/// since it may run in a fresh isolate.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('Background FCM message: ${message.messageId}');
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Object? initError;
+  try {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    initError = e;
+  }
+
+  if (initError == null) {
+    // Crashlytics doesn't support web — only route errors to it on
+    // Android/iOS. Web errors still surface in the browser console as usual.
+    if (!kIsWeb) {
+      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      PlatformDispatcher.instance.onError = (error, stack) {
+        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        return true;
+      };
+    }
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onMessage.listen((message) {
+      // Foreground pushes don't show a system notification on their own;
+      // this is the hook for an in-app banner if/when that's built. For now
+      // just make sure the message actually arrives.
+      debugPrint('Foreground FCM message: ${message.notification?.title}');
+    });
+  }
+
+  // Must be called exactly once, before any other GoogleSignIn method.
+  // Safe to attempt even with placeholder client IDs — this only configures
+  // the SDK locally; it doesn't fail until an actual sign-in is attempted.
+  try {
+    await GoogleSignIn.instance.initialize(
+      clientId: kIsWeb ? GoogleAuthConfig.webClientId : null,
+      serverClientId: GoogleAuthConfig.serverClientId,
+    );
+  } catch (e) {
+    debugPrint('GoogleSignIn.initialize failed (expected until configured): $e');
+  }
+
+  runApp(ProviderScope(child: SteadyProgressApp(firebaseInitError: initError)));
+}

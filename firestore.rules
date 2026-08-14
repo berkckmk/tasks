@@ -1,0 +1,203 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isNonEmptyString(value) {
+      return value is string && value.size() > 0;
+    }
+
+    // users/{uid} — the profile document itself.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && request.resource.data.uid == uid
+        && isNonEmptyString(request.resource.data.email)
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp
+        && request.resource.data.selectedPlan in ['starter', 'growth', 'complete']
+        && request.resource.data.onboardingCompleted is bool;
+
+      allow update: if isOwner(uid)
+        // Identity fields are immutable after creation.
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.selectedPlan in ['starter', 'growth', 'complete'];
+
+      allow delete: if isOwner(uid);
+
+      // habits/{habitId}
+      match /habits/{habitId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.name)
+          && request.resource.data.category in ['morning', 'evening', 'health', 'work'];
+      }
+
+      // habit_logs/{logId} — doc id is '{habitId}_{yyyy-MM-dd}'.
+      match /habit_logs/{logId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.habitId)
+          && request.resource.data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+          && request.resource.data.completed is bool;
+      }
+
+      // tasks/{taskId}
+      match /tasks/{taskId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.title)
+          && request.resource.data.priority in ['low', 'medium', 'high']
+          && request.resource.data.status in ['todo', 'inProgress', 'done'];
+      }
+
+      // goals/{goalId}
+      match /goals/{goalId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.title)
+          && request.resource.data.manualProgress is number
+          && request.resource.data.manualProgress >= 0
+          && request.resource.data.manualProgress <= 1;
+      }
+
+      // weekly_plans/{planId} — reserved for the weekly planner (not yet
+      // built in the UI); same owner-only rule, no field validation yet.
+      match /weekly_plans/{planId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // progress_snapshots/{snapshotId} — intended to be written by a
+      // scheduled Cloud Function (Admin SDK bypasses these rules), not the
+      // client, so a user can't fabricate their own progress numbers.
+      match /progress_snapshots/{snapshotId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      // settings/app — single document with app-level preferences that
+      // aren't part of the core profile doc.
+      match /settings/{settingsDoc} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // subscription/status — the single doc read by PlanEnforcement.
+      //
+      // IMPORTANT: this is client-writable ONLY because no real payment
+      // provider is connected yet (DevBillingService writes it directly to
+      // simulate a purchase for development/testing). The moment a real
+      // BillingService is wired up, change `allow update` here to
+      // `if false` and have a Cloud Function (verified against the
+      // provider's webhook) write this doc with the Admin SDK instead —
+      // otherwise a user could grant themselves Complete for free by
+      // calling this write directly.
+      match /subscription/{statusDoc} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.planId in ['starter', 'growth', 'complete']
+          && request.resource.data.billingProvider is string;
+        allow delete: if isOwner(uid);
+      }
+
+      // finance_transactions/{transactionId} — Complete plan.
+      match /finance_transactions/{transactionId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.type in ['income', 'expense']
+          && request.resource.data.amount is number
+          && request.resource.data.amount > 0;
+      }
+
+      // savings_goals/{goalId} — Complete plan.
+      match /savings_goals/{goalId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.title)
+          && request.resource.data.targetAmount is number
+          && request.resource.data.targetAmount > 0;
+      }
+
+      // workouts/{workoutId} — Complete plan.
+      match /workouts/{workoutId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isNonEmptyString(request.resource.data.name);
+      }
+
+      // exercise_logs/{logId} — Complete plan.
+      match /exercise_logs/{logId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.workoutId)
+          && isNonEmptyString(request.resource.data.name);
+      }
+
+      // learning_items/{itemId} — Complete plan.
+      match /learning_items/{itemId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.title)
+          && request.resource.data.type in ['book', 'course', 'podcast']
+          && request.resource.data.status in ['planned', 'inProgress', 'completed'];
+      }
+
+      // content_items/{itemId} — Complete plan.
+      match /content_items/{itemId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.title)
+          && request.resource.data.status in ['idea', 'drafted', 'scheduled', 'published'];
+      }
+
+      // integrations/{google_calendar|google_sheets|google_drive|google_docs}
+      //
+      // Client-writable ONLY for reads. Every field (enabled, status,
+      // spreadsheetId, folderUrl, lastSyncedAt, ...) is written by a Cloud
+      // Function after a real OAuth exchange or Google API call — never
+      // directly by the client. This is what makes "connected" trustworthy:
+      // a user can't fake connecting Google Sheets by just writing the doc.
+      match /integrations/{integrationId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      // secureTokens/{integrationId} — Google OAuth refresh tokens. NEVER
+      // client-accessible, in either direction. Only the Admin SDK (Cloud
+      // Functions) can read or write this collection.
+      match /secureTokens/{integrationId} {
+        allow read, write: if false;
+      }
+
+      // reports/{reportId} — generated by generateGoogleDocsReport.
+      // Read-only from the client so a user can see their own reports but
+      // can't fabricate a "ready" report pointing at an arbitrary Doc.
+      match /reports/{reportId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
+
+      // fcmTokens/{token} — doc id is the push token itself, written
+      // directly by the client that owns the device (see
+      // PushNotificationsRepository). Unlike secureTokens, an FCM token
+      // isn't a credential for the user's Google account — worst case a
+      // leaked one lets someone push a notification to that one device, not
+      // access any user data — so client-write is an acceptable trade-off
+      // for not needing a Cloud Function round-trip just to register a
+      // device.
+      match /fcmTokens/{token} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && request.resource.data.token == token;
+      }
+    }
+  }
+}
