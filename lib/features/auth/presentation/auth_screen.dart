@@ -44,7 +44,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       // result arrives here instead of as a return value.
       _googleAuthSub = GoogleSignIn.instance.authenticationEvents.listen(
         _handleGoogleAuthEvent,
-        onError: (Object e) => setState(() => _errorMessage = 'Google sign-in failed. Please try again.'),
+        onError: (Object e) => setState(
+          () => _errorMessage = 'Google sign-in failed. Please try again.',
+        ),
       );
     }
   }
@@ -57,7 +59,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     super.dispose();
   }
 
-  Future<void> _handleGoogleAuthEvent(GoogleSignInAuthenticationEvent event) async {
+  Future<void> _handleGoogleAuthEvent(
+    GoogleSignInAuthenticationEvent event,
+  ) async {
     if (event is! GoogleSignInAuthenticationEventSignIn) return;
     setState(() {
       _isGoogleSubmitting = true;
@@ -78,7 +82,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       // logged so they're diagnosable from the browser/device console
       // instead of just showing the same generic message for every cause.
       debugPrint('Google sign-in bootstrap failed: $e');
-      if (mounted) setState(() => _errorMessage = 'Google sign-in failed. Please try again.');
+      if (mounted)
+        setState(
+          () => _errorMessage = 'Google sign-in failed. Please try again.',
+        );
     } finally {
       if (mounted) setState(() => _isGoogleSubmitting = false);
     }
@@ -111,7 +118,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       if (mounted) setState(() => _errorMessage = e.message);
     } catch (e) {
       debugPrint('Email auth bootstrap failed: $e');
-      if (mounted) setState(() => _errorMessage = 'Something went wrong. Please try again.');
+      if (mounted)
+        setState(
+          () => _errorMessage = 'Something went wrong. Please try again.',
+        );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -133,7 +143,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       if (mounted) setState(() => _errorMessage = e.message);
     } catch (e) {
       debugPrint('Google sign-in bootstrap failed: $e');
-      if (mounted) setState(() => _errorMessage = 'Google sign-in failed. Please try again.');
+      if (mounted)
+        setState(
+          () => _errorMessage = 'Google sign-in failed. Please try again.',
+        );
     } finally {
       if (mounted) setState(() => _isGoogleSubmitting = false);
     }
@@ -144,7 +157,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final isSignUp = _mode == _AuthMode.signUp;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -173,12 +185,19 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                          border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMd,
+                          ),
+                          border: Border.all(
+                            color: AppColors.error.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(color: AppColors.error, fontSize: 13),
+                          style: const TextStyle(
+                            color: AppColors.error,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.md),
@@ -191,7 +210,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       validator: (value) {
                         final v = value?.trim() ?? '';
                         if (v.isEmpty) return 'Enter your email';
-                        if (!v.contains('@') || !v.contains('.')) return 'Enter a valid email';
+                        if (!v.contains('@') || !v.contains('.'))
+                          return 'Enter a valid email';
                         return null;
                       },
                     ),
@@ -200,7 +220,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       autofillHints: [
-                        isSignUp ? AutofillHints.newPassword : AutofillHints.password,
+                        isSignUp
+                            ? AutofillHints.newPassword
+                            : AutofillHints.password,
                       ],
                       decoration: InputDecoration(
                         labelText: 'Password',
@@ -210,13 +232,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
                           ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                       ),
                       validator: (value) {
                         final v = value ?? '';
                         if (v.isEmpty) return 'Enter your password';
-                        if (isSignUp && v.length < 6) return 'Use at least 6 characters';
+                        if (isSignUp && v.length < 6)
+                          return 'Use at least 6 characters';
                         return null;
                       },
                       onFieldSubmitted: (_) => _isSubmitting ? null : _submit(),
@@ -235,9 +260,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         onPressed: _isSubmitting
                             ? null
                             : () => setState(() {
-                                  _mode = isSignUp ? _AuthMode.signIn : _AuthMode.signUp;
-                                  _errorMessage = null;
-                                }),
+                                _mode = isSignUp
+                                    ? _AuthMode.signIn
+                                    : _AuthMode.signUp;
+                                _errorMessage = null;
+                              }),
                         child: Text(
                           isSignUp
                               ? 'Already have an account? Sign in'
@@ -250,8 +277,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       children: const [
                         Expanded(child: Divider()),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                          child: Text('or', style: TextStyle(color: AppColors.subtleText)),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                          ),
+                          child: Text(
+                            'or',
+                            style: TextStyle(color: AppColors.subtleText),
+                          ),
                         ),
                         Expanded(child: Divider()),
                       ],
@@ -270,7 +302,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       )
                     else
                       AppButton(
-                        label: _isGoogleSubmitting ? 'Please wait...' : 'Continue with Google',
+                        label: _isGoogleSubmitting
+                            ? 'Please wait...'
+                            : 'Continue with Google',
                         variant: AppButtonVariant.secondary,
                         icon: Icons.g_mobiledata,
                         expand: true,

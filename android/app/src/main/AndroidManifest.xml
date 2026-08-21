@@ -34,6 +34,41 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Home-screen widget. Not exported: it's driven by the system
+             AppWidgetManager broadcast below and by in-process refreshes from
+             the app, so nothing outside the app needs to reach it.
+
+             android:label is what the launcher's widget picker shows as the
+             widget's name. Without it the widget inherits the application
+             label and the picker reads "Steady Progress / Steady Progress". -->
+        <receiver
+            android:name=".widget.SteadyProgressWidgetProvider"
+            android:label="@string/widget_name"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_steady_progress_info" />
+        </receiver>
+
+
+        <!-- Field picker for a placed widget. Exported because the *launcher*
+             starts it — both when the widget is first dropped and from the
+             long-press "configure" affordance — and the launcher is a
+             different app. It acts only on the appWidgetId it is handed. -->
+        <activity
+            android:name=".widget.SteadyProgressWidgetConfigureActivity"
+            android:label="@string/config_title"
+            android:theme="@style/WidgetConfigureTheme"
+            android:excludeFromRecents="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

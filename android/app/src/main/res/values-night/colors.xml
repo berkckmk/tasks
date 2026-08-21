@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark variants of values/colors.xml. Kept as a separate token set rather
+     than an inversion so the deep green accent stays legible on a dark
+     ground. -->
+<resources>
+    <color name="config_background">#12140F</color>
+    <color name="config_bar">#191C16</color>
+    <color name="config_text">#ECEFE7</color>
+    <color name="config_text_muted">#9AA093</color>
+    <color name="config_accent">#7FB587</color>
+    <color name="config_on_accent">#10160F</color>
+    <color name="config_preview_backdrop_a">#2A2F26</color>
+    <color name="config_preview_backdrop_b">#232B33</color>
+    <!-- Unfilled part of a slider track. -->
+    <color name="config_track">#39413A</color>
+    <color name="widget_preview_fill">#33FFFFFF</color>
+    <color name="widget_preview_rim">#40FFFFFF</color>
+</resources>

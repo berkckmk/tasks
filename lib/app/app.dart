@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/widgets/app_glass_page.dart';
 import 'router/app_router.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
@@ -25,6 +26,12 @@ class SteadyProgressApp extends ConsumerWidget {
       title: 'Steady Progress',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
+      // The glass backdrop is installed once, here, rather than on each of the
+      // ~20 pushed routes. MaterialApp's builder wraps the Navigator, so this
+      // sits behind every route at once and stays put across page
+      // transitions — the pages slide over it the way they do on iOS.
+      builder: (context, child) =>
+          AppGlassPage(child: child ?? const SizedBox.shrink()),
       routerConfig: ref.watch(appRouterProvider),
     );
   }
@@ -48,11 +55,19 @@ class _FirebaseInitErrorScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.cloud_off_outlined, size: 48, color: AppColors.error),
+              const Icon(
+                Icons.cloud_off_outlined,
+                size: 48,
+                color: AppColors.error,
+              ),
               const SizedBox(height: 16),
               const Text(
                 "Couldn't connect to Firebase",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.charcoal,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -66,7 +81,10 @@ class _FirebaseInitErrorScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 error.toString(),
-                style: const TextStyle(fontSize: 11, color: AppColors.subtleText),
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.subtleText,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],

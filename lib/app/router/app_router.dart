@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/widgets/responsive_scaffold.dart';
+
+import 'package:flutter/foundation.dart' show kDebugMode;
+
+import '../../debug/dev_seed_screen.dart';
 import '../../features/analytics/presentation/analytics_screen.dart';
 import '../../features/auth/application/auth_providers.dart';
 import '../../features/auth/presentation/auth_screen.dart';
@@ -11,11 +15,12 @@ import '../../features/auth/presentation/verify_email_screen.dart';
 import '../../features/content/presentation/content_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/finance/presentation/finance_screen.dart';
-import '../../features/goals/presentation/add_edit_goal_screen.dart';
-import '../../features/goals/presentation/goals_screen.dart';
 import '../../features/google_integrations/presentation/google_integrations_screen.dart';
 import '../../features/habits/presentation/add_edit_habit_screen.dart';
 import '../../features/habits/presentation/habits_screen.dart';
+import '../../features/home_widget/presentation/home_widget_sync.dart';
+import '../../features/reminders/presentation/reminders_screen.dart';
+import '../../features/reminders/presentation/add_edit_reminder_screen.dart';
 import '../../features/learning/presentation/learning_screen.dart';
 import '../../features/more/presentation/more_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
@@ -26,6 +31,7 @@ import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/tasks/presentation/add_edit_task_screen.dart';
 import '../../features/tasks/presentation/tasks_screen.dart';
 import '../../features/workout/presentation/workout_screen.dart';
+import '../../features/notifications/presentation/notification_settings_screen.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 
@@ -59,25 +65,49 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final onVerifyScreen = state.matchedLocation == '/verify-email';
 
       if (!isSignedIn && !isPublic) return '/auth';
-      if (isSignedIn && needsVerification && !onVerifyScreen) return '/verify-email';
-      if (isSignedIn && !needsVerification && onVerifyScreen) return '/dashboard';
+      if (isSignedIn && needsVerification && !onVerifyScreen)
+        return '/verify-email';
+      if (isSignedIn && !needsVerification && onVerifyScreen)
+        return '/dashboard';
       if (isSignedIn && state.matchedLocation == '/auth') return '/dashboard';
       return null;
     },
     routes: [
-      GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
-      GoRoute(path: '/onboarding', builder: (context, state) => const OnboardingScreen()),
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
       GoRoute(path: '/auth', builder: (context, state) => const AuthScreen()),
-      GoRoute(path: '/verify-email', builder: (context, state) => const VerifyEmailScreen()),
+      GoRoute(
+        path: '/verify-email',
+        builder: (context, state) => const VerifyEmailScreen(),
+      ),
       GoRoute(
         path: '/pricing',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const PricingScreen(),
       ),
+      // Debug-only seed route. Only registered in debug builds so it doesn't
+      // appear in production releases.
+      if (kDebugMode)
+        GoRoute(
+          path: '/dev-seed',
+          parentNavigatorKey: _rootNavigatorKey,
+          builder: (context, state) => const DevSeedScreen(),
+        ),
       GoRoute(
         path: '/analytics',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AnalyticsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/notifications',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationSettingsScreen(),
       ),
       GoRoute(
         path: '/google-integrations',
@@ -110,11 +140,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ContentScreen(),
       ),
       StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) => _AppShell(navigationShell: navigationShell),
+        builder: (context, state, navigationShell) =>
+            _AppShell(navigationShell: navigationShell),
         branches: [
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/dashboard', builder: (context, state) => const DashboardScreen()),
+              GoRoute(
+                path: '/dashboard',
+                builder: (context, state) => const DashboardScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
@@ -131,8 +165,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':habitId/edit',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) =>
-                        AddEditHabitScreen(habitId: state.pathParameters['habitId']),
+                    builder: (context, state) => AddEditHabitScreen(
+                      habitId: state.pathParameters['habitId'],
+                    ),
                   ),
                 ],
               ),
@@ -152,8 +187,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':taskId/edit',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) =>
-                        AddEditTaskScreen(taskId: state.pathParameters['taskId']),
+                    builder: (context, state) => AddEditTaskScreen(
+                      taskId: state.pathParameters['taskId'],
+                    ),
                   ),
                 ],
               ),
@@ -162,19 +198,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/goals',
-                builder: (context, state) => const GoalsScreen(),
+                path: '/reminders',
+                builder: (context, state) => const RemindersScreen(),
                 routes: [
                   GoRoute(
                     path: 'new',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const AddEditGoalScreen(),
+                    builder: (context, state) => const AddEditReminderScreen(),
                   ),
                   GoRoute(
-                    path: ':goalId/edit',
+                    path: ':reminderId/edit',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) =>
-                        AddEditGoalScreen(goalId: state.pathParameters['goalId']),
+                    builder: (context, state) => AddEditReminderScreen(
+                      reminderId: state.pathParameters['reminderId'],
+                    ),
                   ),
                 ],
               ),
@@ -182,12 +219,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/more', builder: (context, state) => const MoreScreen()),
+              GoRoute(
+                path: '/more',
+                builder: (context, state) => const MoreScreen(),
+              ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/profile', builder: (context, state) => const ProfileScreen()),
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => const ProfileScreen(),
+              ),
             ],
           ),
         ],
@@ -238,31 +281,48 @@ class _AppShell extends StatelessWidget {
       selectedIcon: Icons.dashboard,
       label: 'Dashboard',
     ),
-    NavDestinationItem(icon: Icons.spa_outlined, selectedIcon: Icons.spa, label: 'Habits'),
+    NavDestinationItem(
+      icon: Icons.spa_outlined,
+      selectedIcon: Icons.spa,
+      label: 'Habits',
+    ),
     NavDestinationItem(
       icon: Icons.checklist_outlined,
       selectedIcon: Icons.checklist,
       label: 'Tasks',
     ),
-    NavDestinationItem(icon: Icons.flag_outlined, selectedIcon: Icons.flag, label: 'Goals'),
+    NavDestinationItem(
+      icon: Icons.notifications_outlined,
+      selectedIcon: Icons.notifications,
+      label: 'Reminders',
+    ),
     NavDestinationItem(
       icon: Icons.widgets_outlined,
       selectedIcon: Icons.widgets,
       label: 'More',
     ),
-    NavDestinationItem(icon: Icons.person_outline, selectedIcon: Icons.person, label: 'Profile'),
+    NavDestinationItem(
+      icon: Icons.person_outline,
+      selectedIcon: Icons.person,
+      label: 'Profile',
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return ResponsiveScaffold(
-      currentIndex: navigationShell.currentIndex,
-      destinations: _destinations,
-      onDestinationSelected: (index) => navigationShell.goBranch(
-        index,
-        initialLocation: index == navigationShell.currentIndex,
+    // HomeWidgetSync adds no UI — it's here because the shell is the one
+    // widget mounted for the whole signed-in session, so the home-screen
+    // widget stays current no matter which tab the change happened on.
+    return HomeWidgetSync(
+      child: ResponsiveScaffold(
+        currentIndex: navigationShell.currentIndex,
+        destinations: _destinations,
+        onDestinationSelected: (index) => navigationShell.goBranch(
+          index,
+          initialLocation: index == navigationShell.currentIndex,
+        ),
+        child: navigationShell,
       ),
-      child: navigationShell,
     );
   }
 }

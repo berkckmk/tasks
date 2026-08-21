@@ -7,8 +7,10 @@ import {
   parseReminderTime,
   plainDateInTimeZone,
   safeTimeZone,
+  wallClockLabelInTimeZone,
 } from "../lib/datetime";
 import { forEachUser } from "../lib/users";
+import { digestHour, wantsNotification } from "./preferences";
 
 /** How often sendHabitReminders runs; also the width of its match window. */
 const REMINDER_SLOT_MINUTES = 15;
@@ -52,7 +54,7 @@ export const sendHabitReminders = onSchedule(
   async () => {
     await forEachUser(async (userDoc) => {
       const user = userDoc.data();
-      if (user.appPreferences?.notificationsEnabled === false) return;
+      if (!wantsNotification(user, "notifyHabitReminders")) return;
 
       const timezone = safeTimeZone(user.timezone as string | undefined);
       const [nowHour, nowMinute] = currentHourMinuteInTimeZone(timezone);
@@ -90,24 +92,27 @@ export const sendHabitReminders = onSchedule(
 );
 
 /**
- * Runs hourly and sends each user one digest of the tasks due today, at
- * 08:00 *in their own timezone*.
+ * Runs hourly and sends each user one digest of the tasks due today, at the
+ * hour they chose *in their own timezone* (default 08:00).
  *
- * It has to run hourly rather than once daily because "08:00 local" happens
- * at a different UTC instant for every zone; the hourly pass sends only to
- * users whose local clock currently reads 08:xx, and the per-user
- * `lastDigestSentOn` marker keeps that to one send per local day.
+ * It has to run hourly rather than once daily because a given local hour
+ * happens at a different UTC instant in every zone; the hourly pass sends
+ * only to users whose local clock currently reads that hour, and the
+ * per-user `lastDigestSentOn` marker keeps that to one send per local day.
+ *
+ * Changing the hour later in the day does not produce a second digest: the
+ * marker is already set for that local date.
  */
 export const sendDailyTaskDigest = onSchedule(
   { schedule: "every 60 minutes", timeoutSeconds: 540, memory: "512MiB" },
   async () => {
     await forEachUser(async (userDoc) => {
       const user = userDoc.data();
-      if (user.appPreferences?.notificationsEnabled === false) return;
+      if (!wantsNotification(user, "notifyTaskDigest")) return;
 
       const timezone = safeTimeZone(user.timezone as string | undefined);
       const [localHour] = currentHourMinuteInTimeZone(timezone);
-      if (localHour !== 8) return;
+      if (localHour !== digestHour(user)) return;
 
       const today = plainDateInTimeZone(new Date(), timezone);
       if ((user.lastDigestSentOn as string | undefined) === today) return;
@@ -132,6 +137,78 @@ export const sendDailyTaskDigest = onSchedule(
           "Today's tasks",
           `You have ${dueToday.length} task${dueToday.length === 1 ? "" : "s"} due today.`
         );
+      }
+    });
+  }
+);
+
+/**
+ * How far back a due reminder is still worth sending.
+ *
+ * The pass runs every 15 minutes, so a window of one slot would be enough on
+ * a good day — but a failed or skipped run would then drop those reminders on
+ * the floor with nothing to show for it. A day of slack lets the next run
+ * catch up, while still not resurrecting something the user set last week.
+ */
+const REMINDER_MAX_LATENESS_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Sends a push when a reminder in `users/{uid}/reminders` comes due.
+ *
+ * This is what the "Reminder alerts" switch controls. Until it existed the
+ * reminders feature stored a `dueAt` and never did anything with it — the
+ * screen listed reminders and nothing ever arrived.
+ *
+ * Unlike habit reminders and the digest, "due" needs no timezone arithmetic:
+ * `dueAt` is an absolute instant, so comparing it to `now` is correct in every
+ * zone. The user's timezone is still needed for the *message*, which quotes
+ * the time back to them in their own clock.
+ */
+export const sendDueReminders = onSchedule(
+  { schedule: "every 15 minutes", timeoutSeconds: 540, memory: "512MiB" },
+  async () => {
+    const now = new Date();
+    const cutoff = new Date(now.getTime() - REMINDER_MAX_LATENESS_MS);
+
+    await forEachUser(async (userDoc) => {
+      const user = userDoc.data();
+      if (!wantsNotification(user, "notifyReminderAlerts")) return;
+
+      const timezone = safeTimeZone(user.timezone as string | undefined);
+
+      // Ranged on dueAt only, which is a single-field index Firestore
+      // maintains automatically. Adding `where("status", "==", ...)` would
+      // turn this into a composite index that has to be deployed by hand
+      // before the query works at all — and a missing index fails at runtime,
+      // not at deploy (see docs/DEPLOYMENT_STATE.md). The status and
+      // already-sent checks are cheap enough to do here instead; the window
+      // holds at most a day of one user's reminders.
+      const dueSnapshot = await userDoc.ref
+        .collection("reminders")
+        .where("dueAt", ">", cutoff)
+        .where("dueAt", "<=", now)
+        .get();
+
+      for (const reminderDoc of dueSnapshot.docs) {
+        const reminder = reminderDoc.data();
+        if (reminder.status !== "scheduled") continue;
+
+        // Idempotency marker, same role as lastReminderSentOn on habits.
+        // Cleared by the client whenever the reminder is edited, so
+        // rescheduling one re-arms it — see FirestoreReminderRepository.
+        if (reminder.notifiedAt) continue;
+
+        const dueAt = reminder.dueAt as FirebaseFirestore.Timestamp;
+        const title = (reminder.title as string | undefined) ?? "Reminder";
+        const message = (reminder.message as string | undefined) ?? "";
+        const at = wallClockLabelInTimeZone(dueAt.toDate(), timezone);
+
+        await sendToUserTokens(
+          userDoc.id,
+          title,
+          message.length > 0 ? message : `Due at ${at}.`
+        );
+        await reminderDoc.ref.update({ notifiedAt: now });
       }
     });
   }

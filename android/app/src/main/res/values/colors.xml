@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Light palette for the widget configuration screen, taken from the app's
+    own theme (lib/app/theme/app_colors.dart) so the screen doesn't look like
+    a stray system dialog. values-night/colors.xml holds the dark variants.
+-->
+<resources>
+    <color name="config_background">#F7F5F0</color>
+    <color name="config_bar">#FBFAF7</color>
+    <color name="config_text">#2A2A28</color>
+    <color name="config_text_muted">#6B6A63</color>
+    <color name="config_accent">#2F5233</color>
+    <!-- Label colour on top of config_accent. Themed rather than a
+         hardcoded white: the accent is pale in dark mode, where white
+         text on it fails contrast. -->
+    <color name="config_on_accent">#FFFFFF</color>
+    <color name="config_preview_backdrop_a">#DCD6C9</color>
+    <color name="config_preview_backdrop_b">#B9C6CE</color>
+    <!-- Unfilled part of a slider track. -->
+    <color name="config_track">#D8D3C7</color>
+    <color name="widget_preview_fill">#66FFFFFF</color>
+    <color name="widget_preview_rim">#59FFFFFF</color>
+</resources>

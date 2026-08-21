@@ -34,5 +34,9 @@ export {
 export { generateGoogleDocsReport } from "./google/docs";
 export { backupToGoogleDrive } from "./google/drive";
 export { exportToGoogleSheets } from "./google/sheets";
-export { sendDailyTaskDigest, sendHabitReminders } from "./notifications/reminders";
+export {
+  sendDailyTaskDigest,
+  sendDueReminders,
+  sendHabitReminders,
+} from "./notifications/reminders";
 export { scheduledCalendarSync } from "./scheduled/scheduledSync";

@@ -9,11 +9,25 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../auth/application/auth_actions.dart';
-import '../../notifications/application/push_notifications_providers.dart';
+import '../../notifications/application/notification_settings_providers.dart';
+import '../../notifications/domain/notification_settings.dart';
 import '../../subscription/application/subscription_providers.dart';
 import '../application/avatar_actions.dart';
 import '../application/profile_providers.dart';
 import '../domain/user_profile.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/layout/scroll_insets.dart';
+
+/// One line describing the notification setup, for the row that opens the
+/// settings screen — so the common case (nothing changed) doesn't require
+/// opening it to check.
+String _notificationSummary(NotificationSettings settings) {
+  if (!settings.masterEnabled) return 'Off';
+  final on = NotificationChannel.values.where(settings.isEnabled).length;
+  if (on == NotificationChannel.values.length) return 'All notifications on';
+  if (on == 0) return 'No types selected';
+  return '$on of ${NotificationChannel.values.length} types on';
+}
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -23,9 +37,12 @@ class ProfileScreen extends ConsumerWidget {
     final profileAsync = ref.watch(profileProvider);
     final currentPlan = ref.watch(currentPlanProvider);
     final enforcement = ref.watch(planEnforcementProvider);
+    final notificationSummary = _notificationSummary(
+      ref.watch(notificationSettingsProvider),
+    );
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppGlassAppBar(
         title: const Text('Profile'),
         actions: [
           IconButton(
@@ -49,10 +66,12 @@ class ProfileScreen extends ConsumerWidget {
             );
           }
 
-          final displayName = profile.displayName.isNotEmpty ? profile.displayName : profile.email;
+          final displayName = profile.displayName.isNotEmpty
+              ? profile.displayName
+              : profile.email;
 
           return ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
+            padding: scrollInsets(context),
             children: [
               AppCard(
                 child: Row(
@@ -74,7 +93,10 @@ class ProfileScreen extends ConsumerWidget {
                           const SizedBox(height: 2),
                           Text(
                             profile.email,
-                            style: const TextStyle(fontSize: 13, color: AppColors.subtleText),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.subtleText,
+                            ),
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           AppBadge(
@@ -90,29 +112,44 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.lg),
               _SectionLabel('Notifications'),
+              // Was a single on/off switch here. It now opens the settings
+              // screen instead, because there is more than one thing to
+              // decide: each channel has its own switch and the digest has a
+              // send time. The permission + token handling that used to live
+              // in this callback moved to NotificationSettingsActions.
               AppCard(
-                child: SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  activeThumbColor: AppColors.deepGreen,
-                  value: profile.notificationsEnabled,
-                  onChanged: (value) async {
-                    await ref.read(profileActionsProvider).updateNotificationsEnabled(value);
-                    final pushActions = ref.read(pushNotificationsActionsProvider);
-                    if (value) {
-                      final granted = await pushActions.enable();
-                      if (!granted && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Notification permission was denied in system settings.'),
+                onTap: () => context.push('/settings/notifications'),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.notifications_none,
+                      color: AppColors.subtleText,
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Reminders & nudges',
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
-                        );
-                      }
-                    } else {
-                      await pushActions.disable();
-                    }
-                  },
-                  title: const Text('Reminders & nudges'),
-                  subtitle: const Text('Push notifications for habit reminders and due tasks.'),
+                          const SizedBox(height: 2),
+                          Text(
+                            notificationSummary,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.subtleText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: AppColors.subtleText,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -121,7 +158,10 @@ class ProfileScreen extends ConsumerWidget {
                 onTap: () => context.push('/google-integrations'),
                 child: Row(
                   children: [
-                    const Icon(Icons.account_circle_outlined, color: AppColors.subtleText),
+                    const Icon(
+                      Icons.account_circle_outlined,
+                      color: AppColors.subtleText,
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(
@@ -131,15 +171,21 @@ class ProfileScreen extends ConsumerWidget {
                           Text(
                             enforcement.canAccessGoogleIntegrations
                                 ? (profile.hasGoogleLinked
-                                    ? 'Manage your connected Google integrations'
-                                    : 'Connect your Google account to get started')
+                                      ? 'Manage your connected Google integrations'
+                                      : 'Connect your Google account to get started')
                                 : 'Part of the Complete plan',
-                            style: const TextStyle(fontSize: 12, color: AppColors.subtleText),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.subtleText,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: AppColors.subtleText),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: AppColors.subtleText,
+                    ),
                   ],
                 ),
               ),
@@ -148,7 +194,10 @@ class ProfileScreen extends ConsumerWidget {
               AppCard(
                 child: Row(
                   children: [
-                    const Icon(Icons.download_outlined, color: AppColors.subtleText),
+                    const Icon(
+                      Icons.download_outlined,
+                      color: AppColors.subtleText,
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     const Expanded(child: Text('Export data')),
                     AppButton(
@@ -195,7 +244,9 @@ class _AvatarPickerState extends ConsumerState<_AvatarPicker> {
     try {
       await ref.read(avatarActionsProvider).pickAndUploadAvatar();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text("Couldn't upload photo: $e")));
+      messenger.showSnackBar(
+        SnackBar(content: Text("Couldn't upload photo: $e")),
+      );
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -220,22 +271,27 @@ class _AvatarPickerState extends ConsumerState<_AvatarPicker> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : photoUrl != null
-                    ? null
-                    : Text(
-                        widget.displayName.isNotEmpty ? widget.displayName[0].toUpperCase() : '?',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.deepGreen,
-                        ),
-                      ),
+                ? null
+                : Text(
+                    widget.displayName.isNotEmpty
+                        ? widget.displayName[0].toUpperCase()
+                        : '?',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.deepGreen,
+                    ),
+                  ),
           ),
           Positioned(
             right: -2,
             bottom: -2,
             child: Container(
               padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(color: AppColors.deepGreen, shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                color: AppColors.deepGreen,
+                shape: BoxShape.circle,
+              ),
               child: const Icon(Icons.edit, size: 12, color: Colors.white),
             ),
           ),

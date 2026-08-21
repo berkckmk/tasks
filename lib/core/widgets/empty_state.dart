@@ -4,7 +4,7 @@ import '../../app/theme/app_colors.dart';
 import '../constants/app_spacing.dart';
 import 'app_button.dart';
 
-/// Reused across Habits/Tasks/Goals whenever a list has no items yet.
+/// Reused across Habits/Tasks/Reminders whenever a list has no items yet.
 class EmptyState extends StatelessWidget {
   const EmptyState({
     super.key,
@@ -24,7 +24,10 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl, horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.xxl,
+        horizontal: AppSpacing.lg,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

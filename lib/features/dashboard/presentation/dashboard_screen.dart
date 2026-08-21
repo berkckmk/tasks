@@ -13,6 +13,8 @@ import '../../goals/application/goal_providers.dart';
 import '../../habits/application/habit_providers.dart';
 import '../../profile/application/profile_providers.dart';
 import '../../tasks/application/task_providers.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/layout/scroll_insets.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -24,7 +26,10 @@ class DashboardScreen extends ConsumerWidget {
     final goalsAsync = ref.watch(goalsProvider);
     final profileAsync = ref.watch(profileProvider);
 
-    final habits = habitsAsync.maybeWhen(data: (d) => d, orElse: () => const []);
+    final habits = habitsAsync.maybeWhen(
+      data: (d) => d,
+      orElse: () => const [],
+    );
     final tasks = tasksAsync.maybeWhen(data: (d) => d, orElse: () => const []);
     final goals = goalsAsync.maybeWhen(data: (d) => d, orElse: () => const []);
     final name = profileAsync.maybeWhen(
@@ -39,7 +44,8 @@ class DashboardScreen extends ConsumerWidget {
     final doneToday = completedHabits + completedTasks;
     final todayProgress = totalToday == 0 ? 0.0 : doneToday / totalToday;
 
-    final isLoading = (habitsAsync.isLoading && !habitsAsync.hasValue) ||
+    final isLoading =
+        (habitsAsync.isLoading && !habitsAsync.hasValue) ||
         (tasksAsync.isLoading && !tasksAsync.hasValue) ||
         (goalsAsync.isLoading && !goalsAsync.hasValue);
 
@@ -48,18 +54,13 @@ class DashboardScreen extends ConsumerWidget {
         .firstWhere((e) => e != null, orElse: () => null);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppGlassAppBar(title: const Text('Dashboard')),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : firstError != null
-              ? ErrorState(error: firstError)
-              : ListView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.xxl,
-              ),
+          ? ErrorState(error: firstError)
+          : ListView(
+              padding: scrollInsets(context),
               children: [
                 Text(
                   name.isEmpty ? 'Welcome back' : 'Welcome back, $name',
@@ -82,12 +83,18 @@ class DashboardScreen extends ConsumerWidget {
                           children: [
                             const Text(
                               'Today\'s progress',
-                              style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.charcoal,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               '$doneToday of $totalToday items completed',
-                              style: const TextStyle(fontSize: 13, color: AppColors.subtleText),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.subtleText,
+                              ),
                             ),
                           ],
                         ),
@@ -133,9 +140,19 @@ class DashboardScreen extends ConsumerWidget {
                     children: [
                       Row(
                         children: const [
-                          Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.amber),
+                          Icon(
+                            Icons.calendar_today_outlined,
+                            size: 18,
+                            color: AppColors.amber,
+                          ),
                           SizedBox(width: AppSpacing.sm),
-                          Text('This week\'s focus', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal)),
+                          Text(
+                            'This week\'s focus',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.charcoal,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.sm),
@@ -153,25 +170,42 @@ class DashboardScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Progress this week', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal)),
+                      const Text(
+                        'Progress this week',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.charcoal,
+                        ),
+                      ),
                       const SizedBox(height: AppSpacing.md),
                       Container(
                         height: 120,
                         decoration: BoxDecoration(
                           color: AppColors.deepGreen.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
                         ),
                         alignment: Alignment.center,
                         child: const Text(
                           'Progress chart coming soon',
-                          style: TextStyle(color: AppColors.subtleText, fontSize: 12),
+                          style: TextStyle(
+                            color: AppColors.subtleText,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                const Text('Quick actions', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal)),
+                const Text(
+                  'Quick actions',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.charcoal,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.sm),
                 Wrap(
                   spacing: AppSpacing.sm,

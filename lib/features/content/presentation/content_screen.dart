@@ -13,6 +13,8 @@ import '../../subscription/application/subscription_providers.dart';
 import '../application/content_providers.dart';
 import '../domain/content_item.dart';
 import 'widgets/add_edit_content_sheet.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_fab.dart';
 
 const _statusColors = {
   ContentStatus.idea: AppColors.subtleText,
@@ -26,14 +28,17 @@ class ContentScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canAccess = ref.watch(planEnforcementProvider).canAccessContentPlanner;
+    final canAccess = ref
+        .watch(planEnforcementProvider)
+        .canAccessContentPlanner;
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Content planner')),
+        appBar: AppGlassAppBar(title: const Text('Content planner')),
         body: const ModuleLockView(
           featureName: 'Content planner',
-          benefit: 'Plan content ideas across platforms, from idea to published, in one '
+          benefit:
+              'Plan content ideas across platforms, from idea to published, in one '
               'place.',
           requiredPlanName: 'Complete',
           icon: Icons.edit_calendar_outlined,
@@ -44,12 +49,9 @@ class ContentScreen extends ConsumerWidget {
     final itemsAsync = ref.watch(contentItemsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Content planner')),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'contentFab',
+      appBar: AppGlassAppBar(title: const Text('Content planner')),
+      floatingActionButton: AppFab(
         onPressed: () => showAddEditContentSheet(context, ref),
-        backgroundColor: AppColors.deepGreen,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: itemsAsync.when(
         data: (items) {
@@ -96,7 +98,10 @@ class _ContentTile extends ConsumerWidget {
               children: [
                 Text(
                   item.title,
-                  style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.charcoal,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -111,7 +116,10 @@ class _ContentTile extends ConsumerWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Text(
                         DateFormat.MMMd().format(item.publishDate!),
-                        style: const TextStyle(fontSize: 12, color: AppColors.subtleText),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.subtleText,
+                        ),
                       ),
                     ],
                   ],
@@ -120,8 +128,13 @@ class _ContentTile extends ConsumerWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.subtleText),
-            onPressed: () => ref.read(contentActionsProvider).deleteItem(item.id),
+            icon: const Icon(
+              Icons.delete_outline,
+              size: 18,
+              color: AppColors.subtleText,
+            ),
+            onPressed: () =>
+                ref.read(contentActionsProvider).deleteItem(item.id),
           ),
         ],
       ),

@@ -16,6 +16,8 @@ import '../domain/finance_transaction.dart';
 import '../domain/savings_goal.dart';
 import 'widgets/add_transaction_sheet.dart';
 import 'widgets/savings_goal_sheet.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_fab.dart';
 
 // Two decimals, deliberately: with decimalDigits: 0 a \$10.50 expense
 // rendered as "\$11", and because the per-row values and the totals were
@@ -28,14 +30,17 @@ class FinanceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canAccess = ref.watch(planEnforcementProvider).canAccessFinanceTracker;
+    final canAccess = ref
+        .watch(planEnforcementProvider)
+        .canAccessFinanceTracker;
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Finance tracker')),
+        appBar: AppGlassAppBar(title: const Text('Finance tracker')),
         body: const ModuleLockView(
           featureName: 'Finance tracker',
-          benefit: 'Log income and expenses, track a savings goal, and see your monthly '
+          benefit:
+              'Log income and expenses, track a savings goal, and see your monthly '
               'savings rate at a glance.',
           requiredPlanName: 'Complete',
           icon: Icons.savings_outlined,
@@ -47,12 +52,9 @@ class FinanceScreen extends ConsumerWidget {
     final savingsGoalsAsync = ref.watch(savingsGoalsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Finance tracker')),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'financeFab',
+      appBar: AppGlassAppBar(title: const Text('Finance tracker')),
+      floatingActionButton: AppFab(
         onPressed: () => showAddTransactionSheet(context, ref),
-        backgroundColor: AppColors.deepGreen,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: transactionsAsync.when(
         data: (transactions) {
@@ -66,9 +68,12 @@ class FinanceScreen extends ConsumerWidget {
           final expenses = thisMonth
               .where((t) => t.type == TransactionType.expense)
               .fold<double>(0, (sum, t) => sum + t.amount);
-          final savingsRate = income <= 0 ? 0.0 : ((income - expenses) / income).clamp(-1.0, 1.0);
+          final savingsRate = income <= 0
+              ? 0.0
+              : ((income - expenses) / income).clamp(-1.0, 1.0);
 
-          final savingsGoals = savingsGoalsAsync.valueOrNull ?? const <SavingsGoal>[];
+          final savingsGoals =
+              savingsGoalsAsync.valueOrNull ?? const <SavingsGoal>[];
 
           return ListView(
             padding: const EdgeInsets.fromLTRB(
@@ -117,19 +122,27 @@ class FinanceScreen extends ConsumerWidget {
                   children: [
                     const Text(
                       'Income vs. expenses',
-                      style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.charcoal,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Container(
                       height: 100,
                       decoration: BoxDecoration(
                         color: AppColors.deepGreen.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusSm,
+                        ),
                       ),
                       alignment: Alignment.center,
                       child: const Text(
                         'Charts coming soon',
-                        style: TextStyle(color: AppColors.subtleText, fontSize: 12),
+                        style: TextStyle(
+                          color: AppColors.subtleText,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ],
@@ -139,14 +152,19 @@ class FinanceScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Savings goal', style: Theme.of(context).textTheme.titleSmall),
+                  Text(
+                    'Savings goal',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
                   AppButton(
                     label: savingsGoals.isEmpty ? 'Set a goal' : 'Edit',
                     variant: AppButtonVariant.text,
                     onPressed: () => showSavingsGoalSheet(
                       context,
                       ref,
-                      existing: savingsGoals.isEmpty ? null : savingsGoals.first,
+                      existing: savingsGoals.isEmpty
+                          ? null
+                          : savingsGoals.first,
                     ),
                   ),
                 ],
@@ -166,7 +184,10 @@ class FinanceScreen extends ConsumerWidget {
                     children: [
                       Text(
                         savingsGoals.first.title,
-                        style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.charcoal,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       ClipRRect(
@@ -174,21 +195,31 @@ class FinanceScreen extends ConsumerWidget {
                         child: LinearProgressIndicator(
                           value: savingsGoals.first.progress.toDouble(),
                           minHeight: 8,
-                          backgroundColor: AppColors.deepGreen.withValues(alpha: 0.12),
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.deepGreen),
+                          backgroundColor: AppColors.deepGreen.withValues(
+                            alpha: 0.12,
+                          ),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.deepGreen,
+                          ),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         '${_currencyFormat.format(savingsGoals.first.currentAmount)} of '
                         '${_currencyFormat.format(savingsGoals.first.targetAmount)}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.subtleText),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.subtleText,
+                        ),
                       ),
                     ],
                   ),
                 ),
               const SizedBox(height: AppSpacing.lg),
-              Text('Recent transactions', style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                'Recent transactions',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               const SizedBox(height: AppSpacing.sm),
               if (transactions.isEmpty)
                 const EmptyState(
@@ -236,11 +267,17 @@ class _TransactionTile extends ConsumerWidget {
               children: [
                 Text(
                   transaction.category,
-                  style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.charcoal),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.charcoal,
+                  ),
                 ),
                 Text(
                   DateFormat.MMMd().format(transaction.date),
-                  style: const TextStyle(fontSize: 12, color: AppColors.subtleText),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.subtleText,
+                  ),
                 ),
               ],
             ),
@@ -253,8 +290,14 @@ class _TransactionTile extends ConsumerWidget {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, size: 16, color: AppColors.subtleText),
-            onPressed: () => ref.read(financeActionsProvider).deleteTransaction(transaction.id),
+            icon: const Icon(
+              Icons.close,
+              size: 16,
+              color: AppColors.subtleText,
+            ),
+            onPressed: () => ref
+                .read(financeActionsProvider)
+                .deleteTransaction(transaction.id),
           ),
         ],
       ),

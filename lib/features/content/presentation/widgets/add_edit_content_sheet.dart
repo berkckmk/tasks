@@ -1,22 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../../app/theme/app_colors.dart';
+
+import 'package:intl/intl.dart';
+
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../application/content_providers.dart';
 import '../../domain/content_item.dart';
 
-void showAddEditContentSheet(BuildContext context, WidgetRef ref, {ContentItem? existing}) {
-  showModalBottomSheet<void>(
+void showAddEditContentSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  ContentItem? existing,
+}) {
+  GlassModalSheet.show<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: AppColors.background,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+    // Tall, but deliberately not `full`. GlassSheetState.full is documented
+    // to transition to an opaque solid colour — at that stop the sheet stops
+    // being glass at all, which is what the first version of this shipped: a
+    // plain white panel over a glass app. Raising the half stop instead keeps
+    // the material while still showing the whole form without a drag.
+    halfSize: 0.78,
+    initialState: GlassSheetState.half,
+    // If the user does drag it to full, it fills with the app's cream rather
+    // than the package's default white.
+    expandedColor: AppColors.background,
+    builder: (context) => Material(
+      // GlassModalSheet wraps no Material — it is Cupertino all
+      // the way down. Every one of these sheets contains a
+      // TextField, which asserts on a missing Material ancestor,
+      // so without this the sheet throws the moment it opens.
+      // Transparency so the glass behind it still shows.
+      type: MaterialType.transparency,
+      child: _AddEditContentSheet(existing: existing),
     ),
-    builder: (context) => _AddEditContentSheet(existing: existing),
   );
 }
 
@@ -26,11 +46,14 @@ class _AddEditContentSheet extends ConsumerStatefulWidget {
   final ContentItem? existing;
 
   @override
-  ConsumerState<_AddEditContentSheet> createState() => _AddEditContentSheetState();
+  ConsumerState<_AddEditContentSheet> createState() =>
+      _AddEditContentSheetState();
 }
 
 class _AddEditContentSheetState extends ConsumerState<_AddEditContentSheet> {
-  late final _titleController = TextEditingController(text: widget.existing?.title ?? '');
+  late final _titleController = TextEditingController(
+    text: widget.existing?.title ?? '',
+  );
   late String _platform = widget.existing?.platform ?? contentPlatforms.first;
   late ContentStatus _status = widget.existing?.status ?? ContentStatus.idea;
   DateTime? _publishDate;
@@ -63,7 +86,9 @@ class _AddEditContentSheetState extends ConsumerState<_AddEditContentSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.existing == null ? 'Add content idea' : 'Edit content idea',
+              widget.existing == null
+                  ? 'Add content idea'
+                  : 'Edit content idea',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -136,16 +161,17 @@ class _AddEditContentSheetState extends ConsumerState<_AddEditContentSheet> {
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please enter a title')));
       return;
     }
     setState(() => _isSaving = true);
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await ref.read(contentActionsProvider).saveItem(
+      await ref
+          .read(contentActionsProvider)
+          .saveItem(
             id: widget.existing?.id,
             title: title,
             platform: _platform,

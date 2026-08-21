@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/module_lock_view.dart';
 import '../../../pricing/domain/plan_module.dart';
 import '../../application/subscription_providers.dart';
+import '../../../../core/widgets/app_glass_app_bar.dart';
 
 /// Gates a whole screen behind a plan module: shows [builder]'s screen if
 /// the current plan includes [module], otherwise a [ModuleLockView]
@@ -43,7 +44,7 @@ class RequiresModule extends ConsumerWidget {
     if (enforcement.canAccessModule(module)) return builder(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppGlassAppBar(title: Text(title)),
       body: ModuleLockView(
         featureName: featureName,
         benefit: benefit,

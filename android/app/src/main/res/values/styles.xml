@@ -15,4 +15,13 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- Widget configuration activity. DeviceDefault rather than the Flutter
+         themes above: this screen is plain framework views launched by the
+         launcher, and should look like the rest of the system's settings
+         surfaces. The dark variant lives in values-night/styles.xml. -->
+    <style name="WidgetConfigureTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        <item name="android:windowBackground">@color/config_background</item>
+        <item name="android:colorAccent">@color/config_accent</item>
+    </style>
 </resources>

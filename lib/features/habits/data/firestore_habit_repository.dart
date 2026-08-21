@@ -6,7 +6,7 @@ import '../../../core/firebase/firestore_batch.dart';
 import '../domain/habit.dart';
 import '../domain/habit_log.dart';
 import '../domain/habit_repository.dart';
-import '../domain/habit_status.dart' show formatLogDate;
+import '../domain/habit_status.dart' show addCalendarDays, formatLogDate;
 
 class FirestoreHabitRepository implements HabitRepository {
   FirestoreHabitRepository(this._firestore, this._callables, this._uid);
@@ -23,18 +23,30 @@ class FirestoreHabitRepository implements HabitRepository {
 
   @override
   Stream<List<Habit>> watchHabits() {
-    return _habitsRef.orderBy('createdAt').limit(kListPageLimit).snapshots().map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => Habit.fromFirestore(doc.id, doc.data())).toList(),
+    return _habitsRef
+        .orderBy('createdAt')
+        .limit(kListPageLimit)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Habit.fromFirestore(doc.id, doc.data()))
+              .toList(),
         );
   }
 
   @override
   Stream<List<HabitLog>> watchRecentLogs({int days = 60}) {
-    final cutoff = formatLogDate(DateTime.now().subtract(Duration(days: days)));
-    return _logsRef.where('date', isGreaterThanOrEqualTo: cutoff).snapshots().map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => HabitLog.fromFirestore(doc.id, doc.data())).toList(),
+    // addCalendarDays rather than a Duration, for the DST reason documented
+    // on it — a 24-hour span isn't always one calendar day, and this cutoff
+    // is compared against `yyyy-MM-dd` strings.
+    final cutoff = formatLogDate(addCalendarDays(DateTime.now(), -days));
+    return _logsRef
+        .where('date', isGreaterThanOrEqualTo: cutoff)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => HabitLog.fromFirestore(doc.id, doc.data()))
+              .toList(),
         );
   }
 
@@ -81,8 +93,13 @@ class FirestoreHabitRepository implements HabitRepository {
     // cleanup then failed (offline, rules, or the batch limit below), the
     // habit was already gone and its logs were orphaned with no way to
     // retry.
-    final orphanedLogs = await _logsRef.where('habitId', isEqualTo: habitId).get();
-    await deleteAllInBatches(_firestore, orphanedLogs.docs.map((doc) => doc.reference));
+    final orphanedLogs = await _logsRef
+        .where('habitId', isEqualTo: habitId)
+        .get();
+    await deleteAllInBatches(
+      _firestore,
+      orphanedLogs.docs.map((doc) => doc.reference),
+    );
 
     await _habitsRef.doc(habitId).delete();
   }
@@ -92,8 +109,15 @@ class FirestoreHabitRepository implements HabitRepository {
     final date = formatLogDate(DateTime.now());
     final logId = '${habitId}_$date';
     if (completed) {
-      await _logsRef.doc(logId).set(
-            HabitLog(id: logId, habitId: habitId, date: date, completed: true).toFirestore(),
+      await _logsRef
+          .doc(logId)
+          .set(
+            HabitLog(
+              id: logId,
+              habitId: habitId,
+              date: date,
+              completed: true,
+            ).toFirestore(),
           );
     } else {
       await _logsRef.doc(logId).delete();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
@@ -7,15 +8,32 @@ import '../../../../core/widgets/app_button.dart';
 import '../../application/learning_providers.dart';
 import '../../domain/learning_item.dart';
 
-void showAddEditLearningSheet(BuildContext context, WidgetRef ref, {LearningItem? existing}) {
-  showModalBottomSheet<void>(
+void showAddEditLearningSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  LearningItem? existing,
+}) {
+  GlassModalSheet.show<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: AppColors.background,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+    // Tall, but deliberately not `full`. GlassSheetState.full is documented
+    // to transition to an opaque solid colour — at that stop the sheet stops
+    // being glass at all, which is what the first version of this shipped: a
+    // plain white panel over a glass app. Raising the half stop instead keeps
+    // the material while still showing the whole form without a drag.
+    halfSize: 0.78,
+    initialState: GlassSheetState.half,
+    // If the user does drag it to full, it fills with the app's cream rather
+    // than the package's default white.
+    expandedColor: AppColors.background,
+    builder: (context) => Material(
+      // GlassModalSheet wraps no Material — it is Cupertino all
+      // the way down. Every one of these sheets contains a
+      // TextField, which asserts on a missing Material ancestor,
+      // so without this the sheet throws the moment it opens.
+      // Transparency so the glass behind it still shows.
+      type: MaterialType.transparency,
+      child: _AddEditLearningSheet(existing: existing),
     ),
-    builder: (context) => _AddEditLearningSheet(existing: existing),
   );
 }
 
@@ -25,16 +43,23 @@ class _AddEditLearningSheet extends ConsumerStatefulWidget {
   final LearningItem? existing;
 
   @override
-  ConsumerState<_AddEditLearningSheet> createState() => _AddEditLearningSheetState();
+  ConsumerState<_AddEditLearningSheet> createState() =>
+      _AddEditLearningSheetState();
 }
 
 class _AddEditLearningSheetState extends ConsumerState<_AddEditLearningSheet> {
-  late final _titleController = TextEditingController(text: widget.existing?.title ?? '');
-  late final _notesController = TextEditingController(text: widget.existing?.notes ?? '');
-  late final _takeawaysController =
-      TextEditingController(text: widget.existing?.keyTakeaways.join('\n') ?? '');
+  late final _titleController = TextEditingController(
+    text: widget.existing?.title ?? '',
+  );
+  late final _notesController = TextEditingController(
+    text: widget.existing?.notes ?? '',
+  );
+  late final _takeawaysController = TextEditingController(
+    text: widget.existing?.keyTakeaways.join('\n') ?? '',
+  );
   late LearningType _type = widget.existing?.type ?? LearningType.book;
-  late LearningStatus _status = widget.existing?.status ?? LearningStatus.planned;
+  late LearningStatus _status =
+      widget.existing?.status ?? LearningStatus.planned;
   late int _rating = widget.existing?.rating ?? 0;
   bool _isSaving = false;
 
@@ -61,7 +86,9 @@ class _AddEditLearningSheetState extends ConsumerState<_AddEditLearningSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.existing == null ? 'Add learning item' : 'Edit learning item',
+              widget.existing == null
+                  ? 'Add learning item'
+                  : 'Edit learning item',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -139,9 +166,8 @@ class _AddEditLearningSheetState extends ConsumerState<_AddEditLearningSheet> {
   Future<void> _save() async {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Please enter a title')));
       return;
     }
 
@@ -154,7 +180,9 @@ class _AddEditLearningSheetState extends ConsumerState<_AddEditLearningSheet> {
           .map((l) => l.trim())
           .where((l) => l.isNotEmpty)
           .toList();
-      await ref.read(learningActionsProvider).saveItem(
+      await ref
+          .read(learningActionsProvider)
+          .saveItem(
             id: widget.existing?.id,
             title: title,
             type: _type,

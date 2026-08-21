@@ -10,6 +10,8 @@ import '../../../core/widgets/app_button.dart';
 import '../application/goal_providers.dart';
 import '../domain/goal.dart';
 import '../domain/milestone.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_dialogs.dart';
 
 class AddEditGoalScreen extends ConsumerStatefulWidget {
   const AddEditGoalScreen({super.key, this.goalId});
@@ -63,37 +65,30 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
         // Counter-suffixed: two milestones added in the same millisecond
         // (easy with repeated onSubmitted) shared an id, and toggling or
         // deleting one then matched both.
-        Milestone(id: 'm_${DateTime.now().microsecondsSinceEpoch}_${_milestoneSeq++}', title: text),
+        Milestone(
+          id: 'm_${DateTime.now().microsecondsSinceEpoch}_${_milestoneSeq++}',
+          title: text,
+        ),
       ];
       _milestoneController.clear();
     });
   }
 
   Future<void> _confirmDelete(BuildContext context, String goalId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete goal?'),
-        content: const Text('This can\'t be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await confirmDestructive(
+      context,
+      title: 'Delete goal?',
+      message: 'This can\'t be undone.',
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     try {
       await ref.read(goalActionsProvider).deleteGoal(goalId);
       if (context.mounted) context.pop();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Couldn't delete goal: $e")),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Couldn't delete goal: $e")));
       }
     }
   }
@@ -128,7 +123,7 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppGlassAppBar(
         title: Text(title),
         actions: [
           if (existing != null)
@@ -150,7 +145,9 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
           TextField(
             controller: _descriptionController,
             maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Description (optional)'),
+            decoration: const InputDecoration(
+              labelText: 'Description (optional)',
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text('Category', style: Theme.of(context).textTheme.titleSmall),
@@ -180,8 +177,14 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
               // would silently move the user's date).
               final now = DateTime.now();
               final initial = _targetDate ?? now;
-              final firstDate = _earliest(now.subtract(const Duration(days: 365)), initial);
-              final lastDate = _latest(now.add(const Duration(days: 365 * 3)), initial);
+              final firstDate = _earliest(
+                now.subtract(const Duration(days: 365)),
+                initial,
+              );
+              final lastDate = _latest(
+                now.add(const Duration(days: 365 * 3)),
+                initial,
+              );
               final picked = await showDatePicker(
                 context: context,
                 initialDate: initial,
@@ -192,7 +195,9 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
             },
             icon: const Icon(Icons.event_outlined),
             label: Text(
-              _targetDate == null ? 'Set a target date (optional)' : DateFormat.yMMMd().format(_targetDate!),
+              _targetDate == null
+                  ? 'Set a target date (optional)'
+                  : DateFormat.yMMMd().format(_targetDate!),
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -213,7 +218,10 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
           if (_progressType == GoalProgressType.percentage) ...[
-            Text('Progress: ${(_manualProgress * 100).round()}%', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              'Progress: ${(_manualProgress * 100).round()}%',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             Slider(
               value: _manualProgress,
               onChanged: (v) => setState(() => _manualProgress = v),
@@ -231,7 +239,11 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                 onChanged: (checked) {
                   setState(() {
                     _milestones = _milestones
-                        .map((e) => e.id == m.id ? e.copyWith(isDone: checked ?? false) : e)
+                        .map(
+                          (e) => e.id == m.id
+                              ? e.copyWith(isDone: checked ?? false)
+                              : e,
+                        )
                         .toList();
                   });
                 },
@@ -239,7 +251,9 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                   icon: const Icon(Icons.close, size: 18),
                   onPressed: () {
                     setState(() {
-                      _milestones = _milestones.where((e) => e.id != m.id).toList();
+                      _milestones = _milestones
+                          .where((e) => e.id != m.id)
+                          .toList();
                     });
                   },
                 ),
@@ -250,13 +264,18 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                 Expanded(
                   child: TextField(
                     controller: _milestoneController,
-                    decoration: const InputDecoration(labelText: 'Add a milestone'),
+                    decoration: const InputDecoration(
+                      labelText: 'Add a milestone',
+                    ),
                     onSubmitted: (_) => _addMilestone(),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 IconButton(
-                  icon: const Icon(Icons.add_circle, color: AppColors.deepGreen),
+                  icon: const Icon(
+                    Icons.add_circle,
+                    color: AppColors.deepGreen,
+                  ),
                   onPressed: _addMilestone,
                 ),
               ],
@@ -272,13 +291,17 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                     final title = _titleController.text.trim();
                     if (title.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please enter a goal title')),
+                        const SnackBar(
+                          content: Text('Please enter a goal title'),
+                        ),
                       );
                       return;
                     }
                     setState(() => _isSaving = true);
                     try {
-                      await ref.read(goalActionsProvider).saveGoal(
+                      await ref
+                          .read(goalActionsProvider)
+                          .saveGoal(
                             id: existing?.id,
                             title: title,
                             description: _descriptionController.text.trim(),

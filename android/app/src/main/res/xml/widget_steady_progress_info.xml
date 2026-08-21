@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    updatePeriodMillis is 0 on purpose: the platform floors periodic widget
+    updates at 30 minutes and wakes the device to deliver them, which would
+    cost battery to redraw numbers that haven't changed. The widget is instead
+    pushed from the app whenever the dashboard data actually changes (see
+    HomeWidgetService on the Flutter side).
+
+    previewLayout points at a static stand-in rather than the real layout: the
+    real one is a single ImageView that is empty until a provider run pushes a
+    rendered bitmap into it, and the picker inflates the layout without ever
+    running the provider — so it would show an empty rectangle.
+
+    widgetFeatures (API 31+):
+      reconfigurable         - adds the launcher's "configure" affordance on
+                               long-press, so the field selection can be
+                               changed after placement, not only when the
+                               widget is first dropped.
+      configuration_optional - the widget is placed with sensible defaults if
+                               the user dismisses setup, instead of silently
+                               refusing to be added.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="110dp"
+    android:maxResizeWidth="400dp"
+    android:maxResizeHeight="320dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/widget_steady_progress"
+    android:previewLayout="@layout/widget_preview"
+    android:description="@string/widget_description"
+    android:configure="com.steadyprogress.steady_progress.widget.SteadyProgressWidgetConfigureActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:updatePeriodMillis="0" />

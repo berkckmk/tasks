@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../core/analytics/analytics_service.dart';
+import '../../../core/time/device_timezone.dart';
+import '../../home_widget/application/home_widget_providers.dart';
 import '../../notifications/application/push_notifications_providers.dart';
 import '../../profile/application/profile_providers.dart';
 import '../../subscription/application/subscription_providers.dart';
@@ -25,7 +27,10 @@ class AuthActions {
   /// after email/password verification completes (see
   /// [checkEmailVerified]) — never at signUp() time, when the token isn't
   /// verified yet.
-  Future<void> _bootstrapProfileIfNeeded(User user, {required String signUpProvider}) async {
+  Future<void> _bootstrapProfileIfNeeded(
+    User user, {
+    required String signUpProvider,
+  }) async {
     final profileRepository = _ref.read(userProfileRepositoryProvider);
     final analytics = _ref.read(analyticsServiceProvider);
 
@@ -34,11 +39,18 @@ class AuthActions {
       await profileRepository.createInitialProfile(
         uid: user.uid,
         email: user.email ?? '',
-        displayName: user.displayName ?? (user.email?.split('@').first ?? 'there'),
-        timezone: DateTime.now().timeZoneName,
+        displayName:
+            user.displayName ?? (user.email?.split('@').first ?? 'there'),
+        // A real IANA zone id ("Europe/Istanbul"), NOT
+        // `DateTime.now().timeZoneName` — that returns an abbreviation like
+        // "+03"/"EDT", which the backend can't parse and silently reads as
+        // UTC. See core/time/device_timezone.dart.
+        timezone: await resolveDeviceTimeZone(),
       );
       // Every new user starts on Starter until they upgrade.
-      await _ref.read(subscriptionRepositoryProvider).createInitialStatus(user.uid);
+      await _ref
+          .read(subscriptionRepositoryProvider)
+          .createInitialStatus(user.uid);
       await analytics.logSignUp(signUpProvider);
     } else {
       await analytics.logLogin(signUpProvider);
@@ -46,7 +58,10 @@ class AuthActions {
 
     await analytics.setUserId(user.uid);
     final authRepository = _ref.read(authRepositoryProvider);
-    await profileRepository.updateLinkedProviders(user.uid, authRepository.linkedProviderIds);
+    await profileRepository.updateLinkedProviders(
+      user.uid,
+      authRepository.linkedProviderIds,
+    );
   }
 
   /// Only creates the Firebase Auth account and sends the verification
@@ -55,11 +70,15 @@ class AuthActions {
   /// `isOwner()` for why: the token isn't verified yet at this point, so
   /// Firestore would reject the write anyway).
   Future<void> signUp({required String email, required String password}) async {
-    await _ref.read(authRepositoryProvider).signUpWithEmail(email: email, password: password);
+    await _ref
+        .read(authRepositoryProvider)
+        .signUpWithEmail(email: email, password: password);
   }
 
   Future<void> signIn({required String email, required String password}) async {
-    await _ref.read(authRepositoryProvider).signInWithEmail(email: email, password: password);
+    await _ref
+        .read(authRepositoryProvider)
+        .signInWithEmail(email: email, password: password);
     // No bootstrap call here: an existing account was already bootstrapped
     // either at Google sign-in or at its first post-verification
     // checkEmailVerified() — signing back in later never needs it again,
@@ -122,13 +141,20 @@ class AuthActions {
 
     if (uid != null) {
       try {
-        await _ref.read(pushNotificationsRepositoryProvider).unregisterCurrentToken(uid);
+        await _ref
+            .read(pushNotificationsRepositoryProvider)
+            .unregisterCurrentToken(uid);
       } catch (error) {
         // Never block sign-out on cleanup: if the token can't be removed
         // (offline, permission), signing out still has to work.
         debugPrint('Failed to unregister FCM token on sign-out: $error');
       }
     }
+
+    // Same shared-device reasoning as the FCM token above: the home-screen
+    // widget caches the last pushed numbers and would otherwise keep showing
+    // the previous account's progress to whoever signs in next.
+    await _ref.read(homeWidgetServiceProvider).clear();
 
     await _ref.read(analyticsServiceProvider).setUserId(null);
     await _ref.read(authRepositoryProvider).signOut();

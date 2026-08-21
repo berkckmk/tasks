@@ -25,7 +25,10 @@ class FakeCallableService implements CallableService {
   final List<({String name, Map<String, dynamic>? data})> calls = [];
 
   @override
-  Future<Map<String, dynamic>?> call(String name, [Map<String, dynamic>? data]) async {
+  Future<Map<String, dynamic>?> call(
+    String name, [
+    Map<String, dynamic>? data,
+  ]) async {
     calls.add((name: name, data: data));
 
     final collection = switch (name) {
@@ -40,11 +43,11 @@ class FakeCallableService implements CallableService {
         .doc(_uid)
         .collection(collection)
         .add({
-      ...?data,
-      if (collection == 'tasks') 'status': 'todo',
-      'createdAt': Timestamp.now(),
-      'updatedAt': Timestamp.now(),
-    });
+          ...?data,
+          if (collection == 'tasks') 'status': 'todo',
+          'createdAt': Timestamp.now(),
+          'updatedAt': Timestamp.now(),
+        });
     return {'id': doc.id};
   }
 }
@@ -64,7 +67,11 @@ class TestBackend {
     bool onboardingCompleted = true,
   }) async {
     final auth = MockFirebaseAuth(
-      mockUser: MockUser(uid: uid, email: 'jane@example.com', displayName: 'Jane Doe'),
+      mockUser: MockUser(
+        uid: uid,
+        email: 'jane@example.com',
+        displayName: 'Jane Doe',
+      ),
       signedIn: true,
     );
     final firestore = FakeFirebaseFirestore();
@@ -91,7 +98,12 @@ class TestBackend {
       'trialEndsAt': null,
     });
 
-    return TestBackend._(auth, firestore, FakeCallableService(firestore, uid), uid);
+    return TestBackend._(
+      auth,
+      firestore,
+      FakeCallableService(firestore, uid),
+      uid,
+    );
   }
 
   Future<void> addHabit(String name, {String category = 'morning'}) async {
@@ -132,11 +144,115 @@ class TestBackend {
     });
   }
 
+  Future<void> seedOneWeekPlan() async {
+    final today = DateTime.now();
+    final baseDay = DateTime(today.year, today.month, today.day);
+
+    final habitSeeds = [
+      ('Morning run', 'morning', true),
+      ('Drink water', 'health', true),
+      ('Read 20 pages', 'evening', false),
+      ('Stretch', 'morning', true),
+    ];
+
+    for (final (name, category, completedToday) in habitSeeds) {
+      final habitRef = await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('habits')
+          .add({
+            'name': name,
+            'category': category,
+            'frequencyLabel': 'Daily',
+            'colorValue': 0xFF2E5E4E,
+            'reminderTimeLabel': '08:00',
+            'createdAt': Timestamp.now(),
+            'updatedAt': Timestamp.now(),
+          });
+
+      for (var offset = -2; offset <= 3; offset++) {
+        final date = DateTime(
+          baseDay.year,
+          baseDay.month,
+          baseDay.day + offset,
+        );
+        final dateKey =
+            '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        final isCompleted =
+            offset <= 0 &&
+            (completedToday || offset < 0 || dateKey == _dateKey(baseDay));
+        await firestore
+            .collection('users')
+            .doc(uid)
+            .collection('habit_logs')
+            .doc('${habitRef.id}_$dateKey')
+            .set({
+              'habitId': habitRef.id,
+              'date': dateKey,
+              'completed': isCompleted,
+              'completedAt': isCompleted
+                  ? Timestamp.fromDate(date.add(const Duration(hours: 7)))
+                  : null,
+            });
+      }
+    }
+
+    final taskSeeds = [
+      ('Plan the week', 'todo', 0),
+      ('Finish invoice review', 'inProgress', 1),
+      ('Book dentist visit', 'todo', 2),
+      ('Reply to design notes', 'done', 3),
+      ('Prepare workshop outline', 'todo', 4),
+      ('Review budget', 'todo', 5),
+      ('Deep clean desk', 'todo', 6),
+    ];
+
+    for (final (title, status, offset) in taskSeeds) {
+      await firestore.collection('users').doc(uid).collection('tasks').add({
+        'title': title,
+        'description': 'Sample task for the upcoming week.',
+        'dueDate': Timestamp.fromDate(baseDay.add(Duration(days: offset))),
+        'priority': offset == 1 ? 'high' : 'medium',
+        'status': status,
+        'relatedGoalId': null,
+        'createdAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+    }
+
+    final reminderSeeds = [
+      ('Morning planning', 'Start the week strong', 0, 'scheduled'),
+      ('Water refill reminder', 'Take a hydration break', 1, 'scheduled'),
+      ('Workout check-in', 'Do the mobility session', 2, 'completed'),
+      ('Call the client', 'Quick follow-up on open questions', 3, 'scheduled'),
+      ('Meal prep', 'Prepare lunches for the next two days', 4, 'scheduled'),
+      ('Review goals', 'Check progress and adjust priorities', 5, 'scheduled'),
+      ('Reset the desk', 'Tidy and close open loops', 6, 'scheduled'),
+    ];
+
+    for (final (title, message, offset, status) in reminderSeeds) {
+      await firestore.collection('users').doc(uid).collection('reminders').add({
+        'title': title,
+        'message': message,
+        'dueAt': Timestamp.fromDate(
+          baseDay.add(Duration(days: offset, hours: 9)),
+        ),
+        'status': status,
+        'createdAt': Timestamp.now(),
+        'updatedAt': Timestamp.now(),
+      });
+    }
+  }
+
+  static String _dateKey(DateTime value) {
+    return '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}';
+  }
+
   List<Override> get overrides => [
-        firebaseAuthProvider.overrideWithValue(auth),
-        firestoreProvider.overrideWithValue(firestore),
-        // Without this the habit/task repositories construct
-        // FirebaseFunctions.instance and throw [core/no-app].
-        callableServiceProvider.overrideWithValue(callables),
-      ];
+    firebaseAuthProvider.overrideWithValue(auth),
+    firestoreProvider.overrideWithValue(firestore),
+    // Without this the habit/task repositories construct
+    // FirebaseFunctions.instance and throw [core/no-app].
+    callableServiceProvider.overrideWithValue(callables),
+  ];
 }

@@ -9,25 +9,31 @@ import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/module_lock_view.dart';
 import '../../../core/widgets/stat_card.dart';
+import '../../habits/domain/habit_status.dart' show addCalendarDays;
 import '../../subscription/application/subscription_providers.dart';
 import '../application/workout_providers.dart';
 import '../domain/exercise_log.dart';
 import '../domain/workout.dart';
 import 'widgets/log_workout_sheet.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_fab.dart';
 
 class WorkoutScreen extends ConsumerWidget {
   const WorkoutScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canAccess = ref.watch(planEnforcementProvider).canAccessWorkoutTracker;
+    final canAccess = ref
+        .watch(planEnforcementProvider)
+        .canAccessWorkoutTracker;
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Workout tracker')),
+        appBar: AppGlassAppBar(title: const Text('Workout tracker')),
         body: const ModuleLockView(
           featureName: 'Workout tracker',
-          benefit: 'Log workouts and exercises, and keep an eye on your weekly training '
+          benefit:
+              'Log workouts and exercises, and keep an eye on your weekly training '
               'consistency.',
           requiredPlanName: 'Complete',
           icon: Icons.fitness_center_outlined,
@@ -39,23 +45,27 @@ class WorkoutScreen extends ConsumerWidget {
     final exerciseLogsAsync = ref.watch(exerciseLogsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Workout tracker')),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'workoutFab',
+      appBar: AppGlassAppBar(title: const Text('Workout tracker')),
+      floatingActionButton: AppFab(
         onPressed: () => showLogWorkoutSheet(context, ref),
-        backgroundColor: AppColors.deepGreen,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: workoutsAsync.when(
         data: (workouts) {
           final now = DateTime.now();
-          final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-          final weekStart = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
-          final thisWeekCount =
-              workouts.where((w) => !w.date.isBefore(weekStart)).length;
+          // addCalendarDays, not subtract(Duration(days:)) — see its doc
+          // comment in habits/domain/habit_status.dart. A local day isn't
+          // always 24 hours, so on a spring-forward Monday the Duration
+          // version lands at 23:00 the previous day and the truncation below
+          // then reports Sunday as the week start, pulling an extra day's
+          // workouts into "this week".
+          final weekStart = addCalendarDays(now, -(now.weekday - 1));
+          final thisWeekCount = workouts
+              .where((w) => !w.date.isBefore(weekStart))
+              .length;
 
           final logsByWorkout = <String, List<ExerciseLog>>{};
-          for (final log in exerciseLogsAsync.valueOrNull ?? const <ExerciseLog>[]) {
+          for (final log
+              in exerciseLogsAsync.valueOrNull ?? const <ExerciseLog>[]) {
             logsByWorkout.putIfAbsent(log.workoutId, () => []).add(log);
           }
 
@@ -80,7 +90,8 @@ class WorkoutScreen extends ConsumerWidget {
                 const EmptyState(
                   icon: Icons.fitness_center_outlined,
                   title: 'No workouts logged yet',
-                  message: 'Log your first workout to start tracking consistency.',
+                  message:
+                      'Log your first workout to start tracking consistency.',
                 )
               else
                 ...workouts.map(
@@ -122,18 +133,29 @@ class _WorkoutTile extends ConsumerWidget {
                   children: [
                     Text(
                       workout.name,
-                      style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.charcoal,
+                      ),
                     ),
                     Text(
                       DateFormat.yMMMd().format(workout.date),
-                      style: const TextStyle(fontSize: 12, color: AppColors.subtleText),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.subtleText,
+                      ),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.subtleText),
-                onPressed: () => ref.read(workoutActionsProvider).deleteWorkout(workout.id),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 18,
+                  color: AppColors.subtleText,
+                ),
+                onPressed: () =>
+                    ref.read(workoutActionsProvider).deleteWorkout(workout.id),
               ),
             ],
           ),
@@ -147,11 +169,18 @@ class _WorkoutTile extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         '${e.name} — ${e.sets}×${e.reps} @ ${e.weight.toStringAsFixed(0)}kg',
-                        style: const TextStyle(fontSize: 13, color: AppColors.charcoal),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.charcoal,
+                        ),
                       ),
                     ),
                     if (e.isPersonalRecord)
-                      const Icon(Icons.emoji_events_outlined, size: 14, color: AppColors.amber),
+                      const Icon(
+                        Icons.emoji_events_outlined,
+                        size: 14,
+                        color: AppColors.amber,
+                      ),
                   ],
                 ),
               ),

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The whole panel is one bitmap in one ImageView.
+
+    RemoteViews can't host a custom View, so there is no RenderEffect and no
+    shader available to build the material out of real views — GlassRenderer
+    draws the finished panel into a bitmap instead and this layout just shows
+    it. See LiquidGlass.kt for what that reproduces and why.
+
+    Every element here must be a class RemoteViews actually permits. That list
+    is short (FrameLayout, LinearLayout, RelativeLayout, GridLayout, ImageView,
+    TextView, Button, ProgressBar, the collection views, ...) and notably does
+    NOT include a bare `View` or `Space`: inflating one throws
+    "Class not allowed to be inflated android.view.View", which fails the
+    whole layout, not just that element, and the launcher then shows an empty
+    box where the widget should be. The tap target below is therefore an
+    ImageView with no drawable rather than a plain View.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+
+    <!-- Single canvas ImageView that holds the whole rendered liquid-glass panel -->
+    <ImageView
+        android:id="@+id/widget_canvas"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        android:contentDescription="@string/widget_description" />
+
+    <!--
+        Top-left tap target. Cycles which field is shown.
+
+        No drawable and a transparent background: it exists only to catch the
+        touch, the affordance itself is drawn into the panel bitmap. It is
+        declared after the canvas so it sits above it and wins the touch.
+    -->
+    <ImageView
+        android:id="@+id/widget_select_area"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="8dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/widget_select_field" />
+</FrameLayout>

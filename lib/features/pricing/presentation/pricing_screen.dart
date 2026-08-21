@@ -7,6 +7,7 @@ import '../../../core/widgets/pricing_card.dart';
 import '../../subscription/application/beta_billing_service.dart';
 import '../../subscription/application/subscription_providers.dart';
 import '../application/plan_providers.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
 
 class PricingScreen extends ConsumerWidget {
   const PricingScreen({super.key});
@@ -17,7 +18,7 @@ class PricingScreen extends ConsumerWidget {
     final subscriptionAsync = ref.watch(subscriptionStatusProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Upgrade plan')),
+      appBar: AppGlassAppBar(title: const Text('Upgrade plan')),
       body: subscriptionAsync.when(
         data: (subscription) {
           final currentPlanId = subscription?.planId ?? 'starter';
@@ -39,7 +40,11 @@ class PricingScreen extends ConsumerWidget {
                       .purchasePlan(plan.id, yearly: false);
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(result.message ?? 'Switched to the ${plan.name} plan')),
+                      SnackBar(
+                        content: Text(
+                          result.message ?? 'Switched to the ${plan.name} plan',
+                        ),
+                      ),
                     );
                   }
                 },

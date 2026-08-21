@@ -15,6 +15,8 @@ import '../../google_integrations/application/google_integrations_providers.dart
 import '../../google_integrations/domain/google_sync_status.dart';
 import '../application/task_providers.dart';
 import '../domain/task_item.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_dialogs.dart';
 
 class AddEditTaskScreen extends ConsumerStatefulWidget {
   const AddEditTaskScreen({super.key, this.taskId});
@@ -52,30 +54,20 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
   }
 
   Future<void> _confirmDelete(BuildContext context, String taskId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete task?'),
-        content: const Text('This can\'t be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+    final confirmed = await confirmDestructive(
+      context,
+      title: 'Delete task?',
+      message: 'This can\'t be undone.',
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     try {
       await ref.read(taskActionsProvider).deleteTask(taskId);
       if (context.mounted) context.pop();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Couldn't delete task: $e")),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Couldn't delete task: $e")));
       }
     }
   }
@@ -113,10 +105,11 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
     }
 
     final calendarConnected =
-        ref.watch(googleCalendarStatusProvider).valueOrNull?.status == GoogleSyncStatus.connected;
+        ref.watch(googleCalendarStatusProvider).valueOrNull?.status ==
+        GoogleSyncStatus.connected;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppGlassAppBar(
         title: Text(title),
         actions: [
           if (existing != null)
@@ -138,7 +131,9 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
           TextField(
             controller: _descriptionController,
             maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Description (optional)'),
+            decoration: const InputDecoration(
+              labelText: 'Description (optional)',
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           Text('Due date', style: Theme.of(context).textTheme.titleSmall),
@@ -155,7 +150,9 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
             },
             icon: const Icon(Icons.event_outlined),
             label: Text(
-              _dueDate == null ? 'Set a due date (optional)' : DateFormat.yMMMd().format(_dueDate!),
+              _dueDate == null
+                  ? 'Set a due date (optional)'
+                  : DateFormat.yMMMd().format(_dueDate!),
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -182,11 +179,19 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
             decoration: const InputDecoration(labelText: 'None'),
             items: [
               const DropdownMenuItem<String?>(value: null, child: Text('None')),
-              ...goals.map((g) => DropdownMenuItem<String?>(value: g.id, child: Text(g.title))),
+              ...goals.map(
+                (g) => DropdownMenuItem<String?>(
+                  value: g.id,
+                  child: Text(g.title),
+                ),
+              ),
             ],
             onChanged: (value) => setState(() => _relatedGoalId = value),
           ),
-          if (isEditing && existing != null && calendarConnected && _dueDate != null) ...[
+          if (isEditing &&
+              existing != null &&
+              calendarConnected &&
+              _dueDate != null) ...[
             const SizedBox(height: AppSpacing.lg),
             AppCard(
               child: SwitchListTile(
@@ -194,9 +199,12 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                 activeThumbColor: AppColors.deepGreen,
                 value: existing.syncEnabled,
                 title: const Text('Sync to Google Calendar'),
-                subtitle: const Text("Creates an event on this task's due date."),
-                onChanged: (value) =>
-                    ref.read(taskActionsProvider).setSyncEnabled(existing!.id, value),
+                subtitle: const Text(
+                  "Creates an event on this task's due date.",
+                ),
+                onChanged: (value) => ref
+                    .read(taskActionsProvider)
+                    .setSyncEnabled(existing!.id, value),
               ),
             ),
           ],
@@ -210,13 +218,17 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                     final title = _titleController.text.trim();
                     if (title.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please enter a task title')),
+                        const SnackBar(
+                          content: Text('Please enter a task title'),
+                        ),
                       );
                       return;
                     }
                     setState(() => _isSaving = true);
                     try {
-                      await ref.read(taskActionsProvider).saveTask(
+                      await ref
+                          .read(taskActionsProvider)
+                          .saveTask(
                             id: existing?.id,
                             title: title,
                             description: _descriptionController.text.trim(),
@@ -229,7 +241,9 @@ class _AddEditTaskScreenState extends ConsumerState<AddEditTaskScreen> {
                     } on FirebaseFunctionsException catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.message ?? "Couldn't save task.")),
+                          SnackBar(
+                            content: Text(e.message ?? "Couldn't save task."),
+                          ),
                         );
                       }
                     } catch (e) {

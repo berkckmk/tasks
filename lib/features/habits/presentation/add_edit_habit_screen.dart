@@ -12,6 +12,8 @@ import '../../google_integrations/application/google_integrations_providers.dart
 import '../../google_integrations/domain/google_sync_status.dart';
 import '../application/habit_providers.dart';
 import '../domain/habit.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_dialogs.dart';
 
 class AddEditHabitScreen extends ConsumerStatefulWidget {
   const AddEditHabitScreen({super.key, this.habitId});
@@ -31,7 +33,13 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
   bool _initialized = false;
   bool _isSaving = false;
 
-  static const _frequencyOptions = ['Daily', '3x / week', '5x / week', 'Weekdays', 'Weekly'];
+  static const _frequencyOptions = [
+    'Daily',
+    '3x / week',
+    '5x / week',
+    'Weekdays',
+    'Weekly',
+  ];
   static const _colorOptions = [
     AppColors.deepGreen,
     AppColors.mutedBlue,
@@ -57,30 +65,21 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
   }
 
   Future<void> _confirmDelete(BuildContext context, String habitId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete habit?'),
-        content: const Text('This also removes its completion history. This can\'t be undone.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
-      ),
+    final confirmed = await confirmDestructive(
+      context,
+      title: 'Delete habit?',
+      message:
+          'This also removes its completion history. This can\'t be undone.',
     );
-    if (confirmed != true) return;
+    if (!confirmed) return;
 
     try {
       await ref.read(habitActionsProvider).deleteHabit(habitId);
       if (context.mounted) context.pop();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Couldn't delete habit: $e")),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Couldn't delete habit: $e")));
       }
     }
   }
@@ -117,10 +116,11 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
     }
 
     final calendarConnected =
-        ref.watch(googleCalendarStatusProvider).valueOrNull?.status == GoogleSyncStatus.connected;
+        ref.watch(googleCalendarStatusProvider).valueOrNull?.status ==
+        GoogleSyncStatus.connected;
 
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppGlassAppBar(
         title: Text(title),
         actions: [
           if (existing != null)
@@ -194,9 +194,12 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
                 activeThumbColor: AppColors.deepGreen,
                 value: existing.syncEnabled,
                 title: const Text('Sync reminder to Google Calendar'),
-                subtitle: const Text('Creates a recurring event for this habit\'s reminder.'),
-                onChanged: (value) =>
-                    ref.read(habitActionsProvider).setSyncEnabled(existing!.id, value),
+                subtitle: const Text(
+                  'Creates a recurring event for this habit\'s reminder.',
+                ),
+                onChanged: (value) => ref
+                    .read(habitActionsProvider)
+                    .setSyncEnabled(existing!.id, value),
               ),
             ),
           ],
@@ -234,13 +237,17 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
                     final name = _nameController.text.trim();
                     if (name.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please enter a habit name')),
+                        const SnackBar(
+                          content: Text('Please enter a habit name'),
+                        ),
                       );
                       return;
                     }
                     setState(() => _isSaving = true);
                     try {
-                      await ref.read(habitActionsProvider).saveHabit(
+                      await ref
+                          .read(habitActionsProvider)
+                          .saveHabit(
                             id: existing?.id,
                             name: name,
                             category: _category,
@@ -252,7 +259,9 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
                     } on FirebaseFunctionsException catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.message ?? "Couldn't save habit.")),
+                          SnackBar(
+                            content: Text(e.message ?? "Couldn't save habit."),
+                          ),
                         );
                       }
                     } catch (e) {

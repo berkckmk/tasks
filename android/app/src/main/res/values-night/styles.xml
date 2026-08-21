@@ -15,4 +15,11 @@
     <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- Dark variant of the widget configuration theme. See
+         values/styles.xml. -->
+    <style name="WidgetConfigureTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/config_background</item>
+        <item name="android:colorAccent">@color/config_accent</item>
+    </style>
 </resources>

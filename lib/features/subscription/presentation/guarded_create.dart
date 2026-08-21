@@ -51,6 +51,11 @@ class GuardedCreate {
     if (context.mounted) context.push('/tasks/new');
   }
 
+  static Future<void> reminder(BuildContext context, WidgetRef ref) async {
+    // Reminders are currently available on all plans; no enforcement check.
+    if (context.mounted) context.push('/reminders/new');
+  }
+
   /// Goals are gated by module access rather than a count, so this shows the
   /// upgrade prompt for the Goal planner instead of a limit dialog.
   static Future<void> goal(BuildContext context, WidgetRef ref) async {
@@ -58,7 +63,8 @@ class GuardedCreate {
     if (!enforcement.canAccessGoalPlanner) {
       await showPlanLimitDialog(
         context,
-        message: 'The goal planner is part of the Growth plan. '
+        message:
+            'The goal planner is part of the Growth plan. '
             'Break big goals into milestones and connect them to your daily habits and tasks.',
         requiredPlanName: 'Growth',
       );

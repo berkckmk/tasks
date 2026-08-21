@@ -3,10 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
+
+import 'package:flutter/foundation.dart' show kDebugMode;
+
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../pricing/domain/plan_module.dart';
 import '../../subscription/application/subscription_providers.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/layout/scroll_insets.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -16,14 +21,9 @@ class MoreScreen extends ConsumerWidget {
     final enforcement = ref.watch(planEnforcementProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('More')),
+      appBar: AppGlassAppBar(title: const Text('More')),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.md,
-          AppSpacing.md,
-          AppSpacing.xxl,
-        ),
+        padding: scrollInsets(context),
         children: [
           Text('Analytics', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: AppSpacing.sm),
@@ -36,7 +36,10 @@ class MoreScreen extends ConsumerWidget {
             onTap: () => context.push('/analytics'),
           ),
           const SizedBox(height: AppSpacing.lg),
-          Text('Complete plan modules', style: Theme.of(context).textTheme.titleSmall),
+          Text(
+            'Complete plan modules',
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
           const SizedBox(height: AppSpacing.sm),
           _ModuleRow(
             icon: Icons.savings_outlined,
@@ -79,7 +82,8 @@ class MoreScreen extends ConsumerWidget {
           _ModuleRow(
             icon: Icons.hub_outlined,
             title: 'Google Integrations',
-            subtitle: 'Calendar sync, Sheets export, Drive backup, Docs reports',
+            subtitle:
+                'Calendar sync, Sheets export, Drive backup, Docs reports',
             unlocked: enforcement.canAccessGoogleIntegrations,
             requiredPlanName: 'Complete',
             onTap: () => context.push('/google-integrations'),
@@ -93,6 +97,17 @@ class MoreScreen extends ConsumerWidget {
             requiredPlanName: 'Complete',
             onTap: () => context.push('/reports'),
           ),
+          const SizedBox(height: AppSpacing.lg),
+          if (kDebugMode) ...[
+            const Text('Debug', style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: AppSpacing.sm),
+            ListTile(
+              leading: const Icon(Icons.bug_report_outlined),
+              title: const Text('Seed dev data for ekmekarasitutun@gmail.com'),
+              onTap: () => context.push('/dev-seed'),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
         ],
       ),
     );
@@ -128,10 +143,14 @@ class _ModuleRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: (unlocked ? AppColors.deepGreen : AppColors.subtleText).withValues(alpha: 0.1),
+              color: (unlocked ? AppColors.deepGreen : AppColors.subtleText)
+                  .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
-            child: Icon(icon, color: unlocked ? AppColors.deepGreen : AppColors.subtleText),
+            child: Icon(
+              icon,
+              color: unlocked ? AppColors.deepGreen : AppColors.subtleText,
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -140,12 +159,18 @@ class _ModuleRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.charcoal,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(fontSize: 12, color: AppColors.subtleText),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.subtleText,
+                  ),
                 ),
               ],
             ),
@@ -155,7 +180,11 @@ class _ModuleRow extends StatelessWidget {
           else
             Row(
               children: [
-                const Icon(Icons.lock_outline, size: 14, color: AppColors.amber),
+                const Icon(
+                  Icons.lock_outline,
+                  size: 14,
+                  color: AppColors.amber,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   requiredPlanName,

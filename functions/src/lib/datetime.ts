@@ -69,6 +69,22 @@ export function currentHourMinuteInTimeZone(timezone: string): [number, number] 
 }
 
 /**
+ * The wall-clock time [date] shows in [timezone], as "HH:mm".
+ *
+ * For notification copy: a reminder stored as an absolute instant has to be
+ * described to the user in their own clock, or the body says a different time
+ * than the screen they set it on.
+ */
+export function wallClockLabelInTimeZone(date: Date, timezone: string): string {
+  const parts = partsInTimeZone(date, timezone, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  });
+  return `${parts.hour}:${parts.minute}`;
+}
+
+/**
  * Adds [days] calendar days to a plain date.
  *
  * Uses `Date.UTC` deliberately: a plain date has no zone, so doing the

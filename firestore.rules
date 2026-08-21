@@ -23,6 +23,32 @@ service cloud.firestore {
     // AuthActions.checkEmailVerified(), which forces an ID token refresh
     // via User.getIdToken(true) right after confirming verification, so
     // the token Firestore sees is actually current.
+    /**
+     * Validates the notification half of `appPreferences`.
+     *
+     * These fields drive scheduled Cloud Functions, so a bad value is not a
+     * cosmetic problem: an out-of-range `taskDigestHour` means the hourly
+     * pass never matches that user's local hour and their digest silently
+     * stops arriving, with nothing logged. The functions clamp defensively
+     * too (functions/src/notifications/preferences.ts) — this stops the bad
+     * value being stored in the first place.
+     *
+     * Each field is optional. None of them exist on a profile written before
+     * the notification settings screen shipped, and absent means enabled on
+     * both sides.
+     */
+    function hasValidNotificationPreferences(prefs) {
+      return (!('notificationsEnabled' in prefs) || prefs.notificationsEnabled is bool)
+        && (!('notifyHabitReminders' in prefs) || prefs.notifyHabitReminders is bool)
+        && (!('notifyTaskDigest' in prefs) || prefs.notifyTaskDigest is bool)
+        && (!('notifyReminderAlerts' in prefs) || prefs.notifyReminderAlerts is bool)
+        && (!('taskDigestHour' in prefs) || (
+          prefs.taskDigestHour is int
+          && prefs.taskDigestHour >= 0
+          && prefs.taskDigestHour <= 23
+        ));
+    }
+
     function isOwner(uid) {
       return isSignedIn() && request.auth.uid == uid && request.auth.token.email_verified == true;
     }
@@ -106,7 +132,11 @@ service cloud.firestore {
         && request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
         && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.selectedPlan in ['starter', 'growth', 'complete'];
+        && request.resource.data.selectedPlan in ['starter', 'growth', 'complete']
+        && (
+          !('appPreferences' in request.resource.data.keys())
+          || hasValidNotificationPreferences(request.resource.data.appPreferences)
+        );
 
       allow delete: if isOwner(uid);
 
@@ -148,6 +178,21 @@ service cloud.firestore {
           && isNonEmptyString(request.resource.data.title)
           && request.resource.data.priority in ['low', 'medium', 'high']
           && request.resource.data.status in ['todo', 'inProgress', 'done'];
+      }
+
+      // reminders/{reminderId} — the third core pillar alongside tasks and
+      // habits. This collection previously had no match block at all, so the
+      // default deny applied and every client read and write failed with
+      // permission-denied while the feature looked finished in the UI.
+      //
+      // Creation stays client-direct rather than going through a Cloud
+      // Function: unlike habits and tasks there is no per-plan count limit to
+      // enforce here, so there is nothing rules can't express.
+      match /reminders/{reminderId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && isNonEmptyString(request.resource.data.title)
+          && request.resource.data.status in ['scheduled', 'completed', 'snoozed', 'missed'];
       }
 
       // goals/{goalId} — goal planner requires Growth or above.

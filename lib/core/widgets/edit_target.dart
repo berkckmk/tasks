@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_spacing.dart';
 import 'app_button.dart';
 import 'error_state.dart';
+import 'app_glass_app_bar.dart';
 
 /// Resolves the single item an "edit X" screen is editing, out of the list
 /// stream that screen already watches.
@@ -83,7 +84,7 @@ class EditTargetLoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppGlassAppBar(title: Text(title)),
       body: const Center(child: CircularProgressIndicator()),
     );
   }
@@ -107,7 +108,7 @@ class EditTargetMissingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppGlassAppBar(title: Text(title)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),

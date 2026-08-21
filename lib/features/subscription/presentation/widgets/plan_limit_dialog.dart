@@ -1,39 +1,36 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../../app/theme/app_colors.dart';
-import '../../../../core/constants/app_spacing.dart';
-import '../../../../core/widgets/app_button.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 /// Shown instead of navigating to an add-habit/add-task screen once the
 /// current plan's limit is reached.
+///
+/// The upgrade action is marked `isPrimary` rather than being an AppButton
+/// among TextButtons: GlassDialog lays its own actions out, and mixing a
+/// full-width app button into that row fought the dialog's geometry.
 Future<void> showPlanLimitDialog(
   BuildContext context, {
   required String message,
   required String requiredPlanName,
 }) {
-  return showDialog<void>(
+  return GlassDialog.show<void>(
     context: context,
-    builder: (context) => AlertDialog(
-      icon: const Icon(Icons.workspace_premium_outlined, color: AppColors.amber),
-      title: const Text("You've hit your plan limit"),
-      content: Text(message, style: const TextStyle(color: AppColors.subtleText)),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Not now')),
-        AppButton(
-          label: 'Upgrade to $requiredPlanName',
-          onPressed: () {
-            Navigator.pop(context);
-            context.push('/pricing');
-          },
-        ),
-      ],
-      actionsPadding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        0,
-        AppSpacing.md,
-        AppSpacing.md,
+    title: "You've hit your plan limit",
+    message: message,
+    barrierDismissible: true,
+    actions: [
+      GlassDialogAction(
+        label: 'Not now',
+        onPressed: () => Navigator.pop(context),
       ),
-    ),
+      GlassDialogAction(
+        label: 'Upgrade to $requiredPlanName',
+        isPrimary: true,
+        onPressed: () {
+          Navigator.pop(context);
+          context.push('/pricing');
+        },
+      ),
+    ],
   );
 }

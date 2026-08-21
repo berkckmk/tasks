@@ -10,22 +10,21 @@ import '../../subscription/presentation/guarded_create.dart';
 import '../application/task_providers.dart';
 import '../domain/task_item.dart';
 import 'widgets/task_card.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_fab.dart';
+import '../../../core/layout/scroll_insets.dart';
 
 class TasksScreen extends ConsumerWidget {
   const TasksScreen({super.key});
-
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasksAsync = ref.watch(tasksProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Tasks')),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'tasksFab',
+      appBar: AppGlassAppBar(title: const Text('Tasks')),
+      floatingActionButton: AppFab(
         onPressed: () => GuardedCreate.task(context, ref),
-        backgroundColor: AppColors.deepGreen,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: tasksAsync.when(
         data: (tasks) {
@@ -47,7 +46,8 @@ class TasksScreen extends ConsumerWidget {
           for (final task in tasks) {
             if (task.isDone) {
               completedTasks.add(task);
-            } else if (task.dueDate != null && _isSameDay(task.dueDate!, today)) {
+            } else if (task.dueDate != null &&
+                _isSameDay(task.dueDate!, today)) {
               todayTasks.add(task);
             } else {
               upcomingTasks.add(task);
@@ -55,16 +55,14 @@ class TasksScreen extends ConsumerWidget {
           }
 
           return ListView(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.md,
-              AppSpacing.xxl,
-            ),
+            padding: scrollInsets(context),
             children: [
-              if (todayTasks.isNotEmpty) ..._section(context, ref, 'Today', todayTasks),
-              if (upcomingTasks.isNotEmpty) ..._section(context, ref, 'Upcoming', upcomingTasks),
-              if (completedTasks.isNotEmpty) ..._section(context, ref, 'Completed', completedTasks),
+              if (todayTasks.isNotEmpty)
+                ..._section(context, ref, 'Today', todayTasks),
+              if (upcomingTasks.isNotEmpty)
+                ..._section(context, ref, 'Upcoming', upcomingTasks),
+              if (completedTasks.isNotEmpty)
+                ..._section(context, ref, 'Completed', completedTasks),
             ],
           );
         },
@@ -85,7 +83,10 @@ class TasksScreen extends ConsumerWidget {
   ) {
     return [
       Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm, top: AppSpacing.md),
+        padding: const EdgeInsets.only(
+          bottom: AppSpacing.sm,
+          top: AppSpacing.md,
+        ),
         child: Text(
           title,
           style: const TextStyle(
@@ -101,7 +102,8 @@ class TasksScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: TaskCard(
             task: task,
-            onToggleDone: () => ref.read(taskActionsProvider).setDone(task.id, !task.isDone),
+            onToggleDone: () =>
+                ref.read(taskActionsProvider).setDone(task.id, !task.isDone),
             onTap: () => context.push('/tasks/${task.id}/edit'),
           ),
         ),

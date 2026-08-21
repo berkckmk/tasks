@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/constants/app_spacing.dart';
 import 'app_colors.dart';
 
 class AppTheme {
@@ -23,10 +24,17 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.background,
+      // Transparent, not cream: AppBackdrop is painted once by
+      // ResponsiveScaffold and every feature Scaffold stacks on top of it.
+      // An opaque colour here would cover it and there would be nothing left
+      // for the glass to refract.
+      scaffoldBackgroundColor: Colors.transparent,
       splashFactory: InkSparkle.splashFactory,
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.background,
+        // See scaffoldBackgroundColor. Screens still using a Material AppBar
+        // render as a transparent band over the backdrop rather than an
+        // opaque cream one; they move to GlassAppBar screen by screen.
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.charcoal,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
@@ -38,55 +46,46 @@ class AppTheme {
         ),
       ),
       textTheme: const TextTheme(
-        displaySmall: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
-        headlineSmall: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
-        titleLarge: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
-        titleMedium: TextStyle(fontWeight: FontWeight.w600, color: AppColors.charcoal),
-        titleSmall: TextStyle(fontWeight: FontWeight.w600, color: AppColors.charcoal),
+        displaySmall: TextStyle(
+          fontWeight: FontWeight.w700,
+          color: AppColors.charcoal,
+        ),
+        headlineSmall: TextStyle(
+          fontWeight: FontWeight.w700,
+          color: AppColors.charcoal,
+        ),
+        titleLarge: TextStyle(
+          fontWeight: FontWeight.w700,
+          color: AppColors.charcoal,
+        ),
+        titleMedium: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: AppColors.charcoal,
+        ),
+        titleSmall: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: AppColors.charcoal,
+        ),
         bodyLarge: TextStyle(color: AppColors.charcoal),
         bodyMedium: TextStyle(color: AppColors.charcoal),
         bodySmall: TextStyle(color: AppColors.subtleText),
-        labelLarge: TextStyle(fontWeight: FontWeight.w600, color: AppColors.charcoal),
+        labelLarge: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: AppColors.charcoal,
+        ),
       ),
       dividerTheme: const DividerThemeData(
-        color: AppColors.divider,
+        color: AppColors.glassDivider,
         thickness: 1,
         space: 1,
       ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.deepGreen.withValues(alpha: 0.12),
-        surfaceTintColor: Colors.transparent,
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          final selected = states.contains(WidgetState.selected);
-          return TextStyle(
-            fontSize: 12,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            color: selected ? AppColors.deepGreen : AppColors.subtleText,
-          );
-        }),
-        iconTheme: WidgetStateProperty.resolveWith((states) {
-          final selected = states.contains(WidgetState.selected);
-          return IconThemeData(
-            color: selected ? AppColors.deepGreen : AppColors.subtleText,
-          );
-        }),
-      ),
-      navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: AppColors.surface,
-        selectedIconTheme: const IconThemeData(color: AppColors.deepGreen),
-        unselectedIconTheme: const IconThemeData(color: AppColors.subtleText),
-        selectedLabelTextStyle: const TextStyle(
-          color: AppColors.deepGreen,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelTextStyle: const TextStyle(color: AppColors.subtleText),
-        indicatorColor: AppColors.deepGreen.withValues(alpha: 0.12),
-      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        fillColor: AppColors.glassSurface,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.divider),
@@ -103,6 +102,26 @@ class AppTheme {
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: AppColors.deepGreen,
+      ),
+      // Styled here rather than migrated to GlassToast, deliberately.
+      //
+      // Of the ~35 snackbar call sites, roughly half capture the messenger
+      // *before* an await (`final messenger = ScaffoldMessenger.of(context)`)
+      // precisely so they can still report an error once the async gap has
+      // closed and the widget may be gone. GlassToast.show() needs a live
+      // BuildContext to reach an Overlay, so moving those would trade a
+      // working error message for a possible crash on a dead context.
+      // ScaffoldMessenger already solves that problem; this only changes how
+      // its result looks.
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: AppColors.charcoal.withValues(alpha: 0.86),
+        contentTextStyle: const TextStyle(color: Colors.white),
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(AppSpacing.md),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        ),
       ),
     );
   }

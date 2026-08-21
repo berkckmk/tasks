@@ -10,10 +10,12 @@ import '../../subscription/presentation/guarded_create.dart';
 import '../application/habit_providers.dart';
 import '../domain/habit.dart';
 import 'widgets/habit_card.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_fab.dart';
+import '../../../core/layout/scroll_insets.dart';
 
 class HabitsScreen extends ConsumerWidget {
   const HabitsScreen({super.key});
-
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,21 +23,24 @@ class HabitsScreen extends ConsumerWidget {
     final filter = ref.watch(habitFilterProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Habits')),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'habitsFab',
+      appBar: AppGlassAppBar(title: const Text('Habits')),
+      floatingActionButton: AppFab(
         onPressed: () => GuardedCreate.habit(context, ref),
-        backgroundColor: AppColors.deepGreen,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: habitsAsync.when(
         data: (habits) {
-          final filtered =
-              filter == null ? habits : habits.where((h) => h.category == filter).toList();
+          final filtered = filter == null
+              ? habits
+              : habits.where((h) => h.category == filter).toList();
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  0,
+                ),
                 child: SizedBox(
                   height: 36,
                   child: ListView(
@@ -44,7 +49,8 @@ class HabitsScreen extends ConsumerWidget {
                       _FilterChip(
                         label: 'All',
                         selected: filter == null,
-                        onTap: () => ref.read(habitFilterProvider.notifier).state = null,
+                        onTap: () =>
+                            ref.read(habitFilterProvider.notifier).state = null,
                       ),
                       ...HabitCategory.values.map(
                         (c) => Padding(
@@ -52,7 +58,9 @@ class HabitsScreen extends ConsumerWidget {
                           child: _FilterChip(
                             label: c.label,
                             selected: filter == c,
-                            onTap: () => ref.read(habitFilterProvider.notifier).state = c,
+                            onTap: () =>
+                                ref.read(habitFilterProvider.notifier).state =
+                                    c,
                           ),
                         ),
                       ),
@@ -65,27 +73,28 @@ class HabitsScreen extends ConsumerWidget {
                     ? EmptyState(
                         icon: Icons.spa_outlined,
                         title: 'No habits yet',
-                        message: 'Add your first habit to start building momentum.',
+                        message:
+                            'Add your first habit to start building momentum.',
                         actionLabel: 'Add habit',
                         onAction: () => GuardedCreate.habit(context, ref),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.md,
-                          AppSpacing.md,
-                          AppSpacing.md,
-                          AppSpacing.xxl,
-                        ),
+                        padding: scrollInsets(context),
                         itemCount: filtered.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: AppSpacing.sm),
                         itemBuilder: (context, index) {
                           final habit = filtered[index];
                           return HabitCard(
                             habit: habit,
                             onToggle: () => ref
                                 .read(habitActionsProvider)
-                                .toggleCompletionToday(habit.id, habit.isCompletedToday),
-                            onTap: () => context.push('/habits/${habit.id}/edit'),
+                                .toggleCompletionToday(
+                                  habit.id,
+                                  habit.isCompletedToday,
+                                ),
+                            onTap: () =>
+                                context.push('/habits/${habit.id}/edit'),
                           );
                         },
                       ),
@@ -101,7 +110,11 @@ class HabitsScreen extends ConsumerWidget {
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.selected, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -121,7 +134,9 @@ class _FilterChip extends StatelessWidget {
       ),
       backgroundColor: AppColors.surface,
       side: const BorderSide(color: AppColors.divider),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusSm)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      ),
     );
   }
 }

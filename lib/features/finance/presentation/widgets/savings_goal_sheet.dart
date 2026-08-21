@@ -1,21 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../../../app/theme/app_colors.dart';
+
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../application/finance_providers.dart';
 import '../../domain/savings_goal.dart';
 
-void showSavingsGoalSheet(BuildContext context, WidgetRef ref, {SavingsGoal? existing}) {
-  showModalBottomSheet<void>(
+void showSavingsGoalSheet(
+  BuildContext context,
+  WidgetRef ref, {
+  SavingsGoal? existing,
+}) {
+  GlassModalSheet.show<void>(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: AppColors.background,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLg)),
+    // Tall, but deliberately not `full`. GlassSheetState.full is documented
+    // to transition to an opaque solid colour — at that stop the sheet stops
+    // being glass at all, which is what the first version of this shipped: a
+    // plain white panel over a glass app. Raising the half stop instead keeps
+    // the material while still showing the whole form without a drag.
+    halfSize: 0.78,
+    initialState: GlassSheetState.half,
+    // If the user does drag it to full, it fills with the app's cream rather
+    // than the package's default white.
+    expandedColor: AppColors.background,
+    builder: (context) => Material(
+      // GlassModalSheet wraps no Material — it is Cupertino all
+      // the way down. Every one of these sheets contains a
+      // TextField, which asserts on a missing Material ancestor,
+      // so without this the sheet throws the moment it opens.
+      // Transparency so the glass behind it still shows.
+      type: MaterialType.transparency,
+      child: _SavingsGoalSheet(existing: existing),
     ),
-    builder: (context) => _SavingsGoalSheet(existing: existing),
   );
 }
 
@@ -29,14 +48,18 @@ class _SavingsGoalSheet extends ConsumerStatefulWidget {
 }
 
 class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
-  late final _titleController = TextEditingController(text: widget.existing?.title ?? '');
+  late final _titleController = TextEditingController(
+    text: widget.existing?.title ?? '',
+  );
   // toStringAsFixed(2), not (0): seeding these inputs with a rounded value
   // meant simply opening an existing savings goal and saving it again
   // silently discarded the cents.
-  late final _targetController =
-      TextEditingController(text: widget.existing?.targetAmount.toStringAsFixed(2) ?? '');
-  late final _currentController =
-      TextEditingController(text: widget.existing?.currentAmount.toStringAsFixed(2) ?? '0');
+  late final _targetController = TextEditingController(
+    text: widget.existing?.targetAmount.toStringAsFixed(2) ?? '',
+  );
+  late final _currentController = TextEditingController(
+    text: widget.existing?.currentAmount.toStringAsFixed(2) ?? '0',
+  );
   bool _isSaving = false;
 
   @override
@@ -70,13 +93,19 @@ class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
           TextField(
             controller: _targetController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Target amount', prefixText: '\$ '),
+            decoration: const InputDecoration(
+              labelText: 'Target amount',
+              prefixText: '\$ ',
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _currentController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(labelText: 'Saved so far', prefixText: '\$ '),
+            decoration: const InputDecoration(
+              labelText: 'Saved so far',
+              prefixText: '\$ ',
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           AppButton(
@@ -86,17 +115,24 @@ class _SavingsGoalSheetState extends ConsumerState<_SavingsGoalSheet> {
                 ? null
                 : () async {
                     final title = _titleController.text.trim();
-                    final target = double.tryParse(_targetController.text.trim());
-                    final current = double.tryParse(_currentController.text.trim()) ?? 0;
+                    final target = double.tryParse(
+                      _targetController.text.trim(),
+                    );
+                    final current =
+                        double.tryParse(_currentController.text.trim()) ?? 0;
                     if (title.isEmpty || target == null || target <= 0) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Enter a title and a target amount')),
+                        const SnackBar(
+                          content: Text('Enter a title and a target amount'),
+                        ),
                       );
                       return;
                     }
                     setState(() => _isSaving = true);
                     try {
-                      await ref.read(financeActionsProvider).saveSavingsGoal(
+                      await ref
+                          .read(financeActionsProvider)
+                          .saveSavingsGoal(
                             id: widget.existing?.id,
                             title: title,
                             targetAmount: target,

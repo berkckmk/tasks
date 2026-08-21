@@ -69,10 +69,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final email = ref.watch(authStateChangesProvider).valueOrNull?.email ?? 'your email';
+    final email =
+        ref.watch(authStateChangesProvider).valueOrNull?.email ?? 'your email';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -83,9 +83,16 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.mark_email_unread_outlined, size: 48, color: AppColors.deepGreen),
+                  const Icon(
+                    Icons.mark_email_unread_outlined,
+                    size: 48,
+                    color: AppColors.deepGreen,
+                  ),
                   const SizedBox(height: AppSpacing.md),
-                  Text('Verify your email', style: Theme.of(context).textTheme.headlineSmall),
+                  Text(
+                    'Verify your email',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     "We sent a verification link to $email. Click it, then come back and tap "
@@ -99,10 +106,17 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                       padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
                         color: AppColors.deepGreen.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                        border: Border.all(color: AppColors.deepGreen.withValues(alpha: 0.3)),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusMd,
+                        ),
+                        border: Border.all(
+                          color: AppColors.deepGreen.withValues(alpha: 0.3),
+                        ),
                       ),
-                      child: Text(_message!, style: const TextStyle(fontSize: 13)),
+                      child: Text(
+                        _message!,
+                        style: const TextStyle(fontSize: 13),
+                      ),
                     ),
                   ],
                   const SizedBox(height: AppSpacing.xl),

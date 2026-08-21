@@ -12,20 +12,25 @@ import '../../subscription/application/subscription_providers.dart';
 import '../application/learning_providers.dart';
 import '../domain/learning_item.dart';
 import 'widgets/add_edit_learning_sheet.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_fab.dart';
 
 class LearningScreen extends ConsumerWidget {
   const LearningScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canAccess = ref.watch(planEnforcementProvider).canAccessLearningTracker;
+    final canAccess = ref
+        .watch(planEnforcementProvider)
+        .canAccessLearningTracker;
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Learning tracker')),
+        appBar: AppGlassAppBar(title: const Text('Learning tracker')),
         body: const ModuleLockView(
           featureName: 'Learning tracker',
-          benefit: 'Track books, courses, and podcasts — with ratings, notes, and key '
+          benefit:
+              'Track books, courses, and podcasts — with ratings, notes, and key '
               'takeaways you can look back on.',
           requiredPlanName: 'Complete',
           icon: Icons.menu_book_outlined,
@@ -36,12 +41,9 @@ class LearningScreen extends ConsumerWidget {
     final itemsAsync = ref.watch(learningItemsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Learning tracker')),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'learningFab',
+      appBar: AppGlassAppBar(title: const Text('Learning tracker')),
+      floatingActionButton: AppFab(
         onPressed: () => showAddEditLearningSheet(context, ref),
-        backgroundColor: AppColors.deepGreen,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: itemsAsync.when(
         data: (items) {
@@ -91,12 +93,20 @@ class _LearningTile extends ConsumerWidget {
               Expanded(
                 child: Text(
                   item.title,
-                  style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.charcoal,
+                  ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.subtleText),
-                onPressed: () => ref.read(learningActionsProvider).deleteItem(item.id),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  size: 18,
+                  color: AppColors.subtleText,
+                ),
+                onPressed: () =>
+                    ref.read(learningActionsProvider).deleteItem(item.id),
               ),
             ],
           ),
@@ -111,7 +121,11 @@ class _LearningTile extends ConsumerWidget {
                 Row(
                   children: List.generate(
                     item.rating,
-                    (_) => const Icon(Icons.star, size: 14, color: AppColors.amber),
+                    (_) => const Icon(
+                      Icons.star,
+                      size: 14,
+                      color: AppColors.amber,
+                    ),
                   ),
                 ),
             ],

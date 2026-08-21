@@ -54,7 +54,10 @@ class UserProfileRepository {
     });
   }
 
-  Future<void> updateAppPreferences(String uid, Map<String, dynamic> appPreferences) async {
+  Future<void> updateAppPreferences(
+    String uid,
+    Map<String, dynamic> appPreferences,
+  ) async {
     await _doc(uid).update({
       'appPreferences': appPreferences,
       'updatedAt': FieldValue.serverTimestamp(),
@@ -68,17 +71,29 @@ class UserProfileRepository {
     });
   }
 
-  Future<void> updateLinkedProviders(String uid, List<String> providerIds) async {
+  Future<void> updateLinkedProviders(
+    String uid,
+    List<String> providerIds,
+  ) async {
     await _doc(uid).update({
       'linkedProviders': providerIds,
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
 
+  /// Keeps the stored IANA zone matching the device. Every timezone-aware
+  /// backend feature (habit reminders, the daily digest, Calendar sync) reads
+  /// this field, so a stale value doesn't error — it just silently schedules
+  /// everything in the wrong zone. See `core/time/device_timezone.dart`.
+  Future<void> updateTimezone(String uid, String timezone) async {
+    await _doc(
+      uid,
+    ).update({'timezone': timezone, 'updatedAt': FieldValue.serverTimestamp()});
+  }
+
   Future<void> updatePhotoUrl(String uid, String photoUrl) async {
-    await _doc(uid).update({
-      'photoUrl': photoUrl,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    await _doc(
+      uid,
+    ).update({'photoUrl': photoUrl, 'updatedAt': FieldValue.serverTimestamp()});
   }
 }

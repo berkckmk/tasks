@@ -13,6 +13,7 @@ import '../../../core/widgets/module_lock_view.dart';
 import '../../subscription/application/subscription_providers.dart';
 import '../application/reports_providers.dart';
 import '../domain/report.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
 
 const _statusColors = {
   ReportStatus.pending: AppColors.subtleText,
@@ -26,14 +27,17 @@ class ReportsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canAccess = ref.watch(planEnforcementProvider).canAccessGoogleIntegrations;
+    final canAccess = ref
+        .watch(planEnforcementProvider)
+        .canAccessGoogleIntegrations;
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Reports')),
+        appBar: AppGlassAppBar(title: const Text('Reports')),
         body: const ModuleLockView(
           featureName: 'Progress reports',
-          benefit: 'Generate a Google Docs report summarizing your habits, tasks, goals, and '
+          benefit:
+              'Generate a Google Docs report summarizing your habits, tasks, goals, and '
               'more — with reflection prompts included.',
           requiredPlanName: 'Complete',
           icon: Icons.summarize_outlined,
@@ -44,7 +48,7 @@ class ReportsScreen extends ConsumerWidget {
     final reportsAsync = ref.watch(reportsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reports')),
+      appBar: AppGlassAppBar(title: const Text('Reports')),
       body: reportsAsync.when(
         data: (reports) {
           if (reports.isEmpty) {
@@ -63,7 +67,8 @@ class ReportsScreen extends ConsumerWidget {
             ),
             itemCount: reports.length,
             separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-            itemBuilder: (context, index) => _ReportTile(report: reports[index]),
+            itemBuilder: (context, index) =>
+                _ReportTile(report: reports[index]),
           );
         },
         error: (error, stackTrace) => ErrorState(error: error),
@@ -92,13 +97,19 @@ class _ReportTile extends StatelessWidget {
               children: [
                 Text(
                   '${report.type.label} report',
-                  style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.charcoal,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '${DateFormat.MMMd().format(report.periodStart)} - '
                   '${DateFormat.MMMd().format(report.periodEnd)}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.subtleText),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.subtleText,
+                  ),
                 ),
               ],
             ),
@@ -109,7 +120,11 @@ class _ReportTile extends StatelessWidget {
           ),
           if (report.googleDocUrl != null) ...[
             const SizedBox(width: AppSpacing.sm),
-            const Icon(Icons.open_in_new, size: 16, color: AppColors.subtleText),
+            const Icon(
+              Icons.open_in_new,
+              size: 16,
+              color: AppColors.subtleText,
+            ),
           ],
         ],
       ),

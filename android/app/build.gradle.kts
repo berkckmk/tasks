@@ -48,6 +48,7 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
@@ -99,4 +100,13 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Instrumentation tests only — these never ship in the app APK. They
+    // exist so the widget's bitmap rendering (LiquidGlass/GlassRenderer) can
+    // be exercised against the real android.graphics stack: BlurMaskFilter
+    // and Path rendering are the parts a host-side test can't stand in for.
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

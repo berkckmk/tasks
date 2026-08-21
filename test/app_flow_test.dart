@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'package:steady_progress/app/app.dart';
 import 'package:steady_progress/features/subscription/domain/beta_access.dart';
@@ -17,9 +17,20 @@ import 'support/fakes.dart';
 void main() {
   Future<void> pumpApp(WidgetTester tester, TestBackend backend) async {
     await tester.pumpWidget(
-      ProviderScope(
-        overrides: backend.overrides,
-        child: const SteadyProgressApp(),
+      // main.dart wraps the app in LiquidGlassWidgets.wrap(); tests stand the
+      // app up directly, so the glass accessibility scope has to be supplied
+      // here. Both flags matter:
+      //   reduceTransparency bypasses the shader entirely — there is no GPU
+      //     in the widget-test environment to run it on.
+      //   reduceMotion snaps the spring/jelly animations instead of running
+      //     them, so the pumpAndSettle() calls below terminate.
+      GlassAccessibilityScope(
+        reduceMotion: true,
+        reduceTransparency: true,
+        child: ProviderScope(
+          overrides: backend.overrides,
+          child: const SteadyProgressApp(),
+        ),
       ),
     );
     // Splash -> (signed in) -> Dashboard.
@@ -29,63 +40,105 @@ void main() {
   }
 
   Future<void> goToTab(WidgetTester tester, String label) async {
-    await tester.tap(find.widgetWithText(NavigationDestination, label).first);
+    // Scoped to the tab bar on purpose: several of these labels ('Habits',
+    // 'Tasks') are also the AppBar title of the screen they open, so a bare
+    // find.text would be ambiguous the moment a tab is already selected.
+    await tester.tap(
+      find
+          .descendant(of: find.byType(GlassTabBar), matching: find.text(label))
+          .first,
+    );
     await tester.pumpAndSettle();
   }
 
-  testWidgets('seeded habits, tasks and goals actually render on their tabs',
-      (WidgetTester tester) async {
-    final backend = await TestBackend.signedIn(planId: 'complete');
-    await backend.addHabit('Morning run');
-    await backend.addTask('File the tax return');
-    await backend.addGoal('Run a half marathon');
+  testWidgets(
+    'one-week seeded data is stored in the fake database and renders the core tabs',
+    (WidgetTester tester) async {
+      final backend = await TestBackend.signedIn(planId: 'complete');
+      await backend.seedOneWeekPlan();
 
-    await pumpApp(tester, backend);
-    expect(tester.takeException(), isNull);
+      final habitDocs = await backend.firestore
+          .collection('users')
+          .doc(backend.uid)
+          .collection('habits')
+          .get();
+      final taskDocs = await backend.firestore
+          .collection('users')
+          .doc(backend.uid)
+          .collection('tasks')
+          .get();
+      final reminderDocs = await backend.firestore
+          .collection('users')
+          .doc(backend.uid)
+          .collection('reminders')
+          .get();
 
-    await goToTab(tester, 'Habits');
-    expect(find.text('Morning run'), findsWidgets);
-    expect(tester.takeException(), isNull);
+      expect(habitDocs.docs.length, greaterThanOrEqualTo(3));
+      expect(taskDocs.docs.length, greaterThanOrEqualTo(3));
+      expect(reminderDocs.docs.length, greaterThanOrEqualTo(3));
 
-    await goToTab(tester, 'Tasks');
-    expect(find.text('File the tax return'), findsWidgets);
-    expect(tester.takeException(), isNull);
+      await pumpApp(tester, backend);
+      expect(tester.takeException(), isNull);
 
-    await goToTab(tester, 'Goals');
-    expect(find.text('Run a half marathon'), findsWidgets);
-    expect(tester.takeException(), isNull);
-  });
+      await goToTab(tester, 'Habits');
+      expect(find.text('Morning run'), findsWidgets);
+      expect(tester.takeException(), isNull);
 
-  testWidgets('every Complete-plan module opens without an upgrade gate',
-      (WidgetTester tester) async {
+      await goToTab(tester, 'Tasks');
+      expect(find.text('Plan the week'), findsWidgets);
+      expect(tester.takeException(), isNull);
+
+      await goToTab(tester, 'Reminders');
+      expect(find.text('Morning planning'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('every Complete-plan module opens without an upgrade gate', (
+    WidgetTester tester,
+  ) async {
     final backend = await TestBackend.signedIn(planId: 'complete');
     await pumpApp(tester, backend);
 
     await goToTab(tester, 'More');
-    for (final module in ['Finance tracker', 'Workout tracker', 'Learning tracker', 'Content planner']) {
+    for (final module in [
+      'Finance tracker',
+      'Workout tracker',
+      'Learning tracker',
+      'Content planner',
+    ]) {
       await tester.tap(find.text(module));
       await tester.pumpAndSettle();
-      expect(find.text('Requires Complete'), findsNothing, reason: '$module should be unlocked');
+      expect(
+        find.text('Requires Complete'),
+        findsNothing,
+        reason: '$module should be unlocked',
+      );
       expect(tester.takeException(), isNull);
       await tester.pageBack();
       await tester.pumpAndSettle();
     }
   });
 
-  testWidgets('closed beta unlocks premium modules for a starter account',
-      (WidgetTester tester) async {
+  testWidgets('closed beta unlocks premium modules for a starter account', (
+    WidgetTester tester,
+  ) async {
     // The whole point of kBetaAllAccess: the stored plan stays `starter` (the
     // subscription document is Admin-SDK-only now) while the app behaves as
     // Complete. If the flag is ever turned off, this expectation flips —
     // which is exactly the signal we want at that moment.
-    expect(kBetaAllAccess, isTrue,
-        reason: 'When the beta ends, replace this with the real gating expectations.');
+    expect(
+      kBetaAllAccess,
+      isTrue,
+      reason:
+          'When the beta ends, replace this with the real gating expectations.',
+    );
 
     final backend = await TestBackend.signedIn(planId: 'starter');
     await pumpApp(tester, backend);
 
-    await goToTab(tester, 'Goals');
-    expect(find.text('Requires Growth'), findsNothing);
+    await goToTab(tester, 'Reminders');
+    expect(find.text('No reminders yet'), findsOneWidget);
 
     await goToTab(tester, 'More');
     await tester.tap(find.text('Finance tracker'));

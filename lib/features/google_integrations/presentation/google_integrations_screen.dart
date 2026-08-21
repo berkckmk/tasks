@@ -17,6 +17,7 @@ import '../application/google_integrations_providers.dart';
 import '../domain/google_integration_id.dart';
 import '../domain/google_sync_status.dart';
 import 'widgets/integration_card.dart';
+import '../../../core/widgets/app_glass_app_bar.dart';
 
 class GoogleIntegrationsScreen extends ConsumerWidget {
   const GoogleIntegrationsScreen({super.key});
@@ -24,7 +25,7 @@ class GoogleIntegrationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Google Integrations')),
+      appBar: AppGlassAppBar(title: const Text('Google Integrations')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
@@ -52,7 +53,8 @@ class _GoogleAccountSection extends ConsumerStatefulWidget {
   const _GoogleAccountSection();
 
   @override
-  ConsumerState<_GoogleAccountSection> createState() => _GoogleAccountSectionState();
+  ConsumerState<_GoogleAccountSection> createState() =>
+      _GoogleAccountSectionState();
 }
 
 class _GoogleAccountSectionState extends ConsumerState<_GoogleAccountSection> {
@@ -66,7 +68,9 @@ class _GoogleAccountSectionState extends ConsumerState<_GoogleAccountSection> {
     } on AuthException catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(e.message)));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Something went wrong: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Something went wrong: $e')),
+      );
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -83,13 +87,16 @@ class _GoogleAccountSectionState extends ConsumerState<_GoogleAccountSection> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: (hasGoogleLinked ? AppColors.deepGreen : AppColors.subtleText)
-                  .withValues(alpha: 0.1),
+              color:
+                  (hasGoogleLinked ? AppColors.deepGreen : AppColors.subtleText)
+                      .withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Icon(
               Icons.account_circle_outlined,
-              color: hasGoogleLinked ? AppColors.deepGreen : AppColors.subtleText,
+              color: hasGoogleLinked
+                  ? AppColors.deepGreen
+                  : AppColors.subtleText,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -99,15 +106,21 @@ class _GoogleAccountSectionState extends ConsumerState<_GoogleAccountSection> {
               children: [
                 const Text(
                   'Google Account',
-                  style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.charcoal),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.charcoal,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   hasGoogleLinked
                       ? 'Connected — used to sign in faster and enable the integrations below.'
                       : 'Connect your Google account to sign in with Google and unlock the '
-                          'integrations below.',
-                  style: const TextStyle(fontSize: 12, color: AppColors.subtleText),
+                            'integrations below.',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.subtleText,
+                  ),
                 ),
               ],
             ),
@@ -120,12 +133,17 @@ class _GoogleAccountSectionState extends ConsumerState<_GoogleAccountSection> {
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           else if (hasGoogleLinked)
-            AppBadge(label: 'Connected', color: AppColors.deepGreen, icon: Icons.check_circle_outline)
+            AppBadge(
+              label: 'Connected',
+              color: AppColors.deepGreen,
+              icon: Icons.check_circle_outline,
+            )
           else
             AppButton(
               label: 'Connect',
               variant: AppButtonVariant.secondary,
-              onPressed: () => _run(() => ref.read(authActionsProvider).linkGoogleAccount()),
+              onPressed: () =>
+                  _run(() => ref.read(authActionsProvider).linkGoogleAccount()),
             ),
         ],
       ),
@@ -149,7 +167,9 @@ class _CalendarSectionState extends ConsumerState<_CalendarSection> {
     try {
       await action();
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Calendar sync error: $e')));
+      messenger.showSnackBar(
+        SnackBar(content: Text('Calendar sync error: $e')),
+      );
     } finally {
       if (mounted) setState(() => _isBusy = false);
     }
@@ -158,7 +178,9 @@ class _CalendarSectionState extends ConsumerState<_CalendarSection> {
   @override
   Widget build(BuildContext context) {
     final status = ref.watch(googleCalendarStatusProvider).valueOrNull;
-    final locked = !ref.watch(planEnforcementProvider).canAccessGoogleIntegrations;
+    final locked = !ref
+        .watch(planEnforcementProvider)
+        .canAccessGoogleIntegrations;
     final actions = ref.read(googleIntegrationsActionsProvider);
 
     return IntegrationCard(
@@ -173,7 +195,8 @@ class _CalendarSectionState extends ConsumerState<_CalendarSection> {
       isBusy: _isBusy,
       onUpgrade: () => context.push('/pricing'),
       onEnable: () => _run(() => actions.connect(GoogleIntegrationId.calendar)),
-      onDisable: () => _run(() => actions.disconnect(GoogleIntegrationId.calendar)),
+      onDisable: () =>
+          _run(() => actions.disconnect(GoogleIntegrationId.calendar)),
       extra: Align(
         alignment: Alignment.centerLeft,
         child: AppButton(
@@ -222,7 +245,9 @@ class _SheetsSectionState extends ConsumerState<_SheetsSection> {
   @override
   Widget build(BuildContext context) {
     final status = ref.watch(googleSheetsStatusProvider).valueOrNull;
-    final locked = !ref.watch(planEnforcementProvider).canAccessGoogleIntegrations;
+    final locked = !ref
+        .watch(planEnforcementProvider)
+        .canAccessGoogleIntegrations;
     final actions = ref.read(googleIntegrationsActionsProvider);
 
     return IntegrationCard(
@@ -237,7 +262,8 @@ class _SheetsSectionState extends ConsumerState<_SheetsSection> {
       isBusy: _isBusy,
       onUpgrade: () => context.push('/pricing'),
       onEnable: () => _run(() => actions.connect(GoogleIntegrationId.sheets)),
-      onDisable: () => _run(() => actions.disconnect(GoogleIntegrationId.sheets)),
+      onDisable: () =>
+          _run(() => actions.disconnect(GoogleIntegrationId.sheets)),
       extra: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -269,14 +295,17 @@ class _SheetsSectionState extends ConsumerState<_SheetsSection> {
                 variant: AppButtonVariant.text,
                 onPressed: _isBusy || _selected.isEmpty
                     ? null
-                    : () => _run(() => actions.exportToSheets(_selected.toList())),
+                    : () => _run(
+                        () => actions.exportToSheets(_selected.toList()),
+                      ),
               ),
               if (status?.spreadsheetUrl != null)
                 AppButton(
                   label: 'Open spreadsheet',
                   variant: AppButtonVariant.text,
                   icon: Icons.open_in_new,
-                  onPressed: () => launchUrl(Uri.parse(status!.spreadsheetUrl!)),
+                  onPressed: () =>
+                      launchUrl(Uri.parse(status!.spreadsheetUrl!)),
                 ),
             ],
           ),
@@ -311,7 +340,9 @@ class _DriveSectionState extends ConsumerState<_DriveSection> {
   @override
   Widget build(BuildContext context) {
     final status = ref.watch(googleDriveStatusProvider).valueOrNull;
-    final locked = !ref.watch(planEnforcementProvider).canAccessGoogleIntegrations;
+    final locked = !ref
+        .watch(planEnforcementProvider)
+        .canAccessGoogleIntegrations;
     final actions = ref.read(googleIntegrationsActionsProvider);
 
     return IntegrationCard(
@@ -326,7 +357,8 @@ class _DriveSectionState extends ConsumerState<_DriveSection> {
       isBusy: _isBusy,
       onUpgrade: () => context.push('/pricing'),
       onEnable: () => _run(() => actions.connect(GoogleIntegrationId.drive)),
-      onDisable: () => _run(() => actions.disconnect(GoogleIntegrationId.drive)),
+      onDisable: () =>
+          _run(() => actions.disconnect(GoogleIntegrationId.drive)),
       extra: Row(
         children: [
           AppButton(
@@ -362,7 +394,9 @@ class _DocsSectionState extends ConsumerState<_DocsSection> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       await action();
-      messenger.showSnackBar(const SnackBar(content: Text('Report generated — see Reports.')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Report generated — see Reports.')),
+      );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('Report error: $e')));
     } finally {
@@ -373,7 +407,9 @@ class _DocsSectionState extends ConsumerState<_DocsSection> {
   @override
   Widget build(BuildContext context) {
     final status = ref.watch(googleDocsStatusProvider).valueOrNull;
-    final locked = !ref.watch(planEnforcementProvider).canAccessGoogleIntegrations;
+    final locked = !ref
+        .watch(planEnforcementProvider)
+        .canAccessGoogleIntegrations;
     final actions = ref.read(googleIntegrationsActionsProvider);
 
     return IntegrationCard(
@@ -397,12 +433,14 @@ class _DocsSectionState extends ConsumerState<_DocsSection> {
           onPressed: _isBusy
               ? null
               : () => _run(
-                    () => actions.generateReport(
-                      type: 'weekly',
-                      periodStart: DateTime.now().subtract(const Duration(days: 7)),
-                      periodEnd: DateTime.now(),
+                  () => actions.generateReport(
+                    type: 'weekly',
+                    periodStart: DateTime.now().subtract(
+                      const Duration(days: 7),
                     ),
+                    periodEnd: DateTime.now(),
                   ),
+                ),
         ),
       ),
     );

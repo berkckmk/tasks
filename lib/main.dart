@@ -5,8 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'app/app.dart';
+import 'app/theme/app_glass_theme.dart';
 import 'core/google/google_auth_config.dart';
 import 'firebase_options.dart';
 
@@ -23,9 +25,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Pre-caches the glass shader programs. Async disk I/O only — no GPU draws,
+  // no rasterization — so it doesn't hold up the first frame. Awaiting it
+  // before runApp is what stops the first glass surface the user sees from
+  // compiling its shader mid-frame.
+  await LiquidGlassWidgets.initialize();
+
   Object? initError;
   try {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
     initError = e;
   }
@@ -34,7 +44,8 @@ void main() async {
     // Crashlytics doesn't support web — only route errors to it on
     // Android/iOS. Web errors still surface in the browser console as usual.
     if (!kIsWeb) {
-      FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+      FlutterError.onError =
+          FirebaseCrashlytics.instance.recordFlutterFatalError;
       PlatformDispatcher.instance.onError = (error, stack) {
         FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
         return true;
@@ -65,8 +76,22 @@ void main() async {
       serverClientId: kIsWeb ? null : GoogleAuthConfig.serverClientId,
     );
   } catch (e) {
-    debugPrint('GoogleSignIn.initialize failed (expected until configured): $e');
+    debugPrint(
+      'GoogleSignIn.initialize failed (expected until configured): $e',
+    );
   }
 
-  runApp(ProviderScope(child: SteadyProgressApp(firebaseInitError: initError)));
+  runApp(
+    LiquidGlassWidgets.wrap(
+      theme: AppGlassTheme.data,
+      // Required because the app uses MaterialApp: without this the glass
+      // widgets read the OS brightness directly and ignore the app's own
+      // ThemeMode, so a device in dark mode would render dark glass over a
+      // light app.
+      brightnessResolver: Theme.maybeBrightnessOf,
+      child: ProviderScope(
+        child: SteadyProgressApp(firebaseInitError: initError),
+      ),
+    ),
+  );
 }

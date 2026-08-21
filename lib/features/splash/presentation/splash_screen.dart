@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../auth/application/auth_providers.dart';
+import '../../profile/application/profile_providers.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -28,6 +31,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     final stopwatch = Stopwatch()..start();
     final user = await ref.read(authStateChangesProvider.future);
 
+    if (user != null) {
+      // Fire-and-forget: repairs a stale/abbreviation timezone on the profile
+      // (see ProfileActions.syncTimezone). Nothing on this screen depends on
+      // it, so it must never delay the splash or fail the launch.
+      unawaited(
+        ref
+            .read(profileActionsProvider)
+            .syncTimezone()
+            .catchError(
+              (Object error) => debugPrint('Timezone sync failed: $error'),
+            ),
+      );
+    }
+
     final remaining = 900 - stopwatch.elapsedMilliseconds;
     if (remaining > 0) {
       await Future.delayed(Duration(milliseconds: remaining));
@@ -40,12 +57,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.spa_outlined, size: 48, color: AppColors.deepGreen),
+            const Icon(
+              Icons.spa_outlined,
+              size: 48,
+              color: AppColors.deepGreen,
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               'Steady Progress',

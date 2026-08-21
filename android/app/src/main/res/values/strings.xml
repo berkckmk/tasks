@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shown in the launcher's widget picker, and as the widget's
+         accessibility label. -->
+    <string name="widget_name">Today\'s progress</string>
+    <string name="widget_description">Today\'s habits, tasks and streak at a glance.</string>
+
+    <!-- Accessibility label for the invisible top-left tap target that cycles
+         which field the widget shows. The affordance itself is painted into
+         the panel bitmap, so this is the only name a screen reader has. -->
+    <string name="widget_select_field">Change what this widget shows</string>
+
+    <!-- Widget configuration screen. -->
+    <string name="widget_preview_title">Today</string>
+    <string name="widget_preview_subtitle">7 of 11 done · 12d streak</string>
+    <string name="widget_preview_sections">HABITS · TASKS · STREAK</string>
+    <string name="config_title">Widget setup</string>
+    <string name="config_subtitle">Choose what this widget shows. Turn anything off and the layout closes up around it.</string>
+    <string name="config_fields_heading">Show on the widget</string>
+    <string name="config_appearance_heading">Glass</string>
+    <string name="config_background_label">Background</string>
+    <!-- Honest about what this does: a widget cannot read the wallpaper, so
+         there is no backdrop blur to offer. See LiquidGlass.kt. -->
+    <string name="config_background_description">How much the panel fills in behind the content</string>
+    <string name="config_blur_label">Blur</string>
+    <string name="config_blur_description">How much the glass scatters light — frosted at the top of the range, clear at the bottom</string>
+    <string name="config_opacity_label">Opacity</string>
+    <string name="config_opacity_description">How opaque the widget panel should be (lower = more transparent)</string>
+    <string name="config_preview_description">Live preview of the widget with the fields you have selected.</string>
+    <string name="config_percent">%1$d%%</string>
+    <string name="config_save">Save</string>
+    <string name="config_cancel">Cancel</string>
+    <string name="config_wallpaper_heading">Wallpaper</string>
+    <string name="config_wallpaper_description">A widget can\'t read your wallpaper — Android stopped allowing that in version 13. Pick the image yourself and the glass will refract it for real.</string>
+    <string name="config_wallpaper_pick">Choose wallpaper</string>
+    <string name="config_wallpaper_clear">Remove</string>
+    <string name="config_drag_hint">Drag the panel to where the widget sits on your home screen.</string>
+    <string name="config_backdrop_blur_label">Backdrop blur</string>
+    <string name="config_backdrop_blur_description">How far out of focus the wallpaper falls behind the glass.</string>
+    <string name="config_wallpaper_unavailable">No photo picker on this device.</string>
+    <string name="config_wallpaper_failed">Couldn\'t read that image.</string>
+</resources>
