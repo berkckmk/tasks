@@ -35,3 +35,11 @@
 
 # Kotlin coroutines internals touched reflectively.
 -dontwarn kotlinx.coroutines.**
+
+# WorkManager + Room — R8 strips the Room-generated WorkDatabase impl and the
+# InitializationProvider crashes with "Failed to create an instance of class
+# androidx.work.impl.WorkDatabase.canonicalName" before Flutter even starts.
+-keep class androidx.work.** { *; }
+-keep class androidx.room.** { *; }
+-dontwarn androidx.work.**
+-dontwarn androidx.room.**
