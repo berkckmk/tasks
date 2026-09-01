@@ -7,6 +7,7 @@ import '../../../core/widgets/app_button.dart';
 import '../application/auth_actions.dart';
 import '../application/auth_providers.dart';
 import '../data/auth_repository.dart';
+import '../../../core/constants/app_icons.dart';
 
 /// Shown to a signed-in email/password user until they click the link from
 /// their verification email — the router redirects here based on
@@ -84,7 +85,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    Icons.mark_email_unread_outlined,
+                    AppIcons.envelopeSimple,
                     size: 48,
                     color: AppColors.deepGreen,
                   ),

@@ -1,203 +1,250 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
-
-import 'package:flutter/foundation.dart' show kDebugMode;
-
+import '../../../app/theme/app_type.dart';
+import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_spacing.dart';
-import '../../../core/widgets/app_card.dart';
+import '../../../core/layout/scroll_insets.dart';
+import '../../../core/widgets/nocturne.dart';
 import '../../pricing/domain/plan_module.dart';
 import '../../subscription/application/subscription_providers.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
-import '../../../core/layout/scroll_insets.dart';
 
+/// **More** — everything that used to have a bottom-tab slot and no longer
+/// does, plus everything that never had one.
+///
+/// Six tabs became four, so Habits and Profile moved here. They lead the
+/// screen, above Analytics and the Complete-plan modules: they are core
+/// features that lost a tab, not extras, and burying them under the paid
+/// modules would read as a demotion rather than as a reorganisation.
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = AppColorsScheme.of(context);
     final enforcement = ref.watch(planEnforcementProvider);
 
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('More')),
-      body: ListView(
-        padding: scrollInsets(context),
-        children: [
-          Text('Analytics', style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: AppSpacing.sm),
-          _ModuleRow(
-            icon: Icons.insights_outlined,
-            title: 'Analytics',
-            subtitle: 'Weekly trends, streaks, and a productivity score',
-            unlocked: enforcement.canAccessModule(PlanModule.advancedAnalytics),
-            requiredPlanName: 'Growth',
-            onTap: () => context.push('/analytics'),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Complete plan modules',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _ModuleRow(
-            icon: Icons.savings_outlined,
-            title: 'Finance tracker',
-            subtitle: 'Income, expenses, and savings goals',
-            unlocked: enforcement.canAccessModule(PlanModule.financeTracker),
-            requiredPlanName: 'Complete',
-            onTap: () => context.push('/finance'),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _ModuleRow(
-            icon: Icons.fitness_center_outlined,
-            title: 'Workout tracker',
-            subtitle: 'Log workouts and exercises',
-            unlocked: enforcement.canAccessModule(PlanModule.workoutTracker),
-            requiredPlanName: 'Complete',
-            onTap: () => context.push('/workout'),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _ModuleRow(
-            icon: Icons.menu_book_outlined,
-            title: 'Learning tracker',
-            subtitle: 'Books, courses, and podcasts',
-            unlocked: enforcement.canAccessModule(PlanModule.learningTracker),
-            requiredPlanName: 'Complete',
-            onTap: () => context.push('/learning'),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _ModuleRow(
-            icon: Icons.edit_calendar_outlined,
-            title: 'Content planner',
-            subtitle: 'Plan content ideas across platforms',
-            unlocked: enforcement.canAccessModule(PlanModule.contentPlanner),
-            requiredPlanName: 'Complete',
-            onTap: () => context.push('/content'),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text('Google', style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: AppSpacing.sm),
-          _ModuleRow(
-            icon: Icons.hub_outlined,
-            title: 'Google Integrations',
-            subtitle:
-                'Calendar sync, Sheets export, Drive backup, Docs reports',
-            unlocked: enforcement.canAccessGoogleIntegrations,
-            requiredPlanName: 'Complete',
-            onTap: () => context.push('/google-integrations'),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _ModuleRow(
-            icon: Icons.summarize_outlined,
-            title: 'Reports',
-            subtitle: 'Generated Google Docs progress reports',
-            unlocked: enforcement.canAccessGoogleIntegrations,
-            requiredPlanName: 'Complete',
-            onTap: () => context.push('/reports'),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          if (kDebugMode) ...[
-            const Text('Debug', style: TextStyle(fontWeight: FontWeight.w700)),
-            const SizedBox(height: AppSpacing.sm),
-            ListTile(
-              leading: const Icon(Icons.bug_report_outlined),
-              title: const Text('Seed dev data for ekmekarasitutun@gmail.com'),
-              onTap: () => context.push('/dev-seed'),
+      backgroundColor: c.bg,
+      body: SafeArea(
+        bottom: false,
+        child: ListView(
+          padding: scrollInsets(context),
+          children: [
+            Text('More', style: AppType.h2.copyWith(color: c.text)),
+            const SizedBox(height: AppSpacing.xl),
+
+            const _SectionLabel('Your app'),
+            _Row(
+              icon: AppIcons.plant,
+              title: 'Habits',
+              subtitle: 'Build and track your daily routines',
+              onTap: () => context.push('/habits'),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            _Row(
+              icon: AppIcons.userCircle,
+              title: 'Profile',
+              subtitle: 'Account, notifications and plan',
+              onTap: () => context.push('/profile'),
+              last: true,
+            ),
+
+            const SizedBox(height: AppSpacing.xl),
+            const _SectionLabel('Analytics'),
+            _Row(
+              icon: AppIcons.chartLine,
+              title: 'Analytics',
+              subtitle: 'Weekly trends, streaks, and a productivity score',
+              unlocked: enforcement.canAccessModule(
+                PlanModule.advancedAnalytics,
+              ),
+              requiredPlanName: 'Growth',
+              onTap: () => context.push('/analytics'),
+              last: true,
+            ),
+
+            const SizedBox(height: AppSpacing.xl),
+            const _SectionLabel('Complete plan modules'),
+            _Row(
+              icon: AppIcons.wallet,
+              title: 'Finance tracker',
+              subtitle: 'Income, expenses, and savings goals',
+              unlocked: enforcement.canAccessModule(PlanModule.financeTracker),
+              onTap: () => context.push('/finance'),
+            ),
+            _Row(
+              icon: AppIcons.barbell,
+              title: 'Workout tracker',
+              subtitle: 'Log workouts and exercises',
+              unlocked: enforcement.canAccessModule(PlanModule.workoutTracker),
+              onTap: () => context.push('/workout'),
+            ),
+            _Row(
+              icon: AppIcons.bookOpen,
+              title: 'Learning tracker',
+              subtitle: 'Books, courses, and podcasts',
+              unlocked: enforcement.canAccessModule(PlanModule.learningTracker),
+              onTap: () => context.push('/learning'),
+            ),
+            _Row(
+              icon: AppIcons.notePencil,
+              title: 'Content planner',
+              subtitle: 'Plan content ideas across platforms',
+              unlocked: enforcement.canAccessModule(PlanModule.contentPlanner),
+              onTap: () => context.push('/content'),
+              last: true,
+            ),
+
+            const SizedBox(height: AppSpacing.xl),
+            const _SectionLabel('Google'),
+            _Row(
+              icon: AppIcons.googleLogo,
+              title: 'Google Integrations',
+              subtitle:
+                  'Calendar sync, Sheets export, Drive backup, Docs reports',
+              unlocked: enforcement.canAccessGoogleIntegrations,
+              onTap: () => context.push('/google-integrations'),
+            ),
+            _Row(
+              icon: AppIcons.fileText,
+              title: 'Reports',
+              subtitle: 'Generated Google Docs progress reports',
+              unlocked: enforcement.canAccessGoogleIntegrations,
+              onTap: () => context.push('/reports'),
+              last: true,
+            ),
+
+            if (kDebugMode) ...[
+              const SizedBox(height: AppSpacing.xl),
+              const _SectionLabel('Debug'),
+              _Row(
+                icon: AppIcons.bug,
+                title: 'Seed dev data',
+                subtitle: 'For ekmekarasitutun@gmail.com',
+                onTap: () => context.push('/dev-seed'),
+                last: true,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 }
 
-class _ModuleRow extends StatelessWidget {
-  const _ModuleRow({
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColorsScheme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Kicker(label, color: c.muted),
+    );
+  }
+}
+
+/// One row.
+///
+/// Flush on a fading rule, not a card — a screen of eleven cards is eleven
+/// boxes, and the sections already group them. The old tinted icon chip is
+/// gone with the rest of the coloured chips.
+class _Row extends StatelessWidget {
+  const _Row({
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.unlocked,
-    required this.requiredPlanName,
     required this.onTap,
+    this.unlocked = true,
+    this.requiredPlanName = 'Complete',
+    this.last = false,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
+  final VoidCallback onTap;
   final bool unlocked;
   final String requiredPlanName;
-  final VoidCallback onTap;
+  final bool last;
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      // A locked row routes to /pricing instead of opening the module and
-      // showing its lock screen — the row already displays a lock icon, so
-      // the tap should go where the lock is resolved.
-      onTap: unlocked ? onTap : () => context.push('/pricing'),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: (unlocked ? AppColors.deepGreen : AppColors.subtleText)
-                  .withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            child: Icon(
-              icon,
-              color: unlocked ? AppColors.deepGreen : AppColors.subtleText,
+    final c = AppColorsScheme.of(context);
+
+    return Column(
+      children: [
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            // A locked row routes to /pricing instead of opening the module
+            // and showing its lock screen — the row already displays the
+            // lock, so the tap should go where the lock is resolved.
+            onTap: unlocked ? onTap : () => context.push('/pricing'),
+            splashColor: c.accentTint(0.10),
+            highlightColor: c.accentTint(0.05),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    size: 18,
+                    color: unlocked ? c.inkAccent : c.muted,
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: AppType.title.copyWith(
+                            color: unlocked ? c.text : c.muted,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle,
+                          style: AppType.note.copyWith(color: c.note),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  if (unlocked)
+                    Icon(AppIcons.caretRight, size: 14, color: c.chevron)
+                  else
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          AppIcons.lockSimple,
+                          size: 12,
+                          color: c.inkAccent,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          requiredPlanName,
+                          style: AppType.metaSmall.copyWith(
+                            color: c.inkAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.charcoal,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.subtleText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (unlocked)
-            const Icon(Icons.chevron_right, color: AppColors.subtleText)
-          else
-            Row(
-              children: [
-                const Icon(
-                  Icons.lock_outline,
-                  size: 14,
-                  color: AppColors.amber,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  requiredPlanName,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.amber,
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
+        ),
+        if (!last) const FadingRule(),
+      ],
     );
   }
 }

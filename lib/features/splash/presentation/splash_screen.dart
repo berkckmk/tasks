@@ -8,6 +8,7 @@ import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../auth/application/auth_providers.dart';
 import '../../profile/application/profile_providers.dart';
+import '../../../core/constants/app_icons.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -24,7 +25,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   /// Waits for Firebase to resolve whether a session is already persisted
-  /// (so a returning signed-in user skips straight to the dashboard instead
+  /// (so a returning signed-in user skips straight to Reminders instead
   /// of onboarding), with a small minimum splash time so the brand doesn't
   /// just flash by.
   Future<void> _decideNextScreen() async {
@@ -51,7 +52,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     }
     if (!mounted) return;
 
-    context.go(user != null ? '/dashboard' : '/onboarding');
+    context.go(user != null ? '/reminders' : '/onboarding');
   }
 
   @override
@@ -62,7 +63,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.spa_outlined,
+              AppIcons.plant,
               size: 48,
               color: AppColors.deepGreen,
             ),

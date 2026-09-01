@@ -1,203 +1,264 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Configuration screen for a placed widget. Plain framework views, no
-    AppCompat / Material dependency: this activity is launched by the
-    launcher, often with the app not running, and it exists to draw five
-    checkboxes and a preview.
+    The widget setup screen.
+
+    App-styled rather than system-styled: it is an Activity, not RemoteViews,
+    so it can look like the rest of Steady Progress and it should. The old
+    version's Glass and Wallpaper sections are gone with the material they
+    tuned; what is left is what the panel actually has — a ground, an opacity,
+    a row count and an Include set.
+
+    Order matches the handoff: back row, live preview, Background, Opacity,
+    Rows shown, Include, then Cancel / Add widget.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/config_root"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:fillViewport="true"
     android:background="@color/config_background">
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true"
-        android:clipToPadding="false"
-        android:paddingBottom="8dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/config_title"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:textColor="@color/config_text" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/config_subtitle"
-                android:textSize="14sp"
-                android:lineSpacingMultiplier="1.25"
-                android:textColor="@color/config_text_muted" />
-
-            <!-- Live preview, drawn by the same renderer the home screen
-                 uses. The checkerboard behind it stands in for a wallpaper so
-                 the panel's translucency is visible here too. -->
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/config_preview_backdrop"
-                android:padding="14dp">
-
-                <!-- The user's wallpaper, when they've chosen one. Sits
-                     behind the preview so the panel is judged against the
-                     thing it will actually refract, not against a
-                     checkerboard. Hidden until an image is picked. -->
-                <ImageView
-                    android:id="@+id/config_wallpaper"
-                    android:layout_width="match_parent"
-                    android:layout_height="132dp"
-                    android:scaleType="fitCenter"
-                    android:visibility="gone"
-                    android:contentDescription="@string/config_wallpaper_description" />
-
-                <ImageView
-                    android:id="@+id/config_preview"
-                    android:layout_width="match_parent"
-                    android:layout_height="132dp"
-                    android:adjustViewBounds="false"
-                    android:scaleType="fitCenter"
-                    android:contentDescription="@string/config_preview_description" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/config_drag_hint"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/config_drag_hint"
-                android:textSize="12sp"
-                android:visibility="gone"
-                android:textColor="@color/config_text_muted" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="26dp"
-                android:text="@string/config_wallpaper_heading"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.09"
-                android:textAllCaps="true"
-                android:textColor="@color/config_accent" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/config_wallpaper_description"
-                android:textSize="14sp"
-                android:lineSpacingMultiplier="1.25"
-                android:textColor="@color/config_text_muted" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/config_wallpaper_pick"
-                    style="?android:attr/buttonBarButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/config_wallpaper_pick"
-                    android:textColor="@color/config_accent" />
-
-                <Button
-                    android:id="@+id/config_wallpaper_clear"
-                    style="?android:attr/buttonBarButtonStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/config_wallpaper_clear"
-                    android:textColor="@color/config_text_muted" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/config_backdrop_sliders"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:orientation="vertical" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:text="@string/config_fields_heading"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.09"
-                android:textAllCaps="true"
-                android:textColor="@color/config_accent" />
-
-            <LinearLayout
-                android:id="@+id/config_fields"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:orientation="vertical" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="26dp"
-                android:text="@string/config_appearance_heading"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.09"
-                android:textAllCaps="true"
-                android:textColor="@color/config_accent" />
-
-            <LinearLayout
-                android:id="@+id/config_sliders"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:orientation="vertical" />
-        </LinearLayout>
-    </ScrollView>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end"
-        android:background="@color/config_bar"
-        android:padding="14dp">
+        android:orientation="vertical"
+        android:paddingStart="17dp"
+        android:paddingEnd="17dp"
+        android:paddingTop="11dp"
+        android:paddingBottom="22dp">
 
-        <Button
-            android:id="@+id/config_cancel"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="wrap_content"
+        <!-- Back row. -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/config_cancel"
-            android:textColor="@color/config_text_muted" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="17dp">
 
-        <Button
-            android:id="@+id/config_save"
-            android:layout_width="wrap_content"
+            <TextView
+                android:id="@+id/config_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="9dp"
+                android:textSize="20sp"
+                android:textColor="@color/config_text"
+                android:text="←" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="19sp"
+                android:textColor="@color/config_text"
+                android:text="@string/config_title" />
+        </LinearLayout>
+
+        <!-- Live preview: the real panel over a wallpaper-ish ground, so the
+             opacity slider is judged against something rather than against
+             the setup screen's own background. -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="132dp"
+            android:background="@color/config_preview_backdrop_a">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="17dp">
+
+                <ImageView
+                    android:id="@+id/preview_fill"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/widget_panel_fill"
+                    android:contentDescription="@string/config_preview_description" />
+
+                <ImageView
+                    android:id="@+id/preview_edge"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/widget_panel_edge"
+                    android:contentDescription="@null" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:paddingStart="13dp"
+                    android:paddingEnd="13dp"
+                    android:paddingTop="11dp"
+                    android:paddingBottom="9dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/preview_chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/widget_scope_chip"
+                            android:paddingStart="7dp"
+                            android:paddingEnd="7dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:textSize="9sp"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.13"
+                            android:textColor="@color/nocturne_ink_accent"
+                            android:text="@string/widget_scope_today" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="9dp"
+                            android:textSize="11sp"
+                            android:maxLines="1"
+                            android:textColor="@color/nocturne_text_note"
+                            android:text="@string/config_preview_summary" />
+                    </LinearLayout>
+
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="3dp"
+                        android:layout_marginTop="9dp"
+                        android:max="100"
+                        android:progress="42"
+                        android:progressDrawable="@drawable/widget_progress" />
+
+                    <LinearLayout
+                        android:id="@+id/preview_rows"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:layout_marginTop="6dp"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </FrameLayout>
+        </FrameLayout>
+
+        <!-- Background: four 46dp swatches, selected = 2px accent border. -->
+        <TextView
+            style="@style/ConfigSectionLabel"
+            android:text="@string/config_background_label" />
+
+        <LinearLayout
+            android:id="@+id/ground_row"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:paddingStart="26dp"
-            android:paddingEnd="26dp"
-            android:text="@string/config_save"
-            android:textColor="@color/config_on_accent"
-            android:background="@drawable/config_button" />
+            android:orientation="horizontal" />
+
+        <TextView
+            style="@style/ConfigSectionDescription"
+            android:text="@string/config_background_description" />
+
+        <!-- Opacity: slider + right-aligned value in inkAccent. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="22dp"
+            android:baselineAligned="true">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/config_text"
+                android:text="@string/config_opacity_label" />
+
+            <TextView
+                android:id="@+id/opacity_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:fontFeatureSettings="tnum"
+                android:textColor="@color/config_accent" />
+        </LinearLayout>
+
+        <!-- Tinted explicitly rather than through the theme's colorAccent:
+             Samsung's DeviceDefault applies its own accent to SeekBar and the
+             track came out One UI blue, which read as a stray system control
+             in the middle of the app's own palette. -->
+        <SeekBar
+            android:id="@+id/opacity_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:max="100"
+            android:progressTint="@color/config_accent"
+            android:progressBackgroundTint="@color/config_track"
+            android:thumbTint="@color/config_accent" />
+
+        <TextView
+            style="@style/ConfigSectionDescription"
+            android:text="@string/config_opacity_description" />
+
+        <!-- Rows shown: a segmented control of 1 / 2 / 3 / 5. -->
+        <TextView
+            style="@style/ConfigSectionLabel"
+            android:text="@string/config_rows_label" />
+
+        <LinearLayout
+            android:id="@+id/rows_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/config_segmented" />
+
+        <!-- Include: tag chips. -->
+        <TextView
+            style="@style/ConfigSectionLabel"
+            android:text="@string/config_include_label" />
+
+        <LinearLayout
+            android:id="@+id/include_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+        <TextView
+            style="@style/ConfigSectionDescription"
+            android:text="@string/config_include_description" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="28dp">
+
+            <TextView
+                android:id="@+id/config_cancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/config_button_secondary"
+                android:gravity="center"
+                android:paddingTop="13dp"
+                android:paddingBottom="13dp"
+                android:textSize="15sp"
+                android:textColor="@color/config_text"
+                android:text="@string/config_cancel" />
+
+            <TextView
+                android:id="@+id/config_save"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/config_button_primary"
+                android:gravity="center"
+                android:paddingTop="13dp"
+                android:paddingBottom="13dp"
+                android:textSize="15sp"
+                android:textColor="@color/config_accent"
+                android:text="@string/config_save" />
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+</ScrollView>

@@ -4,6 +4,7 @@ import '../../app/theme/app_colors.dart';
 import '../constants/app_spacing.dart';
 import 'app_badge.dart';
 import 'app_button.dart';
+import '../../core/constants/app_icons.dart';
 
 class PricingCard extends StatelessWidget {
   const PricingCard({
@@ -67,7 +68,7 @@ class PricingCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check_circle, size: 18, color: AppColors.deepGreen),
+                  const Icon(AppIcons.checkCircleFill, size: 18, color: AppColors.deepGreen),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(

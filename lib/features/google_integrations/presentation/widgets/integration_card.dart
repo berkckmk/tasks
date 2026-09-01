@@ -7,6 +7,7 @@ import '../../../../core/widgets/app_badge.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../domain/google_sync_status.dart';
+import '../../../../core/constants/app_icons.dart';
 
 /// Shared layout for every integration section on the Google Integrations
 /// screen — icon/title, connected badge, permission explanation, last sync
@@ -79,7 +80,7 @@ class IntegrationCard extends StatelessWidget {
               AppBadge(
                 label: locked ? 'Requires Complete' : status.label,
                 color: badgeColor,
-                icon: locked ? Icons.lock_outline : null,
+                icon: locked ? AppIcons.lockSimple : null,
               ),
             ],
           ),
@@ -108,7 +109,7 @@ class IntegrationCard extends StatelessWidget {
               if (locked)
                 AppButton(
                   label: 'Upgrade to Complete',
-                  icon: Icons.workspace_premium_outlined,
+                  icon: AppIcons.sparkle,
                   onPressed: onUpgrade,
                 )
               else if (enabled) ...[

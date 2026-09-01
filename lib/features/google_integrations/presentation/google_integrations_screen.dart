@@ -17,7 +17,8 @@ import '../application/google_integrations_providers.dart';
 import '../domain/google_integration_id.dart';
 import '../domain/google_sync_status.dart';
 import 'widgets/integration_card.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
+import '../../../core/constants/app_icons.dart';
 
 class GoogleIntegrationsScreen extends ConsumerWidget {
   const GoogleIntegrationsScreen({super.key});
@@ -25,7 +26,7 @@ class GoogleIntegrationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Google Integrations')),
+      appBar: AppTopBar(title: const Text('Google Integrations')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
@@ -93,7 +94,7 @@ class _GoogleAccountSectionState extends ConsumerState<_GoogleAccountSection> {
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             child: Icon(
-              Icons.account_circle_outlined,
+              AppIcons.userCircle,
               color: hasGoogleLinked
                   ? AppColors.deepGreen
                   : AppColors.subtleText,
@@ -136,7 +137,7 @@ class _GoogleAccountSectionState extends ConsumerState<_GoogleAccountSection> {
             AppBadge(
               label: 'Connected',
               color: AppColors.deepGreen,
-              icon: Icons.check_circle_outline,
+              icon: AppIcons.checkCircle,
             )
           else
             AppButton(
@@ -184,7 +185,7 @@ class _CalendarSectionState extends ConsumerState<_CalendarSection> {
     final actions = ref.read(googleIntegrationsActionsProvider);
 
     return IntegrationCard(
-      icon: Icons.event_outlined,
+      icon: AppIcons.calendarBlank,
       title: GoogleIntegrationId.calendar.label,
       permissionExplanation: GoogleIntegrationId.calendar.permissionExplanation,
       locked: locked,
@@ -251,7 +252,7 @@ class _SheetsSectionState extends ConsumerState<_SheetsSection> {
     final actions = ref.read(googleIntegrationsActionsProvider);
 
     return IntegrationCard(
-      icon: Icons.table_chart_outlined,
+      icon: AppIcons.table,
       title: GoogleIntegrationId.sheets.label,
       permissionExplanation: GoogleIntegrationId.sheets.permissionExplanation,
       locked: locked,
@@ -303,7 +304,7 @@ class _SheetsSectionState extends ConsumerState<_SheetsSection> {
                 AppButton(
                   label: 'Open spreadsheet',
                   variant: AppButtonVariant.text,
-                  icon: Icons.open_in_new,
+                  icon: AppIcons.arrowSquareOut,
                   onPressed: () =>
                       launchUrl(Uri.parse(status!.spreadsheetUrl!)),
                 ),
@@ -346,7 +347,7 @@ class _DriveSectionState extends ConsumerState<_DriveSection> {
     final actions = ref.read(googleIntegrationsActionsProvider);
 
     return IntegrationCard(
-      icon: Icons.folder_outlined,
+      icon: AppIcons.folder,
       title: GoogleIntegrationId.drive.label,
       permissionExplanation: GoogleIntegrationId.drive.permissionExplanation,
       locked: locked,
@@ -370,7 +371,7 @@ class _DriveSectionState extends ConsumerState<_DriveSection> {
             AppButton(
               label: 'Open folder',
               variant: AppButtonVariant.text,
-              icon: Icons.open_in_new,
+              icon: AppIcons.arrowSquareOut,
               onPressed: () => launchUrl(Uri.parse(status!.folderUrl!)),
             ),
         ],
@@ -413,7 +414,7 @@ class _DocsSectionState extends ConsumerState<_DocsSection> {
     final actions = ref.read(googleIntegrationsActionsProvider);
 
     return IntegrationCard(
-      icon: Icons.description_outlined,
+      icon: AppIcons.fileText,
       title: GoogleIntegrationId.docs.label,
       permissionExplanation: GoogleIntegrationId.docs.permissionExplanation,
       locked: locked,

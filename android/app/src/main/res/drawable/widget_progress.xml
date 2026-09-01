@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The 3px determinate bar under the header.
+
+    A layer-list rather than the platform ProgressBar drawable: the default
+    carries a rounded inset, a secondary track and a theme tint, none of which
+    are Nocturne's. Track is the hairline; the filled part is the accent — the
+    same arc the ring draws in the app, straightened.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <corners android:radius="2dp" />
+            <solid android:color="@color/nocturne_divider" />
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape android:shape="rectangle">
+                <corners android:radius="2dp" />
+                <solid android:color="@color/nocturne_accent" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/constants/app_icons.dart';
 
 class _OnboardingSlide {
   const _OnboardingSlide({
@@ -19,19 +20,19 @@ class _OnboardingSlide {
 
 const _slides = [
   _OnboardingSlide(
-    icon: Icons.spa_outlined,
+    icon: AppIcons.plant,
     title: 'Track habits',
     description:
         'Build steady routines and watch your streaks grow, one day at a time.',
   ),
   _OnboardingSlide(
-    icon: Icons.calendar_view_week_outlined,
+    icon: AppIcons.calendarBlank,
     title: 'Plan your week',
     description:
         'Turn your tasks and goals into a clear, calm plan for the week ahead.',
   ),
   _OnboardingSlide(
-    icon: Icons.insights_outlined,
+    icon: AppIcons.chartLine,
     title: 'See your progress',
     description:
         'A single dashboard shows how your habits, tasks, and goals connect.',

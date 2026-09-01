@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/constants/app_icons.dart';
 import '../../core/widgets/responsive_scaffold.dart';
+import '../../core/widgets/sheet_page.dart';
 
 import 'package:flutter/foundation.dart' show kDebugMode;
 
@@ -40,6 +42,13 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 /// `/auth` and signed-in visitors away from `/auth`.
 const _publicPaths = {'/splash', '/onboarding', '/auth'};
 
+/// Where a signed-in session begins.
+///
+/// Reminders, not the dashboard. Reminders is tab 0 and the owner's stated
+/// focus; landing on Today instead would put the redesign's whole premise one
+/// tap away on every launch.
+const _signedInHome = '/reminders';
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -67,9 +76,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (!isSignedIn && !isPublic) return '/auth';
       if (isSignedIn && needsVerification && !onVerifyScreen)
         return '/verify-email';
+      // Both of these used to land on /dashboard. Reminders is tab 0 now, and
+      // "a cold start lands on Reminders" is a design decision, not a
+      // side effect of tab ordering — so the two redirects that decide where
+      // a signed-in session actually begins have to say so too.
       if (isSignedIn && !needsVerification && onVerifyScreen)
-        return '/dashboard';
-      if (isSignedIn && state.matchedLocation == '/auth') return '/dashboard';
+        return _signedInHome;
+      if (isSignedIn && state.matchedLocation == '/auth') return _signedInHome;
       return null;
     },
     routes: [
@@ -103,6 +116,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/analytics',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AnalyticsScreen(),
+      ),
+      // Habits and Profile used to be shell branches with a bottom-tab slot
+      // each. Six tabs was too many, so they moved inside More — which means
+      // they are pushed onto the root navigator like /analytics and the paid
+      // modules, not stacked inside a branch. The screens themselves are
+      // unchanged apart from styling.
+      GoRoute(
+        path: '/habits',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const HabitsScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) => const AddEditHabitScreen(),
+          ),
+          GoRoute(
+            path: ':habitId/edit',
+            parentNavigatorKey: _rootNavigatorKey,
+            builder: (context, state) =>
+                AddEditHabitScreen(habitId: state.pathParameters['habitId']),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: '/profile',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: '/settings/notifications',
@@ -142,59 +183,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             _AppShell(navigationShell: navigationShell),
+        // Order is the tab order, and **Reminders is index 0** — a cold start
+        // lands there rather than on the dashboard. That is deliberate: it is
+        // the owner's stated focus, and it is the reason the redesign exists.
         branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/dashboard',
-                builder: (context, state) => const DashboardScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/habits',
-                builder: (context, state) => const HabitsScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'new',
-                    parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const AddEditHabitScreen(),
-                  ),
-                  GoRoute(
-                    path: ':habitId/edit',
-                    parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => AddEditHabitScreen(
-                      habitId: state.pathParameters['habitId'],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/tasks',
-                builder: (context, state) => const TasksScreen(),
-                routes: [
-                  GoRoute(
-                    path: 'new',
-                    parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const AddEditTaskScreen(),
-                  ),
-                  GoRoute(
-                    path: ':taskId/edit',
-                    parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => AddEditTaskScreen(
-                      taskId: state.pathParameters['taskId'],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -219,17 +211,51 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           StatefulShellBranch(
             routes: [
+              // Keeps its route and its screen; only the *title* becomes
+              // "Today". Changing the path would break every deep link and
+              // the post-sign-in redirect for no gain.
               GoRoute(
-                path: '/more',
-                builder: (context, state) => const MoreScreen(),
+                path: '/dashboard',
+                builder: (context, state) => const DashboardScreen(),
               ),
             ],
           ),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/profile',
-                builder: (context, state) => const ProfileScreen(),
+                path: '/tasks',
+                builder: (context, state) => const TasksScreen(),
+                routes: [
+                  // `pageBuilder`, not `builder`: the task composer is a
+                  // sheet over the dimmed screen behind it, which is a
+                  // property of how the route is *presented*, not of the
+                  // widget. The route itself is unchanged and still
+                  // deep-linkable — see sheetPage.
+                  GoRoute(
+                    path: 'new',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    pageBuilder: (context, state) =>
+                        sheetPage(state, const AddEditTaskScreen()),
+                  ),
+                  GoRoute(
+                    path: ':taskId/edit',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    pageBuilder: (context, state) => sheetPage(
+                      state,
+                      AddEditTaskScreen(
+                        taskId: state.pathParameters['taskId'],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/more',
+                builder: (context, state) => const MoreScreen(),
               ),
             ],
           ),
@@ -275,36 +301,31 @@ class _AppShell extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
+  /// Four, in this order. Habits, Profile and every paid module now live
+  /// inside More.
+  ///
+  /// Regular glyph when inactive, Fill when selected — see
+  /// [NavDestinationItem.selectedIcon].
   static const _destinations = [
     NavDestinationItem(
-      icon: Icons.dashboard_outlined,
-      selectedIcon: Icons.dashboard,
-      label: 'Dashboard',
-    ),
-    NavDestinationItem(
-      icon: Icons.spa_outlined,
-      selectedIcon: Icons.spa,
-      label: 'Habits',
-    ),
-    NavDestinationItem(
-      icon: Icons.checklist_outlined,
-      selectedIcon: Icons.checklist,
-      label: 'Tasks',
-    ),
-    NavDestinationItem(
-      icon: Icons.notifications_outlined,
-      selectedIcon: Icons.notifications,
+      icon: AppIcons.bell,
+      selectedIcon: AppIcons.bellFill,
       label: 'Reminders',
     ),
     NavDestinationItem(
-      icon: Icons.widgets_outlined,
-      selectedIcon: Icons.widgets,
-      label: 'More',
+      icon: AppIcons.sunHorizon,
+      selectedIcon: AppIcons.sunHorizonFill,
+      label: 'Today',
     ),
     NavDestinationItem(
-      icon: Icons.person_outline,
-      selectedIcon: Icons.person,
-      label: 'Profile',
+      icon: AppIcons.checkSquareOffset,
+      selectedIcon: AppIcons.checkSquareOffsetFill,
+      label: 'Tasks',
+    ),
+    NavDestinationItem(
+      icon: AppIcons.dotsThreeCircle,
+      selectedIcon: AppIcons.dotsThreeCircleFill,
+      label: 'More',
     ),
   ];
 

@@ -11,7 +11,8 @@ import '../../../core/widgets/stat_card.dart';
 import '../../subscription/application/subscription_providers.dart';
 import '../application/analytics_providers.dart';
 import '../domain/analytics_summary.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
+import '../../../core/constants/app_icons.dart';
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
@@ -24,20 +25,20 @@ class AnalyticsScreen extends ConsumerWidget {
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppGlassAppBar(title: const Text('Analytics')),
+        appBar: AppTopBar(title: const Text('Analytics')),
         body: const ModuleLockView(
           featureName: 'Progress analytics',
           benefit:
               'See weekly habit and task trends, your best streak, and a '
               'productivity score.',
           requiredPlanName: 'Growth',
-          icon: Icons.insights_outlined,
+          icon: AppIcons.chartLine,
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Analytics')),
+      appBar: AppTopBar(title: const Text('Analytics')),
       body: ref
           .watch(analyticsSummaryProvider)
           .when(
@@ -103,7 +104,7 @@ class _SummaryBody extends StatelessWidget {
           children: [
             Expanded(
               child: StatCard(
-                icon: Icons.local_fire_department,
+                icon: AppIcons.flame,
                 label: 'Best streak',
                 value: '${summary.bestStreak} days',
                 accentColor: AppColors.amber,
@@ -112,7 +113,7 @@ class _SummaryBody extends StatelessWidget {
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: StatCard(
-                icon: Icons.flag_outlined,
+                icon: AppIcons.flag,
                 label: 'Goal progress avg',
                 value: '${(summary.goalProgressAverage * 100).round()}%',
                 accentColor: AppColors.mutedBlue,
@@ -125,7 +126,7 @@ class _SummaryBody extends StatelessWidget {
           AppCard(
             child: Row(
               children: [
-                const Icon(Icons.spa_outlined, color: AppColors.deepGreen),
+                const Icon(AppIcons.plant, color: AppColors.deepGreen),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Column(

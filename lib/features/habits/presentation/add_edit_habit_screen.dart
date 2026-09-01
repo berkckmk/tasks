@@ -12,8 +12,9 @@ import '../../google_integrations/application/google_integrations_providers.dart
 import '../../google_integrations/domain/google_sync_status.dart';
 import '../application/habit_providers.dart';
 import '../domain/habit.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../../core/widgets/app_dialogs.dart';
+import '../../../core/constants/app_icons.dart';
 
 class AddEditHabitScreen extends ConsumerStatefulWidget {
   const AddEditHabitScreen({super.key, this.habitId});
@@ -120,12 +121,12 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
         GoogleSyncStatus.connected;
 
     return Scaffold(
-      appBar: AppGlassAppBar(
+      appBar: AppTopBar(
         title: Text(title),
         actions: [
           if (existing != null)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(AppIcons.trash),
               tooltip: 'Delete habit',
               onPressed: () => _confirmDelete(context, existing!.id),
             ),
@@ -183,7 +184,7 @@ class _AddEditHabitScreenState extends ConsumerState<AddEditHabitScreen> {
                 setState(() => _reminderTimeLabel = picked.format(context));
               }
             },
-            icon: const Icon(Icons.alarm_outlined),
+            icon: const Icon(AppIcons.alarm),
             label: Text(_reminderTimeLabel ?? 'Set a reminder (optional)'),
           ),
           if (isEditing && existing != null && calendarConnected) ...[

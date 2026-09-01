@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/widgets/app_glass_page.dart';
+import '../core/constants/app_icons.dart';
+import '../core/constants/app_spacing.dart';
 import 'router/app_router.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
+import 'theme/app_type.dart';
 
 class SteadyProgressApp extends ConsumerWidget {
   const SteadyProgressApp({super.key, this.firebaseInitError});
@@ -18,6 +20,8 @@ class SteadyProgressApp extends ConsumerWidget {
         title: 'Steady Progress',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: ThemeMode.dark,
         home: _FirebaseInitErrorScreen(error: firebaseInitError!),
       );
     }
@@ -25,13 +29,19 @@ class SteadyProgressApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Steady Progress',
       debugShowCheckedModeBanner: false,
+      // Dark-first. Nocturne is designed on the dark ground and the light
+      // theme is its counterpart, not the other way round — so `themeMode` is
+      // pinned to dark rather than following the OS. Both themes are supplied
+      // because the light one is complete and correct (see AppColorsScheme);
+      // flipping this to ThemeMode.system is a one-line change once there is
+      // a setting for it.
       theme: AppTheme.light(),
-      // The glass backdrop is installed once, here, rather than on each of the
-      // ~20 pushed routes. MaterialApp's builder wraps the Navigator, so this
-      // sits behind every route at once and stays put across page
-      // transitions — the pages slide over it the way they do on iOS.
-      builder: (context, child) =>
-          AppGlassPage(child: child ?? const SizedBox.shrink()),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.dark,
+      // The glass backdrop that used to be installed here is gone. Nocturne
+      // has nothing to refract: every Scaffold paints an opaque `bg` ground
+      // of its own, which is what lets a 1px hairline read as an edge rather
+      // than as ink on a pane.
       routerConfig: ref.watch(appRouterProvider),
     );
   }
@@ -51,39 +61,34 @@ class _FirebaseInitErrorScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(
-                Icons.cloud_off_outlined,
-                size: 48,
+                AppIcons.warningCircle,
+                size: 40,
                 color: AppColors.error,
               ),
-              const SizedBox(height: 16),
-              const Text(
+              const SizedBox(height: AppSpacing.md),
+              Text(
                 "Couldn't connect to Firebase",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.charcoal,
-                ),
+                style: AppType.h5.copyWith(color: AppColors.charcoal),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: AppSpacing.sm),
+              Text(
                 'This usually means lib/firebase_options.dart still has placeholder '
                 'values. Run `flutterfire configure` from the project root, then '
                 'restart the app.',
-                style: TextStyle(color: AppColors.subtleText),
+                style: AppType.bodySmall.copyWith(color: AppColors.subtleText),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 error.toString(),
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.subtleText,
+                style: AppType.metaSmall.copyWith(
+                  color: AppColors.textCaption,
                 ),
                 textAlign: TextAlign.center,
               ),

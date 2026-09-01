@@ -15,8 +15,9 @@ import '../application/workout_providers.dart';
 import '../domain/exercise_log.dart';
 import '../domain/workout.dart';
 import 'widgets/log_workout_sheet.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../../core/widgets/app_fab.dart';
+import '../../../core/constants/app_icons.dart';
 
 class WorkoutScreen extends ConsumerWidget {
   const WorkoutScreen({super.key});
@@ -29,14 +30,14 @@ class WorkoutScreen extends ConsumerWidget {
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppGlassAppBar(title: const Text('Workout tracker')),
+        appBar: AppTopBar(title: const Text('Workout tracker')),
         body: const ModuleLockView(
           featureName: 'Workout tracker',
           benefit:
               'Log workouts and exercises, and keep an eye on your weekly training '
               'consistency.',
           requiredPlanName: 'Complete',
-          icon: Icons.fitness_center_outlined,
+          icon: AppIcons.barbell,
         ),
       );
     }
@@ -45,7 +46,7 @@ class WorkoutScreen extends ConsumerWidget {
     final exerciseLogsAsync = ref.watch(exerciseLogsProvider);
 
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Workout tracker')),
+      appBar: AppTopBar(title: const Text('Workout tracker')),
       floatingActionButton: AppFab(
         onPressed: () => showLogWorkoutSheet(context, ref),
       ),
@@ -78,7 +79,7 @@ class WorkoutScreen extends ConsumerWidget {
             ),
             children: [
               StatCard(
-                icon: Icons.fitness_center,
+                icon: AppIcons.barbell,
                 label: 'Workouts this week',
                 value: '$thisWeekCount',
                 accentColor: AppColors.deepGreen,
@@ -88,7 +89,7 @@ class WorkoutScreen extends ConsumerWidget {
               const SizedBox(height: AppSpacing.sm),
               if (workouts.isEmpty)
                 const EmptyState(
-                  icon: Icons.fitness_center_outlined,
+                  icon: AppIcons.barbell,
                   title: 'No workouts logged yet',
                   message:
                       'Log your first workout to start tracking consistency.',
@@ -150,7 +151,7 @@ class _WorkoutTile extends ConsumerWidget {
               ),
               IconButton(
                 icon: const Icon(
-                  Icons.delete_outline,
+                  AppIcons.trash,
                   size: 18,
                   color: AppColors.subtleText,
                 ),
@@ -177,7 +178,7 @@ class _WorkoutTile extends ConsumerWidget {
                     ),
                     if (e.isPersonalRecord)
                       const Icon(
-                        Icons.emoji_events_outlined,
+                        AppIcons.trophy,
                         size: 14,
                         color: AppColors.amber,
                       ),

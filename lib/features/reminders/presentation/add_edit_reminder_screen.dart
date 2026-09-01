@@ -8,8 +8,9 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/edit_target.dart';
 import '../application/reminder_providers.dart';
 import '../domain/reminder.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../../core/widgets/app_dialogs.dart';
+import '../../../core/constants/app_icons.dart';
 
 class AddEditReminderScreen extends ConsumerStatefulWidget {
   const AddEditReminderScreen({super.key, this.reminderId});
@@ -95,12 +96,12 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
     }
 
     return Scaffold(
-      appBar: AppGlassAppBar(
+      appBar: AppTopBar(
         title: Text(title),
         actions: [
           if (existing != null)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(AppIcons.trash),
               tooltip: 'Delete reminder',
               onPressed: () => _confirmDelete(context, existing!.id),
             ),
@@ -152,7 +153,7 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
                 }
               }
             },
-            icon: const Icon(Icons.event_outlined),
+            icon: const Icon(AppIcons.calendarBlank),
             label: Text(
               _dueAt == null
                   ? 'Set date & time (optional)'

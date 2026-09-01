@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The unchecked toggle: Phosphor `circle`, Regular.
+
+    ## Why these are hand-authored vectors and not the icon font
+
+    The app renders Phosphor from the bundled TTF, but a widget cannot: a
+    RemoteViews TextView can't be given a typeface from assets, and
+    `android:fontFamily="@font/…"` in XML only resolves from API 26 while
+    minSdk here is 24 — on 24/25 the glyph would silently fall back to a
+    tofu box. So the handful of glyphs the widget needs are vendored as
+    vector drawables instead, which is the other half of the handoff's
+    "add the package **or vendor the SVGs**".
+
+    White, because the provider recolours each one with
+    `setInt(id, "setColorFilter", color)` — SRC_ATOP over white reproduces
+    the colour exactly and leaves the transparent parts transparent.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M2.75,12 A9.25,9.25 0 1 1 21.25,12 A9.25,9.25 0 1 1 2.75,12 Z"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.5"
+        android:fillColor="@android:color/transparent" />
+</vector>

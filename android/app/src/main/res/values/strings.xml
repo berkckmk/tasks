@@ -2,41 +2,56 @@
 <resources>
     <!-- Shown in the launcher's widget picker, and as the widget's
          accessibility label. -->
-    <string name="widget_name">Today\'s progress</string>
-    <string name="widget_description">Today\'s habits, tasks and streak at a glance.</string>
+    <string name="widget_name">Today</string>
+    <string name="widget_description">Your reminders, tasks and habits for today — tick them off without opening the app.</string>
 
-    <!-- Accessibility label for the invisible top-left tap target that cycles
-         which field the widget shows. The affordance itself is painted into
-         the panel bitmap, so this is the only name a screen reader has. -->
-    <string name="widget_select_field">Change what this widget shows</string>
+    <!-- The header chip. Uppercased and set at build time by the provider;
+         this is the value the layout inflates with so the picker preview and
+         the first frame aren't blank. -->
+    <string name="widget_scope_today">TODAY ⌄</string>
 
-    <!-- Widget configuration screen. -->
-    <string name="widget_preview_title">Today</string>
-    <string name="widget_preview_subtitle">7 of 11 done · 12d streak</string>
-    <string name="widget_preview_sections">HABITS · TASKS · STREAK</string>
+    <!-- Row accessibility. The toggle is a 15dp glyph, so its own name is the
+         only thing a screen reader has to go on. -->
+    <string name="widget_row_toggle">Toggle</string>
+    <string name="widget_row_toggle_open">Mark %1$s as done</string>
+    <string name="widget_row_toggle_done">Mark %1$s as not done</string>
+
+    <!-- Empty state. Two messages: one for "the app has never synced", one for
+         "it synced and there is genuinely nothing left". Never zeros
+         presented as data. -->
+    <string name="widget_empty_title">Nothing scheduled</string>
+    <string name="widget_empty_message">Open Steady Progress to sync</string>
+    <string name="widget_empty_message_synced">You\'re all caught up</string>
+
+    <!-- 4x4 footer. -->
+    <string name="widget_footer_more">+%1$d later this week</string>
+    <string name="widget_footer_action">Remind me</string>
+
+    <!-- ===== Widget setup screen ===== -->
     <string name="config_title">Widget setup</string>
-    <string name="config_subtitle">Choose what this widget shows. Turn anything off and the layout closes up around it.</string>
-    <string name="config_fields_heading">Show on the widget</string>
-    <string name="config_appearance_heading">Glass</string>
+    <string name="config_preview_description">Live preview of the widget with the settings you have chosen.</string>
+    <string name="config_preview_summary">5 / 12 · 42 day streak</string>
+
     <string name="config_background_label">Background</string>
-    <!-- Honest about what this does: a widget cannot read the wallpaper, so
-         there is no backdrop blur to offer. See LiquidGlass.kt. -->
-    <string name="config_background_description">How much the panel fills in behind the content</string>
-    <string name="config_blur_label">Blur</string>
-    <string name="config_blur_description">How much the glass scatters light — frosted at the top of the range, clear at the bottom</string>
+    <string name="config_background_description">The panel\'s ground. Pick None to let the rows sit straight on your wallpaper.</string>
+
     <string name="config_opacity_label">Opacity</string>
-    <string name="config_opacity_description">How opaque the widget panel should be (lower = more transparent)</string>
-    <string name="config_preview_description">Live preview of the widget with the fields you have selected.</string>
+    <!-- Says exactly what the slider does and does not touch, because the
+         obvious reading — "this fades the widget" — is wrong. -->
+    <string name="config_opacity_description">Only the panel fades. Text, the progress bar and the icons keep their own colours, so this stays readable at every setting.</string>
     <string name="config_percent">%1$d%%</string>
-    <string name="config_save">Save</string>
+
+    <string name="config_rows_label">Rows shown</string>
+
+    <string name="config_include_label">Include</string>
+    <string name="config_include_description">Which of your three lists a Today widget draws from. A widget scoped to Reminders or Tasks ignores this.</string>
+
+    <string name="config_save">Add widget</string>
     <string name="config_cancel">Cancel</string>
-    <string name="config_wallpaper_heading">Wallpaper</string>
-    <string name="config_wallpaper_description">A widget can\'t read your wallpaper — Android stopped allowing that in version 13. Pick the image yourself and the glass will refract it for real.</string>
-    <string name="config_wallpaper_pick">Choose wallpaper</string>
-    <string name="config_wallpaper_clear">Remove</string>
-    <string name="config_drag_hint">Drag the panel to where the widget sits on your home screen.</string>
-    <string name="config_backdrop_blur_label">Backdrop blur</string>
-    <string name="config_backdrop_blur_description">How far out of focus the wallpaper falls behind the glass.</string>
-    <string name="config_wallpaper_unavailable">No photo picker on this device.</string>
-    <string name="config_wallpaper_failed">Couldn\'t read that image.</string>
+
+    <!-- Ground names. -->
+    <string name="config_ground_surface">Surface</string>
+    <string name="config_ground_ink">Ink</string>
+    <string name="config_ground_accent">Accent</string>
+    <string name="config_ground_none">None</string>
 </resources>

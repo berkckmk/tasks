@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    One row in the scope picker: icon 14 + 12sp label, padding 8/11.
+
+    The selected row is marked by its accent tint ground **only** — no check
+    mark, no counts. Three rows; which one is lit is the whole answer.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/picker_row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_marginStart="5dp"
+    android:layout_marginEnd="5dp"
+    android:paddingStart="11dp"
+    android:paddingEnd="11dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <ImageView
+        android:id="@+id/picker_row_icon"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/picker_row_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="9dp"
+        android:textSize="12sp"
+        android:textColor="@color/nocturne_text"
+        android:maxLines="1" />
+</LinearLayout>

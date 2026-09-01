@@ -6,25 +6,35 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 /**
- * The home-screen widget's copy of the dashboard.
+ * Which pillar a row came from. Mirrors `TodayKind` on the Flutter side.
+ */
+enum class WidgetItemKind(val key: String, val label: String) {
+    REMINDER("reminder", "Reminder"),
+    TASK("task", "Task"),
+    HABIT("habit", "Habit");
+
+    companion object {
+        fun fromKey(key: String?): WidgetItemKind =
+            entries.firstOrNull { it.key == key } ?: REMINDER
+    }
+}
+
+/**
+ * One row on the widget.
  *
- * The widget process can't read Firestore — it has no auth session and an
- * AppWidgetProvider only gets a few seconds of broadcast time, nowhere near
- * enough for a network round trip. So Flutter pushes a snapshot into
- * SharedPreferences whenever the data changes (see
- * lib/features/home_widget/application/home_widget_service.dart) and the
- * widget renders purely from that.
- *
- * Everything is nullable-safe with sane defaults: the widget can be placed on
- * the home screen before the app has ever run, and must render something
- * calm rather than crash or show zeros as if they were real.
+ * [id] and [kind] are new, and they are what make the row *tappable in a
+ * useful way*: the toggle has to name a document to write back to, and the
+ * row's own tap has to open the right editor. The old shape carried only a
+ * label and a done flag, which is all a static bitmap needed.
  */
 data class WidgetItem(
+    val id: String,
+    val kind: WidgetItemKind,
     val label: String,
-    /** Done/undone for habits and tasks; reminders are still list-based without a done flag. */
     val done: Boolean = false,
-    /** 0f..1f, reminders only when a progress meter is used. Negative means "no bar". */
-    val progress: Float = -1f,
+    /** "9:15" / "14:30", already formatted by Flutter in the device's own
+     *  locale and clock convention. Empty means "no time". */
+    val time: String = "",
 )
 
 data class WidgetData(
@@ -48,8 +58,51 @@ data class WidgetData(
 
     val doneCount: Int get() = habitsDone + tasksDone
     val totalCount: Int get() = habitsTotal + tasksTotal
+
+    /**
+     * The rows for one widget, after its scope and its Include set.
+     *
+     * Ordering is the app's rule, applied here so the widget and the Today
+     * rail cannot disagree: **incomplete first, then by time, untimed last.**
+     * A ticked row sorts to the bottom and stays there.
+     */
+    fun itemsFor(config: WidgetConfig): List<WidgetItem> {
+        val pool = when (config.scope) {
+            WidgetScope.REMINDERS -> reminders
+            WidgetScope.TASKS -> tasks
+            WidgetScope.TODAY -> buildList {
+                if (config.includes(WidgetInclude.REMINDERS)) addAll(reminders)
+                if (config.includes(WidgetInclude.TASKS)) addAll(tasks)
+                if (config.includes(WidgetInclude.HABITS)) addAll(habits)
+            }
+        }
+
+        return pool
+            .filter { config.showsCompleted || !it.done }
+            .sortedWith(
+                compareBy<WidgetItem> { it.done }
+                    .thenBy { it.time.isEmpty() }
+                    .thenBy { it.time }
+                    .thenBy { it.label },
+            )
+    }
 }
 
+/**
+ * The home-screen widget's copy of today.
+ *
+ * The widget process can't read Firestore — it has no auth session and an
+ * `AppWidgetProvider` gets a few seconds of broadcast time, nowhere near
+ * enough for a network round trip. So Flutter pushes a snapshot into
+ * SharedPreferences whenever the data changes (see
+ * `lib/features/home_widget/application/home_widget_service.dart`) and the
+ * widget renders purely from that. That one-way arrangement is deliberately
+ * kept.
+ *
+ * Everything is nullable-safe with sane defaults: the widget can be placed on
+ * the home screen before the app has ever run, and must render something calm
+ * rather than crash or show zeros as if they were real.
+ */
 object WidgetDataStore {
 
     private const val PREFS = "steady_progress_widget"
@@ -86,7 +139,7 @@ object WidgetDataStore {
     }
 
     /** Clears the snapshot — called on sign-out so the widget stops showing
-     *  the previous account's numbers on a shared device. */
+     *  the previous account's items on a shared device. */
     fun clear(context: Context) {
         prefs(context).edit().clear().apply()
     }
@@ -108,6 +161,49 @@ object WidgetDataStore {
     }
 
     /**
+     * Flips one item's `done` in the local snapshot.
+     *
+     * This is the **optimistic half** of the widget toggle: the launcher
+     * redraws immediately instead of waiting for a Firestore round trip that
+     * a broadcast receiver has no time for anyway. The durable half is
+     * [WidgetPendingToggles], drained by the app.
+     *
+     * Returns the new state, or null if the item is no longer in the
+     * snapshot — which is normal, not exceptional: the row is whatever the
+     * last push contained, and a tap can land after the item was deleted on
+     * another device.
+     */
+    fun toggleLocally(context: Context, itemId: String, kind: WidgetItemKind): Boolean? {
+        val p = prefs(context)
+        val raw = p.getString(KEY_ITEMS, "") ?: ""
+        if (raw.isEmpty()) return null
+
+        return try {
+            val root = JSONObject(raw)
+            var newState: Boolean? = null
+            for (section in root.keys().asSequence().toList()) {
+                val array = root.optJSONArray(section) ?: continue
+                for (i in 0 until array.length()) {
+                    val o = array.optJSONObject(i) ?: continue
+                    if (o.optString("id") != itemId) continue
+                    if (WidgetItemKind.fromKey(o.optString("kind")) != kind) continue
+                    val next = !o.optBoolean("done", false)
+                    o.put("done", next)
+                    newState = next
+                }
+            }
+            if (newState != null) {
+                p.edit().putString(KEY_ITEMS, root.toString()).apply()
+            }
+            newState
+        } catch (error: Exception) {
+            // Runs inside a worker; a malformed snapshot must not take the
+            // widget down with it.
+            null
+        }
+    }
+
+    /**
      * Parses the pushed item lists.
      *
      * Malformed input yields empty lists rather than throwing: this runs
@@ -123,11 +219,16 @@ object WidgetDataStore {
                 (0 until array.length()).mapNotNull { i ->
                     val o = array.optJSONObject(i) ?: return@mapNotNull null
                     val label = o.optString("label").trim()
-                    if (label.isEmpty()) return@mapNotNull null
+                    val id = o.optString("id").trim()
+                    // A row with no id can't be toggled and can't be opened,
+                    // so it is not a row.
+                    if (label.isEmpty() || id.isEmpty()) return@mapNotNull null
                     WidgetItem(
+                        id = id,
+                        kind = WidgetItemKind.fromKey(o.optString("kind")),
                         label = label,
                         done = o.optBoolean("done", false),
-                        progress = o.optDouble("progress", -1.0).toFloat(),
+                        time = o.optString("time"),
                     )
                 }
             }

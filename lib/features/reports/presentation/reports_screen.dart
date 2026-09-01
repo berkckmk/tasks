@@ -13,7 +13,8 @@ import '../../../core/widgets/module_lock_view.dart';
 import '../../subscription/application/subscription_providers.dart';
 import '../application/reports_providers.dart';
 import '../domain/report.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
+import '../../../core/constants/app_icons.dart';
 
 const _statusColors = {
   ReportStatus.pending: AppColors.subtleText,
@@ -33,14 +34,14 @@ class ReportsScreen extends ConsumerWidget {
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppGlassAppBar(title: const Text('Reports')),
+        appBar: AppTopBar(title: const Text('Reports')),
         body: const ModuleLockView(
           featureName: 'Progress reports',
           benefit:
               'Generate a Google Docs report summarizing your habits, tasks, goals, and '
               'more — with reflection prompts included.',
           requiredPlanName: 'Complete',
-          icon: Icons.summarize_outlined,
+          icon: AppIcons.fileText,
         ),
       );
     }
@@ -48,12 +49,12 @@ class ReportsScreen extends ConsumerWidget {
     final reportsAsync = ref.watch(reportsProvider);
 
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Reports')),
+      appBar: AppTopBar(title: const Text('Reports')),
       body: reportsAsync.when(
         data: (reports) {
           if (reports.isEmpty) {
             return const EmptyState(
-              icon: Icons.summarize_outlined,
+              icon: AppIcons.fileText,
               title: 'No reports yet',
               message: 'Generate one from Google Integrations > Google Docs Reports.',
             );
@@ -121,7 +122,7 @@ class _ReportTile extends StatelessWidget {
           if (report.googleDocUrl != null) ...[
             const SizedBox(width: AppSpacing.sm),
             const Icon(
-              Icons.open_in_new,
+              AppIcons.arrowSquareOut,
               size: 16,
               color: AppColors.subtleText,
             ),

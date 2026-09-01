@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The selected row in the scope picker.
+
+    An accent tint ground and nothing else — **no check mark and no counts**.
+    The panel has three rows; which one is lit is the whole answer.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="8dp" />
+    <solid android:color="#249184D9" />
+</shape>

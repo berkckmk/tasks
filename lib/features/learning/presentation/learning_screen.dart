@@ -12,8 +12,9 @@ import '../../subscription/application/subscription_providers.dart';
 import '../application/learning_providers.dart';
 import '../domain/learning_item.dart';
 import 'widgets/add_edit_learning_sheet.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../../core/widgets/app_fab.dart';
+import '../../../core/constants/app_icons.dart';
 
 class LearningScreen extends ConsumerWidget {
   const LearningScreen({super.key});
@@ -26,14 +27,14 @@ class LearningScreen extends ConsumerWidget {
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppGlassAppBar(title: const Text('Learning tracker')),
+        appBar: AppTopBar(title: const Text('Learning tracker')),
         body: const ModuleLockView(
           featureName: 'Learning tracker',
           benefit:
               'Track books, courses, and podcasts — with ratings, notes, and key '
               'takeaways you can look back on.',
           requiredPlanName: 'Complete',
-          icon: Icons.menu_book_outlined,
+          icon: AppIcons.bookOpen,
         ),
       );
     }
@@ -41,7 +42,7 @@ class LearningScreen extends ConsumerWidget {
     final itemsAsync = ref.watch(learningItemsProvider);
 
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Learning tracker')),
+      appBar: AppTopBar(title: const Text('Learning tracker')),
       floatingActionButton: AppFab(
         onPressed: () => showAddEditLearningSheet(context, ref),
       ),
@@ -49,7 +50,7 @@ class LearningScreen extends ConsumerWidget {
         data: (items) {
           if (items.isEmpty) {
             return const EmptyState(
-              icon: Icons.menu_book_outlined,
+              icon: AppIcons.bookOpen,
               title: 'Nothing here yet',
               message: 'Add a book, course, or podcast to start tracking what you learn.',
             );
@@ -101,7 +102,7 @@ class _LearningTile extends ConsumerWidget {
               ),
               IconButton(
                 icon: const Icon(
-                  Icons.delete_outline,
+                  AppIcons.trash,
                   size: 18,
                   color: AppColors.subtleText,
                 ),
@@ -122,7 +123,7 @@ class _LearningTile extends ConsumerWidget {
                   children: List.generate(
                     item.rating,
                     (_) => const Icon(
-                      Icons.star,
+                      AppIcons.starFill,
                       size: 14,
                       color: AppColors.amber,
                     ),

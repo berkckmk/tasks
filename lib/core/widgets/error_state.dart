@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../../app/theme/app_type.dart';
+import '../constants/app_icons.dart';
 import '../constants/app_spacing.dart';
 
 /// Reused wherever an `AsyncValue.when(error: ...)` branch needs to show
@@ -30,18 +32,20 @@ class ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColorsScheme.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.cloud_off_outlined, size: 32, color: AppColors.subtleText),
+            Icon(AppIcons.warningCircle, size: 32, color: c.muted),
             const SizedBox(height: AppSpacing.sm),
             Text(
               _message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.subtleText, fontSize: 13),
+              style: AppType.caption.copyWith(color: c.muted),
             ),
           ],
         ),

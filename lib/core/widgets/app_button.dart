@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../../app/theme/app_colors.dart';
+import '../../app/theme/app_type.dart';
 import '../constants/app_spacing.dart';
 
 enum AppButtonVariant { primary, secondary, text }
 
 /// The app's button. Constructor unchanged — 36 call sites depend on it.
 ///
-/// Two things about [GlassButton] are easy to get wrong and are worth stating
-/// here, because its parameter names do not mean what they look like:
+/// **Primary is outlined, not filled.** 1px accent border on transparent,
+/// accent text. This is the system's strongest rule and it inverts what this
+/// widget did before, where `primary` was the package's `prominent` glass and
+/// before that a solid `FilledButton`. A solid accent rectangle is a flood,
+/// and the accent is a line and a mark.
 ///
-///  - `icon` is the button's *content slot*, and takes any widget. The text
-///    row below goes there.
-///  - `label` is the **semantic** label read by screen readers. It renders
-///    nothing. The visible text has to be in `icon`.
+/// `secondary` is the same geometry with the neutral hairline instead of the
+/// accent edge; `text` has no edge at all.
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -23,6 +24,7 @@ class AppButton extends StatelessWidget {
     this.variant = AppButtonVariant.primary,
     this.icon,
     this.expand = false,
+    this.pill = false,
   });
 
   final String label;
@@ -31,53 +33,74 @@ class AppButton extends StatelessWidget {
   final IconData? icon;
   final bool expand;
 
+  /// A 999 radius. `2c` uses these; everything else takes the `md` step.
+  final bool pill;
+
   @override
   Widget build(BuildContext context) {
+    final c = AppColorsScheme.of(context);
     final enabled = onPressed != null;
-    // Glass carries the brand colour in the text and glow rather than in a
-    // solid fill — a filled green rectangle would defeat the material.
-    final foreground = enabled ? AppColors.deepGreen : AppColors.subtleText;
+
+    final (Color foreground, Color? border) = switch (variant) {
+      AppButtonVariant.primary => (c.accent, c.accent),
+      AppButtonVariant.secondary => (c.text, c.divider),
+      AppButtonVariant.text => (c.inkAccent, null),
+    };
+
+    final radius = BorderRadius.circular(
+      pill ? AppSpacing.radiusPill : AppSpacing.radiusMd,
+    );
 
     final content = Padding(
       padding: variant == AppButtonVariant.text
-          ? const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 12)
-          : const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 14),
+          ? const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            )
+          : const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
       child: Row(
         mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 18, color: foreground),
+            Icon(icon, size: 16, color: foreground),
             const SizedBox(width: AppSpacing.sm),
           ],
-          Text(
-            label,
-            style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
-          ),
+          Text(label, style: AppType.title.copyWith(color: foreground)),
         ],
       ),
     );
 
-    return GlassButton(
-      onTap: onPressed ?? () {},
-      enabled: enabled,
-      // Semantic only — see the class doc.
-      label: label,
-      icon: content,
-      style: switch (variant) {
-        // Prominent is the thicker, less transparent glass iOS 26 uses for a
-        // primary call to action; it's what replaces the old solid FilledButton.
-        AppButtonVariant.primary => GlassButtonStyle.prominent,
-        AppButtonVariant.secondary => GlassButtonStyle.filled,
-        // No surface at all, matching the old TextButton.
-        AppButtonVariant.text => GlassButtonStyle.transparent,
-      },
-      shape: LiquidRoundedSuperellipse(borderRadius: AppSpacing.radiusMd),
-      glowColor: AppColors.deepGreen,
-      // Both null so the button sizes to `content` — the defaults are 56x56,
-      // which is the circular icon-button geometry, not a text button.
-      width: expand ? double.infinity : null,
-      height: null,
+    // Disabled drops the whole control to 45%, rather than swapping in a
+    // separate disabled colour per part — one rule, and the edge and the
+    // label can't drift out of step.
+    return Opacity(
+      opacity: enabled ? 1 : 0.45,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          border: border == null ? null : Border.all(color: border),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            borderRadius: radius,
+            // Themed from the accent ramp, not the platform default.
+            splashColor: c.accentTint(0.14),
+            highlightColor: c.accentTint(0.08),
+            hoverColor: c.accentTint(0.08),
+            focusColor: c.accentTint(0.12),
+            child: SizedBox(
+              width: expand ? double.infinity : null,
+              child: content,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

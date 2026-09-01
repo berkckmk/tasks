@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    One collection row.
+
+    Anatomy, per the handoff: toggle 15 · time 34dp tabular · title flex-1
+    ellipsised · kind label 10sp at 42% · type icon 12 at 38%. Row padding 5dp
+    vertical, gap 8.
+
+    `fontFeatureSettings="tnum"` on the time is not cosmetic — the time column
+    is a fixed 34dp and misaligns without tabular figures, which is visible
+    the moment two rows sit above each other.
+
+    The toggle's tap target is only as big as the row is tall (~26dp), which
+    is under the 44dp the app uses. That is the platform's constraint, not a
+    choice: a collection row's clickable regions come from
+    setOnClickFillInIntent on child views, and enlarging the toggle past the
+    row height would overlap its neighbours. The row's own tap (open the app
+    at that item) is the full-width fallback.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <ImageView
+        android:id="@+id/row_toggle"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:src="@drawable/widget_circle"
+        android:contentDescription="@string/widget_row_toggle" />
+
+    <TextView
+        android:id="@+id/row_time"
+        android:layout_width="34dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textSize="11sp"
+        android:textColor="@color/nocturne_text_caption"
+        android:fontFeatureSettings="tnum"
+        android:maxLines="1"
+        android:gravity="end" />
+
+    <TextView
+        android:id="@+id/row_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:textSize="12.5sp"
+        android:textColor="@color/nocturne_text"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/row_kind"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textSize="10sp"
+        android:textColor="@color/nocturne_text_caption"
+        android:maxLines="1" />
+
+    <ImageView
+        android:id="@+id/row_icon"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginStart="6dp"
+        android:contentDescription="@null" />
+</LinearLayout>

@@ -1,23 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Light palette for the widget configuration screen, taken from the app's
-    own theme (lib/app/theme/app_colors.dart) so the screen doesn't look like
-    a stray system dialog. values-night/colors.xml holds the dark variants.
+    The Nocturne palette, for the parts of the app that are Android resources
+    rather than Flutter: the home-screen widget, its setup screen and its
+    scope picker.
+
+    These are the *light* values; values-night/colors.xml holds the dark ones.
+    The widget itself is dark-first like the app — its panel and text read from
+    the `nocturne_*` tokens below, which do NOT flip with the system theme,
+    because a widget sits on the user's wallpaper and has no app ground to
+    follow. Only the setup screen, which is an ordinary Activity, is themed.
+
+    Source of truth: lib/app/theme/app_colors.dart.
 -->
 <resources>
-    <color name="config_background">#F7F5F0</color>
-    <color name="config_bar">#FBFAF7</color>
-    <color name="config_text">#2A2A28</color>
-    <color name="config_text_muted">#6B6A63</color>
-    <color name="config_accent">#2F5233</color>
-    <!-- Label colour on top of config_accent. Themed rather than a
-         hardcoded white: the accent is pale in dark mode, where white
-         text on it fails contrast. -->
-    <color name="config_on_accent">#FFFFFF</color>
-    <color name="config_preview_backdrop_a">#DCD6C9</color>
-    <color name="config_preview_backdrop_b">#B9C6CE</color>
+    <!-- ===== Nocturne, fixed. Used by the widget's own surfaces. ===== -->
+    <color name="nocturne_surface">#232532</color>
+    <color name="nocturne_ink">#292B31</color>
+    <color name="nocturne_accent_900">#2B2741</color>
+    <color name="nocturne_text">#E9E9ED</color>
+    <!-- text at 58% — the note step. -->
+    <color name="nocturne_text_note">#94E9E9ED</color>
+    <!-- text at 50%, 45%, 42%, 32%: the muted ramp the design names. -->
+    <color name="nocturne_text_muted">#80E9E9ED</color>
+    <color name="nocturne_text_inactive">#73E9E9ED</color>
+    <color name="nocturne_text_caption">#6BE9E9ED</color>
+    <color name="nocturne_text_unchecked">#52E9E9ED</color>
+    <color name="nocturne_accent">#9184D9</color>
+    <!-- accent-300: the accent at paragraph size. -->
+    <color name="nocturne_ink_accent">#D2CEFD</color>
+    <!-- accent at 40% — the scope chip's border. -->
+    <color name="nocturne_accent_40">#669184D9</color>
+    <!-- Hairline: text at 16%. -->
+    <color name="nocturne_divider">#29E9E9ED</color>
+
+    <!-- The launch window's ground: the app's own `bg`. See
+         drawable/launch_background.xml. -->
+    <color name="launch_background">#161826</color>
+
+    <!-- ===== Setup screen (an Activity, so it follows the device theme). ===== -->
+    <color name="config_background">#E4E7F5</color>
+    <color name="config_bar">#F3F5FE</color>
+    <color name="config_text">#292B31</color>
+    <color name="config_text_muted">#75798C</color>
+    <color name="config_accent">#9184D9</color>
+    <!-- Label colour on top of config_accent. Themed rather than a hardcoded
+         white: the accent is the same in both themes, and the ink that reads
+         on it is not. -->
+    <color name="config_on_accent">#F3F5FE</color>
+    <color name="config_divider">#CFD3E5</color>
+    <!-- The setup screen's live preview sits on a wallpaper-ish ground. -->
+    <color name="config_preview_backdrop_a">#B2B6CA</color>
+    <color name="config_preview_backdrop_b">#9397AB</color>
     <!-- Unfilled part of a slider track. -->
-    <color name="config_track">#D8D3C7</color>
-    <color name="widget_preview_fill">#66FFFFFF</color>
-    <color name="widget_preview_rim">#59FFFFFF</color>
+    <color name="config_track">#CFD3E5</color>
 </resources>

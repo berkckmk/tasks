@@ -1,49 +1,72 @@
 import 'package:flutter/material.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
+import '../../app/theme/app_colors.dart';
 import '../constants/app_spacing.dart';
 
-/// A calm, low-elevation card used throughout the app instead of the
-/// default Material [Card], to keep a consistent "premium" surface style.
+/// Elevation levels, as Nocturne defines them.
 ///
-/// Now a glass surface. The constructor is unchanged on purpose — this is used
-/// in 29 places and none of them needed to know.
+/// On a dark ground elevation is **an edge plus ambient darkness**, never a
+/// stack of shadows. `sm` is an edge and nothing else; the shadow only starts
+/// at `md`, where the surface genuinely sits above the plane.
+enum AppElevation { sm, md, lg }
+
+/// A flat, opaque Nocturne panel.
+///
+/// Replaces the Liquid Glass card. Same constructor — this is used in 29
+/// places and none of them needed to know — plus an [elevation] for the one
+/// case `2b` needs, the raised next-up card that offsets out of the rail.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(AppSpacing.md),
     this.onTap,
+    this.elevation = AppElevation.sm,
+    this.radius = AppSpacing.radiusMd,
+    this.borderColor,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
+  final AppElevation elevation;
+  final double radius;
+
+  /// Overrides the hairline — used for the accent left-border on an Overdue
+  /// group, and for a selected state.
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppSpacing.radiusMd);
+    final c = AppColorsScheme.of(context);
+    final borderRadius = BorderRadius.circular(radius);
+
+    final (Color edge, List<BoxShadow> shadow) = switch (elevation) {
+      AppElevation.sm => (c.edgeSm, const <BoxShadow>[]),
+      AppElevation.md => (c.edgeMd, c.shadowMd),
+      AppElevation.lg => (c.edgeLg, c.shadowLg),
+    };
+
     final body = Padding(padding: padding, child: child);
 
-    return GlassCard(
-      // Minimal skips the shader entirely and uses a BackdropFilter plus a
-      // saturation matrix. Cards are list content — 29 of these can be on
-      // screen at once inside a ListView, and the package is explicit that
-      // scrolled surfaces should not be firing shader invocations per frame.
-      quality: GlassQuality.minimal,
-      shape: LiquidRoundedSuperellipse(borderRadius: AppSpacing.radiusMd),
-      // The card's own padding is left at zero so the InkWell splash covers
-      // the full surface rather than stopping at the content inset.
-      padding: EdgeInsets.zero,
-      clipBehavior: Clip.antiAlias,
-      // Interactive descendants (ListTile, Switch, InkWell, ...) need a
-      // Material ancestor to paint splashes/highlights, even when the card
-      // itself isn't tappable — so this wraps every card, not just onTap ones.
-      child: Material(
-        color: Colors.transparent,
-        child: onTap == null
-            ? body
-            : InkWell(onTap: onTap, borderRadius: radius, child: body),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: borderRadius,
+        border: Border.all(color: borderColor ?? edge),
+        boxShadow: shadow,
+      ),
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        // Interactive descendants (ListTile, Switch, InkWell, ...) need a
+        // Material ancestor to paint splashes, even when the card itself
+        // isn't tappable — so this wraps every card, not just onTap ones.
+        child: Material(
+          color: Colors.transparent,
+          child: onTap == null
+              ? body
+              : InkWell(onTap: onTap, borderRadius: borderRadius, child: body),
+        ),
       ),
     );
   }

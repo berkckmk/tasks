@@ -103,10 +103,17 @@ flutter {
 }
 
 dependencies {
-    // Instrumentation tests only — these never ship in the app APK. They
-    // exist so the widget's bitmap rendering (LiquidGlass/GlassRenderer) can
-    // be exercised against the real android.graphics stack: BlurMaskFilter
-    // and Path rendering are the parts a host-side test can't stand in for.
+    // Ticking a widget row has to survive the broadcast that started it: an
+    // AppWidgetProvider gets a few seconds of onReceive, so the toggle
+    // enqueues WidgetToggleWorker and returns. See WidgetPendingToggles for
+    // what that worker does and, more importantly, what it deliberately does
+    // not do.
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
+    // Instrumentation tests only — these never ship in the app APK. The
+    // widget's bitmap renderer they used to exercise is gone with the Liquid
+    // Glass panel; the rebuilt widget is ordinary RemoteViews, and the thing
+    // worth asserting on a device now is that the layout inflates at all.
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

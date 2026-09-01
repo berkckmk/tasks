@@ -1,8 +1,8 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-
 import 'package:steady_progress/app/app.dart';
+import 'package:steady_progress/core/widgets/responsive_scaffold.dart';
 import 'package:steady_progress/features/subscription/domain/beta_access.dart';
 
 import 'support/fakes.dart';
@@ -16,39 +16,60 @@ import 'support/fakes.dart';
 /// itself had failed to load and rendered an ErrorState.
 void main() {
   Future<void> pumpApp(WidgetTester tester, TestBackend backend) async {
+    // No wrapper any more. main.dart used to wrap the app in
+    // LiquidGlassWidgets.wrap(), so tests had to supply a
+    // GlassAccessibilityScope with reduceTransparency (no GPU here to run the
+    // shader on) and reduceMotion (so pumpAndSettle terminated against the
+    // spring animations). Nocturne draws flat panels — neither applies.
     await tester.pumpWidget(
-      // main.dart wraps the app in LiquidGlassWidgets.wrap(); tests stand the
-      // app up directly, so the glass accessibility scope has to be supplied
-      // here. Both flags matter:
-      //   reduceTransparency bypasses the shader entirely — there is no GPU
-      //     in the widget-test environment to run it on.
-      //   reduceMotion snaps the spring/jelly animations instead of running
-      //     them, so the pumpAndSettle() calls below terminate.
-      GlassAccessibilityScope(
-        reduceMotion: true,
-        reduceTransparency: true,
-        child: ProviderScope(
-          overrides: backend.overrides,
-          child: const SteadyProgressApp(),
-        ),
+      ProviderScope(
+        overrides: backend.overrides,
+        child: const SteadyProgressApp(),
       ),
     );
-    // Splash -> (signed in) -> Dashboard.
+    // Splash -> (signed in) -> Reminders, which is now tab 0.
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     await tester.pumpAndSettle();
   }
 
+  /// Taps one of the four bottom-bar destinations: Reminders, Today, Tasks,
+  /// More.
+  ///
+  /// Scoped to the bar on purpose: several of these labels are also body text
+  /// on the screen they open, so a bare find.text would be ambiguous the
+  /// moment a tab is already selected.
   Future<void> goToTab(WidgetTester tester, String label) async {
-    // Scoped to the tab bar on purpose: several of these labels ('Habits',
-    // 'Tasks') are also the AppBar title of the screen they open, so a bare
-    // find.text would be ambiguous the moment a tab is already selected.
     await tester.tap(
       find
-          .descendant(of: find.byType(GlassTabBar), matching: find.text(label))
+          .descendant(of: find.byType(AppTabBar), matching: find.text(label))
           .first,
     );
     await tester.pumpAndSettle();
+  }
+
+  /// Taps a row on the More screen, scrolling to it first.
+  ///
+  /// More grew when Habits and Profile moved into it, so its last rows are
+  /// now below the fold — and a `ListView` doesn't build off-screen children,
+  /// so `find.text` returns nothing rather than something off-screen. The
+  /// scroll is what makes the row exist.
+  Future<void> tapMoreRow(WidgetTester tester, String label) async {
+    await tester.scrollUntilVisible(
+      find.text(label),
+      120,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(label));
+    await tester.pumpAndSettle();
+  }
+
+  /// Habits and Profile lost their tab slots in the redesign — they are push
+  /// routes off More now, so reaching them is two taps rather than one.
+  Future<void> goToMoreRow(WidgetTester tester, String label) async {
+    await goToTab(tester, 'More');
+    await tapMoreRow(tester, label);
   }
 
   testWidgets(
@@ -80,9 +101,11 @@ void main() {
       await pumpApp(tester, backend);
       expect(tester.takeException(), isNull);
 
-      await goToTab(tester, 'Habits');
+      await goToMoreRow(tester, 'Habits');
       expect(find.text('Morning run'), findsWidgets);
       expect(tester.takeException(), isNull);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
 
       await goToTab(tester, 'Tasks');
       expect(find.text('Plan the week'), findsWidgets);
@@ -107,8 +130,7 @@ void main() {
       'Learning tracker',
       'Content planner',
     ]) {
-      await tester.tap(find.text(module));
-      await tester.pumpAndSettle();
+      await tapMoreRow(tester, module);
       expect(
         find.text('Requires Complete'),
         findsNothing,
@@ -141,8 +163,7 @@ void main() {
     expect(find.text('No reminders yet'), findsOneWidget);
 
     await goToTab(tester, 'More');
-    await tester.tap(find.text('Finance tracker'));
-    await tester.pumpAndSettle();
+    await tapMoreRow(tester, 'Finance tracker');
     expect(find.text('Requires Complete'), findsNothing);
     expect(tester.takeException(), isNull);
   });

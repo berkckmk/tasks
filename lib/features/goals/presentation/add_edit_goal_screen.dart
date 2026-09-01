@@ -10,8 +10,9 @@ import '../../../core/widgets/app_button.dart';
 import '../application/goal_providers.dart';
 import '../domain/goal.dart';
 import '../domain/milestone.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../../core/widgets/app_dialogs.dart';
+import '../../../core/constants/app_icons.dart';
 
 class AddEditGoalScreen extends ConsumerStatefulWidget {
   const AddEditGoalScreen({super.key, this.goalId});
@@ -123,12 +124,12 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
     }
 
     return Scaffold(
-      appBar: AppGlassAppBar(
+      appBar: AppTopBar(
         title: Text(title),
         actions: [
           if (existing != null)
             IconButton(
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(AppIcons.trash),
               tooltip: 'Delete goal',
               onPressed: () => _confirmDelete(context, existing!.id),
             ),
@@ -193,7 +194,7 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
               );
               if (picked != null) setState(() => _targetDate = picked);
             },
-            icon: const Icon(Icons.event_outlined),
+            icon: const Icon(AppIcons.calendarBlank),
             label: Text(
               _targetDate == null
                   ? 'Set a target date (optional)'
@@ -248,7 +249,7 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                   });
                 },
                 secondary: IconButton(
-                  icon: const Icon(Icons.close, size: 18),
+                  icon: const Icon(AppIcons.x, size: 18),
                   onPressed: () {
                     setState(() {
                       _milestones = _milestones
@@ -273,7 +274,7 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                 const SizedBox(width: AppSpacing.sm),
                 IconButton(
                   icon: const Icon(
-                    Icons.add_circle,
+                    AppIcons.plusCircle,
                     color: AppColors.deepGreen,
                   ),
                   onPressed: _addMilestone,

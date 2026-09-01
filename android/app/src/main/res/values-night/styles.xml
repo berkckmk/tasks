@@ -17,7 +17,11 @@
     </style>
 
     <!-- Dark variant of the widget configuration theme. See
-         values/styles.xml. -->
+         values/styles.xml.
+
+         The scope picker's theme is deliberately NOT overridden here: its
+         panel is the widget's own surface, and the widget doesn't follow the
+         device theme (see values-night/colors.xml). -->
     <style name="WidgetConfigureTheme" parent="@android:style/Theme.DeviceDefault.NoActionBar">
         <item name="android:windowBackground">@color/config_background</item>
         <item name="android:colorAccent">@color/config_accent</item>

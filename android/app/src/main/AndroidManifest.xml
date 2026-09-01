@@ -47,6 +47,10 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <!-- Where the collection's fill-in intents land: a row tap and
+                     a toggle tap both arrive here through the list's single
+                     PendingIntent template. -->
+                <action android:name="com.steadyprogress.ACTION_WIDGET_ROW" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
@@ -54,10 +58,10 @@
         </receiver>
 
 
-        <!-- Field picker for a placed widget. Exported because the *launcher*
-             starts it — both when the widget is first dropped and from the
-             long-press "configure" affordance — and the launcher is a
-             different app. It acts only on the appWidgetId it is handed. -->
+        <!-- Setup screen for a placed widget. Exported because the
+             *launcher* starts it — both when the widget is first dropped and
+             from the long-press "configure" affordance — and the launcher is
+             a different app. It acts only on the appWidgetId it is handed. -->
         <activity
             android:name=".widget.SteadyProgressWidgetConfigureActivity"
             android:label="@string/config_title"
@@ -68,6 +72,34 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+
+        <!-- The scope picker: Today / Reminders / Tasks.
+
+             RemoteViews has no popup and no Spinner, so the widget's header
+             chip fires a PendingIntent into this transparent, no-title
+             Activity instead. Not exported: only the widget's own
+             PendingIntent starts it, and that is created in-process.
+
+             excludeFromRecents + noHistory because it is a menu, not a
+             screen — it should never appear in the recents switcher and
+             should not survive being backgrounded. -->
+        <activity
+            android:name=".widget.WidgetScopePickerActivity"
+            android:theme="@style/WidgetScopePickerTheme"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:exported="false" />
+
+        <!-- Feeds the widget's scrolling rows.
+
+             BIND_REMOTEVIEWS is a signature-level permission held by the
+             system: requiring it here means only the platform's
+             AppWidgetService can bind this, not another app. Every widget
+             collection service must declare it. -->
+        <service
+            android:name=".widget.WidgetItemsService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false" />
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

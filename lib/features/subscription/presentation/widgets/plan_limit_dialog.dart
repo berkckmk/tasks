@@ -1,36 +1,64 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
+
+import '../../../../app/theme/app_colors.dart';
+import '../../../../app/theme/app_type.dart';
+import '../../../../core/constants/app_spacing.dart';
 
 /// Shown instead of navigating to an add-habit/add-task screen once the
 /// current plan's limit is reached.
 ///
-/// The upgrade action is marked `isPrimary` rather than being an AppButton
-/// among TextButtons: GlassDialog lays its own actions out, and mixing a
-/// full-width app button into that row fought the dialog's geometry.
+/// The upgrade action reads as primary through the accent, not through a
+/// fill — an accent-coloured label beside a muted one. `AlertDialog` lays its
+/// own actions out in a row, and a full-width outlined button dropped into
+/// that row fights the dialog's geometry, which is the same reason the glass
+/// version used its own action type rather than an `AppButton`.
 Future<void> showPlanLimitDialog(
   BuildContext context, {
   required String message,
   required String requiredPlanName,
 }) {
-  return GlassDialog.show<void>(
+  final c = AppColorsScheme.of(context);
+
+  return showDialog<void>(
     context: context,
-    title: "You've hit your plan limit",
-    message: message,
     barrierDismissible: true,
-    actions: [
-      GlassDialogAction(
-        label: 'Not now',
-        onPressed: () => Navigator.pop(context),
+    barrierColor: Colors.black.withValues(alpha: 0.62),
+    builder: (context) => AlertDialog(
+      backgroundColor: c.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        side: BorderSide(color: c.edgeMd),
       ),
-      GlassDialogAction(
-        label: 'Upgrade to $requiredPlanName',
-        isPrimary: true,
-        onPressed: () {
-          Navigator.pop(context);
-          context.push('/pricing');
-        },
+      title: Text(
+        "You've hit your plan limit",
+        style: AppType.h5.copyWith(color: c.text),
       ),
-    ],
+      content: Text(message, style: AppType.bodySmall.copyWith(color: c.note)),
+      actionsPadding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Not now', style: AppType.title.copyWith(color: c.muted)),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            context.push('/pricing');
+          },
+          child: Text(
+            'Upgrade to $requiredPlanName',
+            style: AppType.title.copyWith(color: c.accent),
+          ),
+        ),
+      ],
+    ),
   );
 }

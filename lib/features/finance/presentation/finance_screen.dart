@@ -16,8 +16,9 @@ import '../domain/finance_transaction.dart';
 import '../domain/savings_goal.dart';
 import 'widgets/add_transaction_sheet.dart';
 import 'widgets/savings_goal_sheet.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../../core/widgets/app_fab.dart';
+import '../../../core/constants/app_icons.dart';
 
 // Two decimals, deliberately: with decimalDigits: 0 a \$10.50 expense
 // rendered as "\$11", and because the per-row values and the totals were
@@ -36,14 +37,14 @@ class FinanceScreen extends ConsumerWidget {
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppGlassAppBar(title: const Text('Finance tracker')),
+        appBar: AppTopBar(title: const Text('Finance tracker')),
         body: const ModuleLockView(
           featureName: 'Finance tracker',
           benefit:
               'Log income and expenses, track a savings goal, and see your monthly '
               'savings rate at a glance.',
           requiredPlanName: 'Complete',
-          icon: Icons.savings_outlined,
+          icon: AppIcons.wallet,
         ),
       );
     }
@@ -52,7 +53,7 @@ class FinanceScreen extends ConsumerWidget {
     final savingsGoalsAsync = ref.watch(savingsGoalsProvider);
 
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Finance tracker')),
+      appBar: AppTopBar(title: const Text('Finance tracker')),
       floatingActionButton: AppFab(
         onPressed: () => showAddTransactionSheet(context, ref),
       ),
@@ -89,7 +90,7 @@ class FinanceScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: StatCard(
-                      icon: Icons.trending_up,
+                      icon: AppIcons.trendUp,
                       label: 'Income',
                       value: _currencyFormat.format(income),
                       accentColor: AppColors.deepGreen,
@@ -98,7 +99,7 @@ class FinanceScreen extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: StatCard(
-                      icon: Icons.trending_down,
+                      icon: AppIcons.trendDown,
                       label: 'Expenses',
                       value: _currencyFormat.format(expenses),
                       accentColor: AppColors.error,
@@ -107,7 +108,7 @@ class FinanceScreen extends ConsumerWidget {
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: StatCard(
-                      icon: Icons.percent,
+                      icon: AppIcons.percent,
                       label: 'Savings rate',
                       value: '${(savingsRate * 100).round()}%',
                       accentColor: AppColors.mutedBlue,
@@ -223,7 +224,7 @@ class FinanceScreen extends ConsumerWidget {
               const SizedBox(height: AppSpacing.sm),
               if (transactions.isEmpty)
                 const EmptyState(
-                  icon: Icons.receipt_long_outlined,
+                  icon: AppIcons.receipt,
                   title: 'No transactions yet',
                   message: 'Log your first income or expense to get started.',
                 )
@@ -256,7 +257,7 @@ class _TransactionTile extends ConsumerWidget {
       child: Row(
         children: [
           Icon(
-            isIncome ? Icons.arrow_downward : Icons.arrow_upward,
+            isIncome ? AppIcons.arrowDown : AppIcons.arrowUp,
             color: isIncome ? AppColors.deepGreen : AppColors.error,
             size: 18,
           ),
@@ -291,7 +292,7 @@ class _TransactionTile extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(
-              Icons.close,
+              AppIcons.x,
               size: 16,
               color: AppColors.subtleText,
             ),

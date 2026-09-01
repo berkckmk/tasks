@@ -12,8 +12,9 @@ import '../../subscription/presentation/guarded_create.dart';
 import '../../subscription/presentation/widgets/requires_module.dart';
 import '../application/goal_providers.dart';
 import 'widgets/goal_card.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../../core/widgets/app_fab.dart';
+import '../../../core/constants/app_icons.dart';
 
 class GoalsScreen extends ConsumerWidget {
   const GoalsScreen({super.key});
@@ -28,7 +29,7 @@ class GoalsScreen extends ConsumerWidget {
           'Break big goals into milestones and connect them to your daily '
           'habits and tasks.',
       requiredPlanName: 'Growth',
-      icon: Icons.flag_outlined,
+      icon: AppIcons.flag,
       builder: (context) => _GoalsBody(),
     );
   }
@@ -40,7 +41,7 @@ class _GoalsBody extends ConsumerWidget {
     final goalsAsync = ref.watch(goalsProvider);
 
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Goals')),
+      appBar: AppTopBar(title: const Text('Goals')),
       floatingActionButton: AppFab(
         onPressed: () => GuardedCreate.goal(context, ref),
       ),
@@ -48,7 +49,7 @@ class _GoalsBody extends ConsumerWidget {
         data: (goals) {
           if (goals.isEmpty) {
             return EmptyState(
-              icon: Icons.flag_outlined,
+              icon: AppIcons.flag,
               title: 'No goals yet',
               message: 'Set a goal to connect your daily habits and tasks to something bigger.',
               actionLabel: 'Add goal',
@@ -68,7 +69,7 @@ class _GoalsBody extends ConsumerWidget {
                 child: Row(
                   children: [
                     const Icon(
-                      Icons.calendar_view_month,
+                      AppIcons.calendarBlank,
                       color: AppColors.mutedBlue,
                     ),
                     const SizedBox(width: AppSpacing.sm),

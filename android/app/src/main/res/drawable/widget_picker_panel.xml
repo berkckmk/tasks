@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The scope picker's panel. Radius 16 (the second listed exception),
+    1dp accent-40% border, opaque surface.
+
+    `shadow-lg` in the design is an edge plus ambient darkness; an Activity
+    window supplies the dim behind it, so only the edge is drawn here.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <solid android:color="@color/nocturne_surface" />
+    <stroke
+        android:width="1dp"
+        android:color="@color/nocturne_accent_40" />
+</shape>

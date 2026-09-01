@@ -2,8 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import '../../dashboard/application/today_providers.dart';
 import '../../habits/application/habit_providers.dart';
+import '../../reminders/application/reminder_providers.dart';
+import '../../reminders/domain/reminder.dart';
 import '../../tasks/application/task_providers.dart';
 import 'home_widget_service.dart';
 
@@ -13,41 +17,59 @@ final homeWidgetServiceProvider = Provider<HomeWidgetService>(
 
 /// How many rows of each section travel to the widget.
 ///
-/// The widget shows a handful and summarises the rest as "+N more", so
-/// sending the whole collection would just bloat a SharedPreferences string
-/// nothing reads.
+/// The widget shows a handful and summarises the rest as "+N later this
+/// week", so sending the whole collection would just bloat a
+/// SharedPreferences string nothing reads.
 const int _kWidgetItemLimit = 12;
 
-/// One row on a widget card.
+/// One row on the widget.
+///
+/// [id] and [kind] are new. They are what let a row be *acted on* rather than
+/// only read: the toggle has to name a document to write back to, and the
+/// row's own tap has to open the right editor. The old shape carried a label
+/// and a done flag, which is all a static bitmap needed.
 @immutable
 class HomeWidgetItem {
   const HomeWidgetItem({
+    required this.id,
+    required this.kind,
     required this.label,
     this.done = false,
-    this.progress = -1,
+    this.time = '',
   });
 
+  final String id;
+
+  /// 'reminder' | 'task' | 'habit'. Matches `WidgetItemKind` on the Kotlin
+  /// side and [TodayKind] on this one.
+  final String kind;
   final String label;
   final bool done;
 
-  /// 0..1 for goals; negative means "no progress bar".
-  final double progress;
+  /// Formatted here rather than on the Android side, because this is where
+  /// the device's locale and 12/24-hour preference are already resolved.
+  /// Empty means "no time".
+  final String time;
 
   Map<String, Object?> toJson() => {
+    'id': id,
+    'kind': kind,
     'label': label,
     if (done) 'done': true,
-    if (progress >= 0) 'progress': progress,
+    if (time.isNotEmpty) 'time': time,
   };
 
   @override
   bool operator ==(Object other) =>
       other is HomeWidgetItem &&
+      other.id == id &&
+      other.kind == kind &&
       other.label == label &&
       other.done == done &&
-      other.progress == progress;
+      other.time == time;
 
   @override
-  int get hashCode => Object.hash(label, done, progress);
+  int get hashCode => Object.hash(id, kind, label, done, time);
 }
 
 /// Exactly what the home-screen widget renders.
@@ -55,7 +77,7 @@ class HomeWidgetItem {
 /// Value equality is the point of this class: the underlying streams re-emit
 /// on any document change, but the widget only needs redrawing when something
 /// it actually displays moves. Comparing snapshots means editing a habit's
-/// colour doesn't trigger a bitmap render and a launcher IPC round trip.
+/// colour doesn't trigger a launcher IPC round trip.
 @immutable
 class HomeWidgetSnapshot {
   const HomeWidgetSnapshot({
@@ -111,30 +133,78 @@ class HomeWidgetSnapshot {
 }
 
 /// Null until habits and tasks have both produced a value — pushing partial
-/// data would briefly render "0 of 0 done" on the home screen before the real
+/// data would briefly render "0 / 0" on the home screen before the real
 /// numbers land.
 ///
-/// Reminders are intentionally optional at this stage: the app is centered on
-/// Tasks, Reminders, and Habits, but reminder data is not yet part of the
-/// shared widget feed. The widget still renders the core tasks/habits view and
-/// keeps the active domain selection separate from the snapshot payload.
+/// **Reminders are now part of the feed.** They were deliberately left out
+/// while the widget was a bitmap of counts; a reminder-first redesign whose
+/// widget can't show a reminder would be the wrong way round.
 final homeWidgetSnapshotProvider = Provider<HomeWidgetSnapshot?>((ref) {
   final habits = ref.watch(habitsProvider).valueOrNull;
   final tasks = ref.watch(tasksProvider).valueOrNull;
-  if (habits == null || tasks == null) return null;
+  final reminders = ref.watch(remindersProvider).valueOrNull;
+  if (habits == null || tasks == null || reminders == null) return null;
 
-  // Unfinished first, so the widget's limited rows are spent on what still
-  // needs doing rather than on a list of ticks.
-  final sortedHabits = [...habits]
-    ..sort((a, b) {
-      if (a.isCompletedToday == b.isCompletedToday) return 0;
-      return a.isCompletedToday ? 1 : -1;
-    });
-  final sortedTasks = [...tasks]
-    ..sort((a, b) {
-      if (a.isDone == b.isDone) return 0;
-      return a.isDone ? 1 : -1;
-    });
+  final now = DateTime.now();
+  final time = DateFormat.jm();
+
+  // The rail's ordering rule, so the widget and Today can't disagree:
+  // incomplete first, then by time, untimed last.
+  int byDoneThenTime(HomeWidgetItem a, HomeWidgetItem b) {
+    if (a.done != b.done) return a.done ? 1 : -1;
+    if (a.time.isEmpty && b.time.isEmpty) return a.label.compareTo(b.label);
+    if (a.time.isEmpty) return 1;
+    if (b.time.isEmpty) return -1;
+    return a.time.compareTo(b.time);
+  }
+
+  final habitItems =
+      habits
+          .map(
+            (habit) => HomeWidgetItem(
+              id: habit.id,
+              kind: TodayKind.habit.name,
+              label: habit.name,
+              done: habit.isCompletedToday,
+              time: habit.reminderTimeLabel ?? '',
+            ),
+          )
+          .toList()
+        ..sort(byDoneThenTime);
+
+  final taskItems =
+      tasks
+          .map(
+            (task) => HomeWidgetItem(
+              id: task.id,
+              kind: TodayKind.task.name,
+              label: task.title,
+              done: task.isDone,
+              // A task's dueDate carries no clock time — the picker has no
+              // time field — so showing midnight would be a fabricated 12:00
+              // on every row.
+              time: '',
+            ),
+          )
+          .toList()
+        ..sort(byDoneThenTime);
+
+  // Only today's reminders. A widget listing next month's is a widget of
+  // things you cannot act on now.
+  final reminderItems =
+      reminders
+          .where((r) => r.dueAt != null && isSameDay(r.dueAt!, now))
+          .map(
+            (r) => HomeWidgetItem(
+              id: r.id,
+              kind: TodayKind.reminder.name,
+              label: r.title,
+              done: r.status == ReminderStatus.completed,
+              time: time.format(r.dueAt!),
+            ),
+          )
+          .toList()
+        ..sort(byDoneThenTime);
 
   return HomeWidgetSnapshot(
     habitsDone: habits.where((habit) => habit.isCompletedToday).length,
@@ -145,17 +215,8 @@ final homeWidgetSnapshotProvider = Provider<HomeWidgetSnapshot?>((ref) {
       0,
       (best, habit) => habit.streak > best ? habit.streak : best,
     ),
-    habits: sortedHabits
-        .take(_kWidgetItemLimit)
-        .map(
-          (habit) =>
-              HomeWidgetItem(label: habit.name, done: habit.isCompletedToday),
-        )
-        .toList(),
-    tasks: sortedTasks
-        .take(_kWidgetItemLimit)
-        .map((task) => HomeWidgetItem(label: task.title, done: task.isDone))
-        .toList(),
-    reminders: const [],
+    habits: habitItems.take(_kWidgetItemLimit).toList(),
+    tasks: taskItems.take(_kWidgetItemLimit).toList(),
+    reminders: reminderItems.take(_kWidgetItemLimit).toList(),
   );
 });

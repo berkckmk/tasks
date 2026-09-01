@@ -11,6 +11,7 @@ import '../../../core/widgets/app_button.dart';
 import '../application/auth_actions.dart';
 import '../data/auth_repository.dart';
 import 'widgets/google_web_sign_in_button.dart';
+import '../../../core/constants/app_icons.dart';
 
 enum _AuthMode { signIn, signUp }
 
@@ -229,8 +230,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
+                                ? AppIcons.eye
+                                : AppIcons.eyeSlash,
                           ),
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,
@@ -306,7 +307,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             ? 'Please wait...'
                             : 'Continue with Google',
                         variant: AppButtonVariant.secondary,
-                        icon: Icons.g_mobiledata,
+                        icon: AppIcons.googleLogo,
                         expand: true,
                         onPressed: (_isSubmitting || _isGoogleSubmitting)
                             ? null

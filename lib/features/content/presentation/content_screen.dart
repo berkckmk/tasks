@@ -13,8 +13,9 @@ import '../../subscription/application/subscription_providers.dart';
 import '../application/content_providers.dart';
 import '../domain/content_item.dart';
 import 'widgets/add_edit_content_sheet.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../../core/widgets/app_fab.dart';
+import '../../../core/constants/app_icons.dart';
 
 const _statusColors = {
   ContentStatus.idea: AppColors.subtleText,
@@ -34,14 +35,14 @@ class ContentScreen extends ConsumerWidget {
 
     if (!canAccess) {
       return Scaffold(
-        appBar: AppGlassAppBar(title: const Text('Content planner')),
+        appBar: AppTopBar(title: const Text('Content planner')),
         body: const ModuleLockView(
           featureName: 'Content planner',
           benefit:
               'Plan content ideas across platforms, from idea to published, in one '
               'place.',
           requiredPlanName: 'Complete',
-          icon: Icons.edit_calendar_outlined,
+          icon: AppIcons.notePencil,
         ),
       );
     }
@@ -49,7 +50,7 @@ class ContentScreen extends ConsumerWidget {
     final itemsAsync = ref.watch(contentItemsProvider);
 
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Content planner')),
+      appBar: AppTopBar(title: const Text('Content planner')),
       floatingActionButton: AppFab(
         onPressed: () => showAddEditContentSheet(context, ref),
       ),
@@ -57,7 +58,7 @@ class ContentScreen extends ConsumerWidget {
         data: (items) {
           if (items.isEmpty) {
             return const EmptyState(
-              icon: Icons.edit_calendar_outlined,
+              icon: AppIcons.notePencil,
               title: 'No content ideas yet',
               message: 'Add your first idea to start planning your content calendar.',
             );
@@ -129,7 +130,7 @@ class _ContentTile extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(
-              Icons.delete_outline,
+              AppIcons.trash,
               size: 18,
               color: AppColors.subtleText,
             ),

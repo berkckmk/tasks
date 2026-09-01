@@ -2,8 +2,9 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 
 import 'seed_dev.dart';
-import '../core/widgets/app_glass_app_bar.dart';
+import '../core/widgets/app_top_bar.dart';
 import '../core/widgets/app_button.dart';
+import '../core/constants/app_icons.dart';
 
 /// Small debug screen reachable in debug builds. Exposes a single button to
 /// seed the development Firestore for the chosen email address.
@@ -38,7 +39,7 @@ class _DevSeedScreenState extends State<DevSeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Dev seed')),
+      appBar: AppTopBar(title: const Text('Dev seed')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -48,7 +49,7 @@ class _DevSeedScreenState extends State<DevSeedScreen> {
             const SizedBox(height: 16),
             AppButton(
               onPressed: _inProgress ? null : _seed,
-              icon: Icons.playlist_add,
+              icon: AppIcons.listPlus,
               expand: true,
               label: _inProgress
                   ? 'Çalışıyor...'

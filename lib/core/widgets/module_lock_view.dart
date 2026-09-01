@@ -5,6 +5,7 @@ import '../../app/theme/app_colors.dart';
 import '../constants/app_spacing.dart';
 import 'app_badge.dart';
 import 'app_button.dart';
+import '../../core/constants/app_icons.dart';
 
 /// The "upgrade gate" shown in place of a locked screen/module: explains
 /// the benefit, names the plan that unlocks it, and offers a CTA straight
@@ -15,7 +16,7 @@ class ModuleLockView extends StatelessWidget {
     required this.featureName,
     required this.benefit,
     required this.requiredPlanName,
-    this.icon = Icons.lock_outline,
+    this.icon = AppIcons.lockSimple,
   });
 
   final String featureName;
@@ -59,12 +60,12 @@ class ModuleLockView extends StatelessWidget {
             AppBadge(
               label: 'Requires $requiredPlanName',
               color: AppColors.amber,
-              icon: Icons.workspace_premium_outlined,
+              icon: AppIcons.sparkle,
             ),
             const SizedBox(height: AppSpacing.xl),
             AppButton(
               label: 'Upgrade to $requiredPlanName',
-              icon: Icons.workspace_premium_outlined,
+              icon: AppIcons.sparkle,
               onPressed: () => context.push('/pricing'),
             ),
           ],

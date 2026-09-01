@@ -1,42 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
-
-import '../../../../app/theme/app_colors.dart';
 
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_sheet.dart';
 import '../../application/content_providers.dart';
 import '../../domain/content_item.dart';
+import '../../../../core/constants/app_icons.dart';
 
 void showAddEditContentSheet(
   BuildContext context,
   WidgetRef ref, {
   ContentItem? existing,
 }) {
-  GlassModalSheet.show<void>(
+  // A flat Nocturne panel over a dimmed ground. The three glass-specific
+  // workarounds this block used to carry are all gone with the material:
+  // there is no `full` stop that silently turns opaque, no `expandedColor`
+  // to keep it from filling with the package's white, and no transparent
+  // Material wrapper needed to satisfy the TextFields — showAppSheet is
+  // Material all the way down.
+  showAppSheet<void>(
     context: context,
-    // Tall, but deliberately not `full`. GlassSheetState.full is documented
-    // to transition to an opaque solid colour — at that stop the sheet stops
-    // being glass at all, which is what the first version of this shipped: a
-    // plain white panel over a glass app. Raising the half stop instead keeps
-    // the material while still showing the whole form without a drag.
-    halfSize: 0.78,
-    initialState: GlassSheetState.half,
-    // If the user does drag it to full, it fills with the app's cream rather
-    // than the package's default white.
-    expandedColor: AppColors.background,
-    builder: (context) => Material(
-      // GlassModalSheet wraps no Material — it is Cupertino all
-      // the way down. Every one of these sheets contains a
-      // TextField, which asserts on a missing Material ancestor,
-      // so without this the sheet throws the moment it opens.
-      // Transparency so the glass behind it still shows.
-      type: MaterialType.transparency,
-      child: _AddEditContentSheet(existing: existing),
-    ),
+    initialSize: 0.78,
+    builder: (context) => _AddEditContentSheet(existing: existing),
   );
 }
 
@@ -139,7 +127,7 @@ class _AddEditContentSheetState extends ConsumerState<_AddEditContentSheet> {
                 );
                 if (picked != null) setState(() => _publishDate = picked);
               },
-              icon: const Icon(Icons.event_outlined),
+              icon: const Icon(AppIcons.calendarBlank),
               label: Text(
                 _publishDate == null
                     ? 'Set a publish date (optional)'

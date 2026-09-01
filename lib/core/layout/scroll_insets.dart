@@ -4,23 +4,25 @@ import '../constants/app_spacing.dart';
 
 /// Content padding for a screen's main scrollable.
 ///
-/// The bottom value is the part that matters. `GlassScaffold` paints the tab
-/// bar *over* the body and extends the body behind it — that overlap is the
-/// point, it's what makes content show through the glass — but it means a
-/// scrollable has to reserve the bar's height itself or its last item can
-/// never be scrolled clear of it. That shipped: the third quick action on the
-/// dashboard sat under the bar, unreachable, because a flat `AppSpacing.xxl`
-/// (48) is smaller than the bar plus the gesture inset (~118).
+/// This used to carry a large bottom reserve, because the Liquid Glass tab bar
+/// was painted *over* the body and a scrollable had to make room for it or its
+/// last item could never be scrolled clear — the dashboard's third quick
+/// action shipped stuck underneath it.
 ///
-/// [ResponsiveScaffold] publishes that reserve through `MediaQuery.padding`,
-/// so reading it here keeps one source of truth: screens outside the shell
-/// get only the real system inset, screens inside it get the bar as well,
-/// and neither has to know which it is.
+/// The Nocturne bar is opaque and lives in the Scaffold's own
+/// `bottomNavigationBar` slot, so the Scaffold lays the body out above it and
+/// removes the consumed inset from the body's `MediaQuery`. Reading
+/// `padding.bottom` here therefore now returns only whatever system inset is
+/// genuinely left, which is exactly right — and is why this helper needed no
+/// structural change, only smaller numbers and an honest comment.
+///
+/// The horizontal default is the `lg` step: **screen horizontal padding in
+/// every mock is 16.8**.
 EdgeInsets scrollInsets(
   BuildContext context, {
-  double horizontal = AppSpacing.md,
+  double horizontal = AppSpacing.screenH,
   double top = AppSpacing.md,
-  double bottom = AppSpacing.xxl,
+  double bottom = AppSpacing.xl,
 }) {
   return EdgeInsets.fromLTRB(
     horizontal,

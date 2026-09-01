@@ -5,10 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import 'app/app.dart';
-import 'app/theme/app_glass_theme.dart';
 import 'core/google/google_auth_config.dart';
 import 'firebase_options.dart';
 
@@ -25,11 +23,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Pre-caches the glass shader programs. Async disk I/O only — no GPU draws,
-  // no rasterization — so it doesn't hold up the first frame. Awaiting it
-  // before runApp is what stops the first glass surface the user sees from
-  // compiling its shader mid-frame.
-  await LiquidGlassWidgets.initialize();
+  // The glass shader pre-cache that used to sit here is gone with the
+  // material it warmed. Nocturne draws flat opaque panels — nothing to
+  // compile, nothing to hold up the first frame.
 
   Object? initError;
   try {
@@ -82,16 +78,6 @@ void main() async {
   }
 
   runApp(
-    LiquidGlassWidgets.wrap(
-      theme: AppGlassTheme.data,
-      // Required because the app uses MaterialApp: without this the glass
-      // widgets read the OS brightness directly and ignore the app's own
-      // ThemeMode, so a device in dark mode would render dark glass over a
-      // light app.
-      brightnessResolver: Theme.maybeBrightnessOf,
-      child: ProviderScope(
-        child: SteadyProgressApp(firebaseInitError: initError),
-      ),
-    ),
+    ProviderScope(child: SteadyProgressApp(firebaseInitError: initError)),
   );
 }

@@ -4,10 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/widgets/app_card.dart';
-import '../../../core/widgets/app_glass_app_bar.dart';
+import '../../../core/widgets/app_top_bar.dart';
 import '../../profile/application/profile_providers.dart';
 import '../application/notification_settings_providers.dart';
 import '../domain/notification_settings.dart';
+import '../../../core/constants/app_icons.dart';
 
 /// Per-channel notification settings.
 ///
@@ -25,7 +26,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
     final timezone = ref.watch(profileProvider).valueOrNull?.timezone ?? '';
 
     return Scaffold(
-      appBar: const AppGlassAppBar(title: Text('Notifications')),
+      appBar: const AppTopBar(title: Text('Notifications')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
@@ -125,7 +126,7 @@ class _DigestHourRow extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            Icons.schedule_outlined,
+            AppIcons.clock,
             size: 18,
             color: enabled ? AppColors.subtleText : AppColors.divider,
           ),
@@ -178,7 +179,7 @@ class _TimeZoneNote extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.public, size: 16, color: AppColors.subtleText),
+        const Icon(AppIcons.globe, size: 16, color: AppColors.subtleText),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(

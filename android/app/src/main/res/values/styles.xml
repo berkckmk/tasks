@@ -16,12 +16,55 @@
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
 
-    <!-- Widget configuration activity. DeviceDefault rather than the Flutter
-         themes above: this screen is plain framework views launched by the
-         launcher, and should look like the rest of the system's settings
-         surfaces. The dark variant lives in values-night/styles.xml. -->
+    <!-- Widget setup screen. DeviceDefault rather than the Flutter themes
+         above: this is plain framework views launched by the launcher, and
+         the system's own text sizing and touch behaviour are the right
+         baseline. Everything visual on top of it is Nocturne. The dark
+         variant lives in values-night/styles.xml. -->
     <style name="WidgetConfigureTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
         <item name="android:windowBackground">@color/config_background</item>
         <item name="android:colorAccent">@color/config_accent</item>
+    </style>
+
+    <!--
+        The scope picker's theme.
+
+        Transparent and no-title, because the panel has to look like it opened
+        out of the widget's own chip rather than like an app screen appearing
+        over the home screen. `windowIsFloating=false` matters: a floating
+        window is centred and sized by the framework, and this one is anchored
+        at a specific offset.
+    -->
+    <style name="WidgetScopePickerTheme" parent="@android:style/Theme.DeviceDefault.Dialog.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.5</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <!-- Section heading on the setup screen: Nocturne's `h6` kicker. -->
+    <style name="ConfigSectionLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">22dp</item>
+        <item name="android:layout_marginBottom">9dp</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.10</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/config_text_muted</item>
+    </style>
+
+    <style name="ConfigSectionDescription">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:textSize">12.5sp</item>
+        <item name="android:lineSpacingMultiplier">1.4</item>
+        <item name="android:textColor">@color/config_text_muted</item>
     </style>
 </resources>

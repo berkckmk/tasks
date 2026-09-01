@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../firebase_options.dart';
 import 'seed_all.dart';
-import '../core/widgets/app_glass_app_bar.dart';
+import '../core/widgets/app_top_bar.dart';
+import '../core/constants/app_icons.dart';
 
 /// Debug-only entrypoint that seeds every module for the signed-in user.
 ///
@@ -94,7 +95,7 @@ class _SeedScreenState extends State<_SeedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppGlassAppBar(title: const Text('Seed — gerçek DB')),
+      appBar: AppTopBar(title: const Text('Seed — gerçek DB')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -111,7 +112,7 @@ class _SeedScreenState extends State<_SeedScreen> {
                   return ListTile(
                     dense: true,
                     leading: Icon(
-                      r.ok ? Icons.check_circle : Icons.error,
+                      r.ok ? AppIcons.checkCircleFill : AppIcons.warningCircle,
                       color: r.ok ? Colors.green : Colors.red,
                     ),
                     title: Text('${r.module} — ${r.written}'),
