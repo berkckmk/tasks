@@ -59,7 +59,7 @@ class WidgetLayoutInflationTest {
             R.id.panel,
             R.id.scope_chip,
             R.id.summary,
-            R.id.clock,
+            R.id.quick_add,
             R.id.progress,
             R.id.items,
             R.id.empty,
@@ -158,12 +158,18 @@ class WidgetLayoutInflationTest {
     /**
      * A widget id with nothing stored — one placed before these settings
      * existed — must come back with the defaults rather than blank.
+     *
+     * The ground is asserted against `WidgetConfig.DEFAULT` rather than a
+     * literal on purpose. `WidgetGround.fromKey` and the `WidgetConfig`
+     * constructor each carry a fallback for the missing-key case, and this
+     * test exists to catch them disagreeing; naming the enum value here would
+     * only pin whichever one the author happened to be thinking of.
      */
     @Test
     fun anUnconfiguredWidgetGetsTheDefaults() {
         val config = WidgetConfigStore.read(context, AppWidgetManager.INVALID_APPWIDGET_ID - 1)
         assertEquals(WidgetScope.TODAY, config.scope)
-        assertEquals(WidgetGround.SURFACE, config.ground)
+        assertEquals(WidgetConfig.DEFAULT.ground, config.ground)
         assertEquals(WidgetConfig.DEFAULT_OPACITY, config.opacity)
         assertEquals(WidgetInclude.DEFAULT, config.include)
     }

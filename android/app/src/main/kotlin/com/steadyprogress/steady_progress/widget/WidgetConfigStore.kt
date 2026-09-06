@@ -51,8 +51,16 @@ enum class WidgetGround(val key: String, val label: String, val rgb: Int) {
     NONE("none", "None", 0x000000);
 
     companion object {
+        /**
+         * The fallback is [NONE], and it has to be: this is the value a widget
+         * with no stored `ground` key gets, which is every widget placed
+         * before the setting existed as well as any bound without running the
+         * setup screen. A `WidgetConfig()` default of [NONE] and a fallback of
+         * something else would mean the documented default never actually
+         * reached a real widget.
+         */
         fun fromKey(key: String?): WidgetGround =
-            entries.firstOrNull { it.key == key } ?: SURFACE
+            entries.firstOrNull { it.key == key } ?: WidgetConfig.DEFAULT.ground
     }
 }
 
@@ -72,10 +80,35 @@ enum class WidgetInclude(val key: String, val label: String) {
 
 data class WidgetConfig(
     val scope: WidgetScope = WidgetScope.TODAY,
-    val ground: WidgetGround = WidgetGround.SURFACE,
+
+    /**
+     * No panel, by default.
+     *
+     * A panel is a box the widget draws around itself so its own text has
+     * something to sit on. It is also the thing that stops the home screen
+     * looking like one surface: every launcher-native widget alongside this
+     * one — clock, weather — puts its type straight on the wallpaper and
+     * spends nothing on a ground. Matching them is the point.
+     *
+     * This only works because the type does not depend on the panel: the
+     * ramp is a near-white band and every glyph carries its own shadow, so
+     * removing the ground costs contrast the text was never spending. See
+     * `WidgetPalette` and `WidgetTextContrastTest`, which measures the
+     * default — that is to say this case — against both wallpaper extremes.
+     *
+     * The other three grounds are still there, one tap away in the setup
+     * screen, and [opacity] below is left where it was so choosing one gives
+     * the previous panel back at full strength rather than a faded one.
+     */
+    val ground: WidgetGround = WidgetGround.NONE,
 
     /**
      * Panel opacity, 0-100. Default 58.
+     *
+     * Unused at the default [ground] of [WidgetGround.NONE], which is alpha 0
+     * whatever the slider says. It is the strength a panel takes *when the
+     * user asks for one*, so it stays at the tuned value rather than dropping
+     * to 0 to agree with the new default.
      *
      * **Only the panel fades.** Text, the accent bar and the icons keep their
      * own opaque colours, which is what makes contrast hold at every slider

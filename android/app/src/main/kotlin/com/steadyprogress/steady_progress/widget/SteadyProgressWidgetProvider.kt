@@ -19,7 +19,7 @@ import com.steadyprogress.steady_progress.R
  * ## What this is now
  *
  * Ordinary RemoteViews. A `LinearLayout` panel holding a scope chip, a
- * `TextClock`, a determinate `ProgressBar` and a `ListView` fed by
+ * quick-add button, a determinate `ProgressBar` and a `ListView` fed by
  * [WidgetItemsService]. No `Bitmap`, no `BlurMaskFilter`, no bitmap budget,
  * no transaction-limit risk on resize, and no wallpaper copy on disk.
  *
@@ -147,7 +147,7 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
             val isNarrow = widthDp < WIDE_WIDTH_DP
 
             applyPanel(views, config)
-            applyHeader(views, data, config, isNarrow)
+            applyHeader(context, views, data, config, isNarrow, widgetId)
             applyRows(context, views, widgetId, data)
             applyFooter(context, views, data, config, isTall)
 
@@ -178,10 +178,12 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
         }
 
         private fun applyHeader(
+            context: Context,
             views: RemoteViews,
             data: WidgetData,
             config: WidgetConfig,
             isNarrow: Boolean,
+            widgetId: Int,
         ) {
             views.setTextViewText(R.id.scope_chip, config.scope.label.uppercase() + " ⌄")
 
@@ -200,6 +202,31 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
                 100,
                 (data.progress * 100).toInt(),
                 false,
+            )
+
+            // Quick-add: a translucent modal over the home screen, not the
+            // app. It used to open `/reminders/new` in MainActivity, which is
+            // a cold start and a full-screen form for one line of text — and
+            // it takes away the surface the user was already looking at. The
+            // modal composes the item, queues it, and drops an optimistic row
+            // straight into the widget. See WidgetQuickAddActivity.
+            val addIntent = Intent(context, WidgetQuickAddActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                // Per-widget data URI for the same reason the collection
+                // intent carries one: PendingIntent equality ignores extras,
+                // so without it two placed widgets would share one intent and
+                // the second would compose into the first one's scope.
+                setData(Uri.parse(toUri(Intent.URI_INTENT_SCHEME)))
+            }
+            views.setOnClickPendingIntent(
+                R.id.quick_add,
+                PendingIntent.getActivity(
+                    context,
+                    widgetId + 10_000, // Offset so it never collides with the scope-chip request code
+                    addIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                ),
             )
         }
 

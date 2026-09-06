@@ -4,12 +4,19 @@ import '../domain/reminder.dart';
 
 abstract class ReminderRepository {
   Stream<List<ReminderItem>> watchReminders();
-  Future<void> saveReminder({
+  Future<String> saveReminder({
     required String? id,
     required String title,
     required String message,
     required DateTime? dueAt,
     required ReminderStatus status,
+    ReminderPriority? priority,
+    bool starred = false,
+    int? earlyAlertMinutes,
+    String? repeatRule,
+    String? location,
+    String category = 'Hatırlatıcılarım',
+    List<String> checklist = const [],
   });
 
   Future<void> deleteReminder(String id);
@@ -37,25 +44,57 @@ class FirestoreReminderRepository implements ReminderRepository {
   }
 
   @override
-  Future<void> saveReminder({
+  Future<String> saveReminder({
     required String? id,
     required String title,
     required String message,
     required DateTime? dueAt,
     required ReminderStatus status,
+    ReminderPriority? priority,
+    bool starred = false,
+    int? earlyAlertMinutes,
+    String? repeatRule,
+    String? location,
+    String category = 'Hatırlatıcılarım',
+    List<String> checklist = const [],
   }) async {
+    final lower = '$title $message'.toLowerCase();
+    final isMed = lower.contains('duxet') ||
+        lower.contains('aubagio') ||
+        lower.contains('folik') ||
+        lower.contains('ilaç') ||
+        lower.contains('ilac') ||
+        lower.contains('hap') ||
+        lower.contains('medicine') ||
+        lower.contains('pill') ||
+        lower.contains('vitamin') ||
+        lower.contains('antibiyotik');
+
+    final effectivePriority = (isMed &&
+            (priority == null || priority == ReminderPriority.normal))
+        ? ReminderPriority.important
+        : (priority ?? ReminderPriority.normal);
+
     final data = {
       'title': title,
       'message': message,
       'dueAt': dueAt == null ? null : Timestamp.fromDate(dueAt),
       'status': status.name,
+      'priority': effectivePriority.name,
+      'starred': starred,
+      'earlyAlertMinutes': earlyAlertMinutes,
+      'repeatRule': repeatRule,
+      'location': location,
+      'category': category,
+      'checklist': checklist,
       'updatedAt': FieldValue.serverTimestamp(),
     };
     if (id == null) {
-      await _remindersRef.add({
+      final docRef = await _remindersRef.add({
         ...data,
         'createdAt': FieldValue.serverTimestamp(),
       });
+      return docRef.id;
     } else {
       await _remindersRef.doc(id).set({
         ...data,
@@ -71,6 +110,7 @@ class FirestoreReminderRepository implements ReminderRepository {
         // by a set() without merge.
         'notifiedAt': FieldValue.delete(),
       }, SetOptions(merge: true));
+      return id;
     }
   }
 

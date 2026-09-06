@@ -35,6 +35,7 @@ class TodayActions {
               title: reminder.title,
               message: reminder.message,
               dueAt: reminder.dueAt,
+              priority: reminder.priority,
               status: done
                   ? ReminderStatus.completed
                   : ReminderStatus.scheduled,
@@ -77,6 +78,7 @@ class TodayActions {
           title: reminder.title,
           message: reminder.message,
           dueAt: reminder.dueAt!.add(snoozeBy),
+          priority: reminder.priority,
           status: ReminderStatus.scheduled,
         );
   }
@@ -89,6 +91,14 @@ class TodayActions {
   Future<void> quickCapture(String title, {DateTime? dueAt}) async {
     final trimmed = title.trim();
     if (trimmed.isEmpty) return;
+    final lower = trimmed.toLowerCase();
+    final isMedicine = lower.contains('duxet') ||
+        lower.contains('aubagio') ||
+        lower.contains('folik') ||
+        lower.contains('ilaç') ||
+        lower.contains('ilac') ||
+        lower.contains('hap');
+
     await _ref
         .read(reminderActionsProvider)
         .saveReminder(
@@ -96,6 +106,7 @@ class TodayActions {
           title: trimmed,
           message: '',
           dueAt: dueAt,
+          priority: isMedicine ? ReminderPriority.important : ReminderPriority.normal,
           status: ReminderStatus.scheduled,
         );
   }

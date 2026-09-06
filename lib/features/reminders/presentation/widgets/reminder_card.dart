@@ -26,12 +26,20 @@ class ReminderCard extends ConsumerWidget {
     super.key,
     required this.reminder,
     this.onTap,
+    this.onLongPress,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onSelect,
     this.overdue = false,
     this.showDivider = true,
   });
 
   final ReminderItem reminder;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onSelect;
 
   /// Adds the `warning-circle` mark. Set by the Overdue group.
   final bool overdue;
@@ -57,6 +65,7 @@ class ReminderCard extends ConsumerWidget {
       completed: isDone,
       child: DecoratedBox(
         decoration: BoxDecoration(
+          color: isSelected ? c.accentTint(0.08) : Colors.transparent,
           border: showDivider
               ? Border(bottom: BorderSide(color: c.divider))
               : null,
@@ -64,7 +73,8 @@ class ReminderCard extends ConsumerWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: onTap,
+            onTap: isSelectionMode ? onSelect : onTap,
+            onLongPress: onLongPress,
             splashColor: c.accentTint(0.10),
             highlightColor: c.accentTint(0.05),
             child: Padding(
@@ -72,13 +82,28 @@ class ReminderCard extends ConsumerWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CheckCircle(
-                    checked: isDone,
-                    size: 17,
-                    semanticLabel: reminder.title,
-                    onChanged: (value) =>
-                        ref.read(todayActionsProvider).setDone(entry, value),
-                  ),
+                  if (isSelectionMode)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: AppSpacing.md,
+                        right: AppSpacing.sm,
+                      ),
+                      child: Icon(
+                        isSelected
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        size: 20,
+                        color: isSelected ? c.accent : c.inactive,
+                      ),
+                    )
+                  else
+                    CheckCircle(
+                      checked: isDone,
+                      size: 17,
+                      semanticLabel: reminder.title,
+                      onChanged: (value) =>
+                          ref.read(todayActionsProvider).setDone(entry, value),
+                    ),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -94,6 +119,28 @@ class ReminderCard extends ConsumerWidget {
                                   AppIcons.warningCircle,
                                   size: 14,
                                   color: c.accent,
+                                ),
+                                const SizedBox(width: 5),
+                              ],
+                              if (reminder.starred) ...[
+                                const Icon(
+                                  Icons.star,
+                                  size: 14,
+                                  color: Color(0xFFFFB300),
+                                ),
+                                const SizedBox(width: 5),
+                              ] else if (reminder.priority == ReminderPriority.important && !isDone) ...[
+                                Icon(
+                                  AppIcons.bellRinging,
+                                  size: 13,
+                                  color: c.accent,
+                                ),
+                                const SizedBox(width: 5),
+                              ] else if (reminder.priority == ReminderPriority.low && !isDone) ...[
+                                Icon(
+                                  AppIcons.bellSimpleSlash,
+                                  size: 13,
+                                  color: c.caption,
                                 ),
                                 const SizedBox(width: 5),
                               ],

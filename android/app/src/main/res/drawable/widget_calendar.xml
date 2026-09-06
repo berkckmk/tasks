@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phosphor `calendar-blank`, the quick-add modal's when-row mark. Tinted
+     from Kotlin like every other widget icon: accent once a moment is set,
+     muted while the row still reads "pick a date". -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M208,32L184,32L184,24a8,8 0 0 0 -16,0l0,8L88,32L88,24a8,8 0 0 0 -16,0l0,8L48,32A16,16 0 0 0 32,48L32,208a16,16 0 0 0 16,16l160,0a16,16 0 0 0 16,-16L224,48A16,16 0 0 0 208,32ZM72,48l0,8a8,8 0 0 0 16,0l0,-8l80,0l0,8a8,8 0 0 0 16,0l0,-8l24,0l0,32L48,80L48,48ZM208,208L48,208L48,96l160,0l0,112Z" />
+</vector>

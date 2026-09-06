@@ -180,20 +180,36 @@ final homeWidgetSnapshotProvider = Provider<HomeWidgetSnapshot?>((ref) {
               kind: TodayKind.task.name,
               label: task.title,
               done: task.isDone,
-              // A task's dueDate carries no clock time — the picker has no
-              // time field — so showing midnight would be a fabricated 12:00
-              // on every row.
-              time: '',
+              // A task now *may* carry a clock time, and only then. An
+              // all-day task stays untimed rather than showing a fabricated
+              // 12:00, which also sorts it below the timed rows — the same
+              // rule the rail uses.
+              time: task.allDay || task.dueDate == null
+                  ? ''
+                  : time.format(task.dueDate!),
             ),
           )
           .toList()
         ..sort(byDoneThenTime);
 
-  // Only today's reminders. A widget listing next month's is a widget of
-  // things you cannot act on now.
+  // Today's reminders **and anything already overdue and not finished**.
+  //
+  // The rule used to be `isSameDay` alone, and it is why a reminder added in
+  // the app could never appear on the widget: one added for tomorrow was not
+  // today's, and the moment it came due it became yesterday's. An overdue
+  // reminder is the single most actionable row this widget can carry, so
+  // dropping it was the wrong half to keep. Still no forward horizon — a
+  // widget listing next month's is a widget of things you cannot act on now.
+  bool isOnToday(ReminderItem r) {
+    final dueAt = r.dueAt;
+    if (dueAt == null) return false;
+    if (isSameDay(dueAt, now)) return true;
+    return dueAt.isBefore(now) && r.status != ReminderStatus.completed;
+  }
+
   final reminderItems =
       reminders
-          .where((r) => r.dueAt != null && isSameDay(r.dueAt!, now))
+          .where(isOnToday)
           .map(
             (r) => HomeWidgetItem(
               id: r.id,

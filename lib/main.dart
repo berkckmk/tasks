@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'package:intl/date_symbol_data_local.dart';
+
 import 'app/app.dart';
 import 'core/google/google_auth_config.dart';
 import 'firebase_options.dart';
@@ -22,6 +24,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await initializeDateFormatting('tr_TR', null);
+    await initializeDateFormatting('tr', null);
+  } catch (e) {
+    debugPrint('DateFormatting init error: $e');
+  }
 
   // The glass shader pre-cache that used to sit here is gone with the
   // material it warmed. Nocturne draws flat opaque panels — nothing to

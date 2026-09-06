@@ -133,9 +133,133 @@ object WidgetDataStore {
             .putInt(KEY_TASKS_DONE, asInt(data[KEY_TASKS_DONE]))
             .putInt(KEY_TASKS_TOTAL, asInt(data[KEY_TASKS_TOTAL]))
             .putInt(KEY_BEST_STREAK, asInt(data[KEY_BEST_STREAK]))
-            .putString(KEY_ITEMS, data[KEY_ITEMS] as? String ?: "")
+            .putString(
+                KEY_ITEMS,
+                // Rows the quick-add modal composed but the app has not
+                // created yet are folded back in. Without this the next push
+                // — which replaces the item lists wholesale — would delete a
+                // row the user can see on their home screen, and it would
+                // reappear only once Firestore had round-tripped.
+                withPendingAdds(context, data[KEY_ITEMS] as? String ?: ""),
+            )
             .putBoolean(KEY_HAS_DATA, true)
             .apply()
+    }
+
+    /**
+     * Adds one composed-but-not-yet-created row to the local snapshot.
+     *
+     * The optimistic half of the quick-add, exactly as [toggleLocally] is the
+     * optimistic half of the toggle: the launcher shows the row the moment
+     * the modal closes, and [WidgetPendingAdds] is the durable half the app
+     * drains into the real repositories.
+     */
+    fun addLocally(context: Context, item: WidgetItem) {
+        val p = prefs(context)
+        val raw = p.getString(KEY_ITEMS, "") ?: ""
+        val root = try {
+            if (raw.isEmpty()) JSONObject() else JSONObject(raw)
+        } catch (error: Exception) {
+            JSONObject()
+        }
+        appendItem(root, item)
+        p.edit()
+            .putString(KEY_ITEMS, root.toString())
+            // A widget that has only ever been written to by its own modal
+            // still has data to show; without this it would render the empty
+            // state over the row it just added.
+            .putBoolean(KEY_HAS_DATA, true)
+            .apply()
+    }
+
+    /**
+     * Drops the optimistic rows whose real documents now exist.
+     *
+     * Called when the app clears the quick-add queue. The rows would
+     * otherwise survive until the *next* push — and a push that lands before
+     * the drain finishes, which is the ordinary ordering, leaves the widget
+     * showing the item twice: once as the composed row and once as the real
+     * one.
+     */
+    fun dropLocalAdds(context: Context, ids: Collection<String>) {
+        if (ids.isEmpty()) return
+        val p = prefs(context)
+        val raw = p.getString(KEY_ITEMS, "") ?: ""
+        if (raw.isEmpty()) return
+        val drop = ids.toSet()
+        try {
+            val root = JSONObject(raw)
+            var changed = false
+            for (section in root.keys().asSequence().toList()) {
+                val array = root.optJSONArray(section) ?: continue
+                val kept = JSONArray()
+                for (i in 0 until array.length()) {
+                    val o = array.optJSONObject(i) ?: continue
+                    if (o.optString("id") in drop) {
+                        changed = true
+                    } else {
+                        kept.put(o)
+                    }
+                }
+                root.put(section, kept)
+            }
+            if (changed) p.edit().putString(KEY_ITEMS, root.toString()).apply()
+        } catch (error: Exception) {
+            // A malformed snapshot is the next push's problem, not this call's.
+        }
+    }
+
+    /** Which section of the pushed JSON a kind belongs in. */
+    private fun sectionFor(kind: WidgetItemKind): String = when (kind) {
+        WidgetItemKind.HABIT -> "habits"
+        WidgetItemKind.TASK -> "tasks"
+        WidgetItemKind.REMINDER -> "reminders"
+    }
+
+    private fun appendItem(root: JSONObject, item: WidgetItem) {
+        val section = sectionFor(item.kind)
+        val array = root.optJSONArray(section) ?: JSONArray().also { root.put(section, it) }
+        array.put(
+            JSONObject()
+                .put("id", item.id)
+                .put("kind", item.kind.key)
+                .put("label", item.label)
+                .put("done", item.done)
+                .put("time", item.time),
+        )
+    }
+
+    /**
+     * The pushed snapshot with every still-queued quick-add folded back in.
+     *
+     * Matched by id, so a queued add whose real document has already arrived
+     * in the push is not duplicated — the drain clears the queue and the next
+     * push carries the real row, but the two can overlap by one frame.
+     */
+    private fun withPendingAdds(context: Context, itemsJson: String): String {
+        val pending = WidgetPendingAdds.read(context)
+        if (pending.isEmpty()) return itemsJson
+        return try {
+            val root = if (itemsJson.isEmpty()) JSONObject() else JSONObject(itemsJson)
+            val known = buildSet {
+                for (key in root.keys().asSequence().toList()) {
+                    val array = root.optJSONArray(key) ?: continue
+                    for (i in 0 until array.length()) {
+                        add(array.optJSONObject(i)?.optString("id").orEmpty())
+                    }
+                }
+            }
+            for (add in pending) {
+                if (add.id in known) continue
+                appendItem(
+                    root,
+                    WidgetItem(id = add.id, kind = add.kind, label = add.label),
+                )
+            }
+            root.toString()
+        } catch (error: Exception) {
+            itemsJson
+        }
     }
 
     /** Clears the snapshot — called on sign-out so the widget stops showing

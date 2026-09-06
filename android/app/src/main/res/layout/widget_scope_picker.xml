@@ -30,6 +30,6 @@
         android:layout_gravity="start|top"
         android:orientation="vertical"
         android:background="@drawable/widget_picker_panel"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp" />
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp" />
 </FrameLayout>

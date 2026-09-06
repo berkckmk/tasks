@@ -17,21 +17,62 @@
     <color name="nocturne_surface">#232532</color>
     <color name="nocturne_ink">#292B31</color>
     <color name="nocturne_accent_900">#2B2741</color>
-    <color name="nocturne_text">#E9E9ED</color>
-    <!-- text at 58% — the note step. -->
-    <color name="nocturne_text_note">#94E9E9ED</color>
-    <!-- text at 50%, 45%, 42%, 32%: the muted ramp the design names. -->
-    <color name="nocturne_text_muted">#80E9E9ED</color>
-    <color name="nocturne_text_inactive">#73E9E9ED</color>
-    <color name="nocturne_text_caption">#6BE9E9ED</color>
-    <color name="nocturne_text_unchecked">#52E9E9ED</color>
-    <color name="nocturne_accent">#9184D9</color>
+    <color name="nocturne_text">#F2F2F6</color>
+    <!--
+        The muted ramp, flattened to a near-white band.
+
+        In the app these steps sit on a known dark ground, so 58% / 42% / 32%
+        read fine. The widget does not: it has no panel by default (see
+        `WidgetConfig.ground`) and sits directly on the user's wallpaper. The
+        first fix raised the floor — 85% / 68% / 55% — but kept the app's wide
+        spread, and the spread is the thing that does not survive: on an
+        unknown photograph a step at 68% does not read as *secondary*, it
+        reads as *smudged*, because the ground it is being judged against is
+        not the one the step was picked for.
+
+        So the steps below sit inside a 15-point band under full white, and
+        the hierarchy is carried by size and weight instead — the same trick
+        the platform's own transparent widgets use, where a 14sp label and a
+        32sp value are both essentially white and never confusable. Measured
+        over a mid-grey wallpaper with no panel, the old caption step read a
+        clear grey against its title; these read as one family.
+
+        The shadow in `nocturne_text_shadow` does the rest.
+    -->
+    <!-- text at 92% — the note step. -->
+    <color name="nocturne_text_note">#EBF2F2F6</color>
+    <!-- text at 89%, 87%, 85%, 72%: the muted ramp, flattened. -->
+    <color name="nocturne_text_muted">#E3F2F2F6</color>
+    <color name="nocturne_text_inactive">#DEF2F2F6</color>
+    <color name="nocturne_text_caption">#D9F2F2F6</color>
+    <color name="nocturne_text_unchecked">#B8F2F2F6</color>
+    <color name="nocturne_accent">#A79BE8</color>
     <!-- accent-300: the accent at paragraph size. -->
-    <color name="nocturne_ink_accent">#D2CEFD</color>
-    <!-- accent at 40% — the scope chip's border. -->
-    <color name="nocturne_accent_40">#669184D9</color>
-    <!-- Hairline: text at 16%. -->
-    <color name="nocturne_divider">#29E9E9ED</color>
+    <color name="nocturne_ink_accent">#DEDBFF</color>
+    <!-- accent at 65% — the scope chip's border. -->
+    <color name="nocturne_accent_40">#A6A79BE8</color>
+    <!-- Hairline: text at 28%. -->
+    <color name="nocturne_divider">#47F2F2F6</color>
+
+    <!--
+        The shadow every piece of widget text carries.
+
+        Light type on an unknown wallpaper is only ever as readable as its
+        darkest neighbour, and a widget has no say in what is behind it. A
+        near-black blur under each glyph gives one: on a dark wallpaper it is
+        invisible, on a bright photo it is the only thing keeping the text
+        from vanishing. Cheaper and far more robust than a scrim, which would
+        fight the opacity slider the setup screen exposes.
+
+        It is dense (90%) and *slightly* diffuse — 3dp at dy 1, applied in the
+        layouts. The density is what carries a bright ground; the radius is
+        what stops the result reading as an embossed outline rather than as
+        white text. An earlier 2dp/dy 0.5 was tighter and drew a hard rim
+        around each glyph; going the other way, 6dp at a lower alpha turns
+        into a grey haze that is worse than no shadow at all. Both ends were
+        rendered and compared — see docs/ANDROID_WIDGET.md.
+    -->
+    <color name="nocturne_text_shadow">#E6060711</color>
 
     <!-- The launch window's ground: the app's own `bg`. See
          drawable/launch_background.xml. -->

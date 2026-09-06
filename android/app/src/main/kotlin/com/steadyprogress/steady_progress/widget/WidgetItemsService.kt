@@ -87,17 +87,23 @@ private class WidgetItemsFactory(
 
         // 2x2: time and title only. See `compact`.
         val hidden = if (compact) View.GONE else View.VISIBLE
+        views.setViewVisibility(R.id.row_kind_group, hidden)
         views.setViewVisibility(R.id.row_kind, hidden)
         views.setViewVisibility(R.id.row_icon, hidden)
         views.setTextViewTextSize(
             R.id.row_time,
             TypedValue.COMPLEX_UNIT_SP,
-            if (compact) 10.5f else 11f,
+            if (compact) 14.5f else 15.5f,
         )
         views.setTextViewTextSize(
             R.id.row_title,
             TypedValue.COMPLEX_UNIT_SP,
-            if (compact) 12f else 12.5f,
+            if (compact) 17f else 18f,
+        )
+        views.setTextViewTextSize(
+            R.id.row_kind,
+            TypedValue.COMPLEX_UNIT_SP,
+            15f,
         )
 
         views.setImageViewResource(

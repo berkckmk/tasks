@@ -42,7 +42,7 @@ class MoreScreen extends ConsumerWidget {
               icon: AppIcons.plant,
               title: 'Habits',
               subtitle: 'Build and track your daily routines',
-              onTap: () => context.push('/habits'),
+              onTap: () => context.go('/habits'),
             ),
             _Row(
               icon: AppIcons.userCircle,

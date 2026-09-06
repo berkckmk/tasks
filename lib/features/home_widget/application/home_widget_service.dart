@@ -75,6 +75,37 @@ class HomeWidgetService {
     }
   }
 
+  /// Reads the items composed in the widget's quick-add modal.
+  ///
+  /// Returns a JSON array of `{id, kind, label, at}`. The widget cannot create
+  /// any of the three itself — a task's `create` is denied by
+  /// `firestore.rules` and goes through the `createTask` callable — so it
+  /// queues the intent and the app creates it through the ordinary
+  /// repositories. See `WidgetPendingAdds` on the Android side.
+  Future<String> readPendingAdds() async {
+    if (!_isSupported) return '[]';
+    try {
+      return await _channel.invokeMethod<String>('readPendingAdds') ?? '[]';
+    } catch (error) {
+      debugPrint('Home widget pending adds read failed: $error');
+      return '[]';
+    }
+  }
+
+  /// Drops the queued items the app has now created, by their local ids.
+  ///
+  /// Clearing also drops the optimistic rows the modal put on the widget: the
+  /// next push carries the real documents, and leaving both would show every
+  /// added item twice.
+  Future<void> clearPendingAdds(List<String> appliedIds) async {
+    if (!_isSupported || appliedIds.isEmpty) return;
+    try {
+      await _channel.invokeMethod<bool>('clearPendingAdds', {'ids': appliedIds});
+    } catch (error) {
+      debugPrint('Home widget pending adds clear failed: $error');
+    }
+  }
+
   /// Drops the queued ticks the app has now written through.
   ///
   /// Takes the ids actually applied rather than clearing wholesale: a tick

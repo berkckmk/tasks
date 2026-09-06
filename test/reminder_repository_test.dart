@@ -75,5 +75,68 @@ void main() {
       final afterDelete = await repo.watchReminders().first;
       expect(afterDelete.length, beforeCount);
     });
+
+    test('saves priority and auto-upgrades medication to important', () async {
+      // 1. Explicit important priority save
+      await repo.saveReminder(
+        id: null,
+        title: 'Custom Important Meeting',
+        message: '',
+        dueAt: DateTime.now().add(const Duration(days: 1)),
+        priority: ReminderPriority.important,
+        status: ReminderStatus.scheduled,
+      );
+
+      final list = await repo.watchReminders().first;
+      final custom = list.firstWhere((r) => r.title == 'Custom Important Meeting');
+      expect(custom.priority, ReminderPriority.important);
+
+      // 2. Medicine keyword in title auto-upgrades to important even if stored without priority
+      await repo.saveReminder(
+        id: null,
+        title: 'Duxet ilacı',
+        message: 'Akşam dozu',
+        dueAt: DateTime.now().add(const Duration(hours: 4)),
+        status: ReminderStatus.scheduled,
+      );
+
+      final list2 = await repo.watchReminders().first;
+      final med = list2.firstWhere((r) => r.title == 'Duxet ilacı');
+      expect(med.isMedicine, isTrue);
+      expect(med.priority, ReminderPriority.important);
+
+      // Clean up
+      await repo.deleteReminder(custom.id);
+      await repo.deleteReminder(med.id);
+    });
+
+    test('saves and retrieves rich detail fields', () async {
+      final id = await repo.saveReminder(
+        id: null,
+        title: 'Diş Hekimi Randevusu',
+        message: 'Röntgen sonuçlarını unutma',
+        dueAt: DateTime.now().add(const Duration(days: 3)),
+        status: ReminderStatus.scheduled,
+        priority: ReminderPriority.important,
+        starred: true,
+        earlyAlertMinutes: 30,
+        repeatRule: 'Her hafta',
+        location: 'Kadıköy Diş Polikliniği',
+        category: 'Sağlık & İlaç',
+        checklist: ['Kimlik kartı', 'Röntgen dosyası', 'Randevu fişi'],
+      );
+
+      final list = await repo.watchReminders().first;
+      final dentist = list.firstWhere((r) => r.id == id);
+
+      expect(dentist.starred, isTrue);
+      expect(dentist.earlyAlertMinutes, 30);
+      expect(dentist.repeatRule, 'Her hafta');
+      expect(dentist.location, 'Kadıköy Diş Polikliniği');
+      expect(dentist.category, 'Sağlık & İlaç');
+      expect(dentist.checklist, ['Kimlik kartı', 'Röntgen dosyası', 'Randevu fişi']);
+
+      await repo.deleteReminder(id);
+    });
   });
 }

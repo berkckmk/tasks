@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A Phosphor-style plus icon for the widget quick-add button.
+     24×24 viewport, 1.5dp stroke, accent colour. Kept as a vector
+     drawable rather than a font glyph because RemoteViews' ImageView
+     can tint and scale a drawable but cannot render a font icon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="30dp"
+    android:height="30dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/nocturne_accent">
+    <path
+        android:pathData="M12,5L12,19M5,12L19,12"
+        android:strokeWidth="2.2"
+        android:strokeColor="@color/nocturne_accent"
+        android:strokeLineCap="round" />
+</vector>

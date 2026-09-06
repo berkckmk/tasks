@@ -23,12 +23,20 @@ class TaskCard extends StatelessWidget {
     required this.task,
     required this.onToggleDone,
     this.onTap,
+    this.onLongPress,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onSelect,
     this.showDivider = true,
   });
 
   final TaskItem task;
   final VoidCallback onToggleDone;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onSelect;
   final bool showDivider;
 
   @override
@@ -39,6 +47,7 @@ class TaskCard extends StatelessWidget {
       completed: task.isDone,
       child: DecoratedBox(
         decoration: BoxDecoration(
+          color: isSelected ? c.accentTint(0.08) : Colors.transparent,
           border: showDivider
               ? Border(bottom: BorderSide(color: c.divider))
               : null,
@@ -46,7 +55,8 @@ class TaskCard extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: onTap,
+            onTap: isSelectionMode ? onSelect : onTap,
+            onLongPress: onLongPress,
             splashColor: c.accentTint(0.10),
             highlightColor: c.accentTint(0.05),
             child: Padding(
@@ -54,12 +64,27 @@ class TaskCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CheckCircle(
-                    checked: task.isDone,
-                    size: 17,
-                    semanticLabel: task.title,
-                    onChanged: (_) => onToggleDone(),
-                  ),
+                  if (isSelectionMode)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: AppSpacing.md,
+                        right: AppSpacing.sm,
+                      ),
+                      child: Icon(
+                        isSelected
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        size: 20,
+                        color: isSelected ? c.accent : c.inactive,
+                      ),
+                    )
+                  else
+                    CheckCircle(
+                      checked: task.isDone,
+                      size: 17,
+                      semanticLabel: task.title,
+                      onChanged: (_) => onToggleDone(),
+                    ),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -102,9 +127,7 @@ class TaskCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: AppSpacing.md + 1),
                     child: TimeGutter(
-                      task.dueDate == null
-                          ? ''
-                          : DateFormat('d MMM').format(task.dueDate!),
+                      taskGutterLabel(task),
                       width: 42,
                     ),
                   ),
@@ -134,4 +157,19 @@ class _HighPriorityMark extends StatelessWidget {
       ],
     );
   }
+}
+
+/// The 42px gutter's line for a task.
+///
+/// A single day prints the date; a range prints both ends stacked by an en
+/// dash, which is as much as the gutter fits. A timed task prints the time
+/// instead — that is the more specific fact, and the date is already carried
+/// by the group the row sits in.
+String taskGutterLabel(TaskItem task) {
+  final due = task.dueDate;
+  if (due == null) return '';
+  if (!task.allDay) return DateFormat.jm().format(due);
+  if (!task.spansDays) return DateFormat('d MMM').format(due);
+  final start = task.effectiveStart!;
+  return '${DateFormat('d/M').format(start)}–${DateFormat('d/M').format(due)}';
 }

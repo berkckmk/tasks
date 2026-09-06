@@ -67,6 +67,21 @@ class WidgetRenderCaptureTest {
             WidgetConfig.DEFAULT.copy(ground = WidgetGround.ACCENT), rows = 3, narrow = false,
         )
         capture("widget-empty", 348, 158, WidgetConfig.DEFAULT, rows = 0, narrow = false)
+
+        // The ground that broke: light type on a bright wallpaper. The
+        // mid-grey stand-in every capture above uses is dark enough to
+        // flatter faint text, which is exactly why the washed-out ramp was
+        // never visible here. WidgetTextContrastTest asserts on this case;
+        // these two are for looking at it.
+        capture(
+            "widget-light-wallpaper", 348, 158, WidgetConfig.DEFAULT,
+            rows = 3, narrow = false, wallpaper = LIGHT_WALLPAPER,
+        )
+        capture(
+            "widget-light-wallpaper-no-panel", 348, 158,
+            WidgetConfig.DEFAULT.copy(ground = WidgetGround.NONE),
+            rows = 3, narrow = false, wallpaper = LIGHT_WALLPAPER,
+        )
     }
 
     private fun capture(
@@ -77,6 +92,7 @@ class WidgetRenderCaptureTest {
         rows: Int,
         narrow: Boolean,
         tall: Boolean = false,
+        wallpaper: Int = GREY_WALLPAPER,
     ) {
         val views = RemoteViews(context.packageName, R.layout.widget_steady_progress)
         val root = views.apply(context, null)
@@ -137,9 +153,9 @@ class WidgetRenderCaptureTest {
 
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
-        // A mid-grey stand-in for a wallpaper, so a translucent panel is
-        // judged against something rather than against nothing.
-        canvas.drawColor(Color.rgb(0x6E, 0x72, 0x82))
+        // A stand-in for a wallpaper, so a translucent panel is judged
+        // against something rather than against nothing.
+        canvas.drawColor(wallpaper)
         root.draw(canvas)
 
         val dir = context.getExternalFilesDir(null) ?: context.filesDir
@@ -224,6 +240,14 @@ class WidgetRenderCaptureTest {
         }
 
         return view
+    }
+
+    private companion object {
+        /** Mid-grey: the neutral default every size is captured over. */
+        val GREY_WALLPAPER = Color.rgb(0x6E, 0x72, 0x82)
+
+        /** A bright photo — the case the washed-out ramp failed on. */
+        val LIGHT_WALLPAPER = Color.rgb(0xEC, 0xEA, 0xE6)
     }
 
     private fun dp(value: Int): Int = TypedValue.applyDimension(

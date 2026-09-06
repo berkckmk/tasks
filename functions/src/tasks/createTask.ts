@@ -45,14 +45,27 @@ export const createTask = onCall(async (request) => {
   const description = optionalString(data.description, "description", MAX_DESCRIPTION_LENGTH) ?? "";
   const relatedGoalId = optionalString(data.relatedGoalId, "relatedGoalId", MAX_ID_LENGTH);
 
-  let parsedDueDate: Date | null = null;
-  if (typeof data.dueDate === "string") {
-    const candidate = new Date(data.dueDate);
+  const parseDate = (value: unknown, field: string): Date | null => {
+    if (typeof value !== "string") return null;
+    const candidate = new Date(value);
     if (Number.isNaN(candidate.getTime())) {
-      throw new HttpsError("invalid-argument", "Invalid dueDate.");
+      throw new HttpsError("invalid-argument", `Invalid ${field}.`);
     }
-    parsedDueDate = candidate;
+    return candidate;
+  };
+
+  const parsedDueDate = parseDate(data.dueDate, "dueDate");
+  // The first day of the task's range. `dueDate` stays the last day and the
+  // deadline, so a single-day task has both set to the same date and every
+  // existing reader keeps working unchanged.
+  const parsedStartDate = parseDate(data.startDate, "startDate");
+  if (parsedStartDate && parsedDueDate && parsedStartDate > parsedDueDate) {
+    throw new HttpsError("invalid-argument", "startDate must not be after dueDate.");
   }
+  // No clock time was chosen, so the task is on the day rather than at a
+  // moment. Absent defaults to true, which is what every task written before
+  // this field existed was.
+  const allDay = typeof data.allDay === "boolean" ? data.allDay : true;
 
   const tasksRef = db.collection("users").doc(uid).collection("tasks");
   const planId = await getUserPlanId(uid);
@@ -79,7 +92,9 @@ export const createTask = onCall(async (request) => {
     tx.create(docRef, {
       title,
       description,
+      startDate: parsedStartDate,
       dueDate: parsedDueDate,
+      allDay,
       priority,
       status: "todo",
       relatedGoalId,

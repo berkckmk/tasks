@@ -55,13 +55,17 @@ void main() {
   /// so `find.text` returns nothing rather than something off-screen. The
   /// scroll is what makes the row exist.
   Future<void> tapMoreRow(WidgetTester tester, String label) async {
+    final rowFinder = find.descendant(
+      of: find.byType(ListView),
+      matching: find.text(label),
+    );
     await tester.scrollUntilVisible(
-      find.text(label),
+      rowFinder,
       120,
       scrollable: find.byType(Scrollable).last,
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text(label));
+    await tester.tap(rowFinder);
     await tester.pumpAndSettle();
   }
 
@@ -101,11 +105,9 @@ void main() {
       await pumpApp(tester, backend);
       expect(tester.takeException(), isNull);
 
-      await goToMoreRow(tester, 'Habits');
+      await goToTab(tester, 'Habits');
       expect(find.text('Morning run'), findsWidgets);
       expect(tester.takeException(), isNull);
-      await tester.pageBack();
-      await tester.pumpAndSettle();
 
       await goToTab(tester, 'Tasks');
       expect(find.text('Plan the week'), findsWidgets);

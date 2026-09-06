@@ -28,7 +28,9 @@ class FirestoreTaskRepository implements TaskRepository {
     required String? id,
     required String title,
     required String description,
+    required DateTime? startDate,
     required DateTime? dueDate,
+    required bool allDay,
     required TaskPriority priority,
     required TaskStatus status,
     required String? relatedGoalId,
@@ -39,13 +41,30 @@ class FirestoreTaskRepository implements TaskRepository {
       // collection outright. This is the only way the Starter plan's
       // 20-active-task limit can be enforced server-side (rules can't
       // count a collection's size). See functions/src/tasks/createTask.ts.
-      await _callables.call('createTask', {
+      final created = await _callables.call('createTask', {
         'title': title,
         'description': description,
+        'startDate': startDate?.toIso8601String(),
         'dueDate': dueDate?.toIso8601String(),
+        'allDay': allDay,
         'priority': priority.name,
         'relatedGoalId': relatedGoalId,
       });
+      // The schedule fields are patched in rather than trusted to the
+      // callable's response, because the deployed function can be older than
+      // this repo — see docs/DEPLOYMENT_STATE.md. `update` on an existing
+      // task is allowed by firestore.rules (the merged document still has a
+      // title, a priority and a status), so this costs one write and works
+      // against both the old function and the new one.
+      final newId = (created?['id'] ?? created?['taskId']) as String?;
+      if (newId != null) {
+        await _tasksRef.doc(newId).set({
+          'startDate': startDate == null ? null : Timestamp.fromDate(startDate),
+          'dueDate': dueDate == null ? null : Timestamp.fromDate(dueDate),
+          'allDay': allDay,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      }
       return;
     }
 
@@ -53,7 +72,9 @@ class FirestoreTaskRepository implements TaskRepository {
       id: id,
       title: title,
       description: description,
+      startDate: startDate,
       dueDate: dueDate,
+      allDay: allDay,
       priority: priority,
       status: status,
       relatedGoalId: relatedGoalId,

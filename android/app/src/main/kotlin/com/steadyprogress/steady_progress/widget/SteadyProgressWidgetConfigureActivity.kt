@@ -313,9 +313,12 @@ class SteadyProgressWidgetConfigureActivity : Activity() {
             setPadding(0, dp(3), 0, dp(3))
         }
 
+        // The preview runs the widget's row at about 87% — 13dp stood in for
+        // a 15dp toggle. The toggle is 20dp now, so this follows it up rather
+        // than showing a circle the real widget no longer draws.
         row.addView(
             ImageView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(dp(13), dp(13))
+                layoutParams = LinearLayout.LayoutParams(dp(17), dp(17))
                 setImageResource(
                     if (done) R.drawable.widget_check_circle_fill else R.drawable.widget_circle,
                 )

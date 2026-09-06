@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_type.dart';
@@ -112,7 +113,33 @@ class _QuickCaptureBarState extends ConsumerState<QuickCaptureBar> {
                 ),
                 child: Row(
                   children: [
-                    Icon(AppIcons.plus, size: 18, color: c.accent),
+                    Tooltip(
+                      message: 'Detaylı hatırlatıcı ekle',
+                      child: Material(
+                        color: Colors.transparent,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () {
+                            final text = _controller.text.trim();
+                            if (text.isNotEmpty) {
+                              context.push(
+                                '/reminders/new?title=${Uri.encodeComponent(text)}',
+                              );
+                              _controller.clear();
+                            } else {
+                              context.push('/reminders/new');
+                            }
+                          },
+                          customBorder: const CircleBorder(),
+                          splashColor: c.accentTint(0.2),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(AppIcons.plus, size: 20, color: c.accent),
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: TextField(

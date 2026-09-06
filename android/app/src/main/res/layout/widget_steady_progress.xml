@@ -79,10 +79,14 @@
                 android:paddingEnd="7dp"
                 android:paddingTop="2dp"
                 android:paddingBottom="2dp"
-                android:textSize="9sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.13"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_semibold"
+                android:letterSpacing="0.08"
                 android:textColor="@color/nocturne_ink_accent"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
                 android:maxLines="1"
                 android:text="@string/widget_scope_today" />
 
@@ -92,29 +96,34 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="9dp"
-                android:textSize="11sp"
+                android:textSize="14.5sp"
+                android:fontFamily="@font/inter_semibold"
                 android:textColor="@color/nocturne_text_note"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-            <!-- TextClock ticks itself. No update broadcast, no alarm, no
-                 battery cost — which is why updatePeriodMillis stays 0. -->
-            <TextClock
-                android:id="@+id/clock"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <!-- Quick-add button. Opens the app's add screen for the
+                 current scope: new reminder, new task, or whichever is
+                 the primary pillar of Today. -->
+            <ImageView
+                android:id="@+id/quick_add"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
                 android:layout_marginStart="7dp"
-                android:textSize="11sp"
-                android:textColor="@color/nocturne_text_caption"
-                android:format12Hour="h:mm"
-                android:format24Hour="HH:mm" />
+                android:src="@drawable/widget_plus"
+                android:contentDescription="@string/widget_quick_add"
+                android:scaleType="center" />
         </LinearLayout>
 
         <ProgressBar
             android:id="@+id/progress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="3dp"
+            android:layout_height="4dp"
             android:layout_marginTop="9dp"
             android:max="100"
             android:progressDrawable="@drawable/widget_progress" />
@@ -144,8 +153,8 @@
 
             <ImageView
                 android:id="@+id/empty_icon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="33dp"
+                android:layout_height="33dp"
                 android:src="@drawable/widget_bell_slash"
                 android:contentDescription="@null" />
 
@@ -154,8 +163,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="7dp"
-                android:textSize="13sp"
+                android:textSize="17sp"
+                android:fontFamily="@font/inter_semibold"
                 android:textColor="@color/nocturne_text"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
                 android:text="@string/widget_empty_title" />
 
             <TextView
@@ -163,8 +177,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textSize="11sp"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_regular"
                 android:textColor="@color/nocturne_text_muted"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
                 android:text="@string/widget_empty_message" />
         </LinearLayout>
 
@@ -183,8 +202,13 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="11sp"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_regular"
                 android:textColor="@color/nocturne_text_caption"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -197,8 +221,13 @@
                 android:paddingEnd="11dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
-                android:textSize="11sp"
-                android:textColor="@color/nocturne_accent"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_semibold"
+                android:textColor="@color/nocturne_ink_accent"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
                 android:text="@string/widget_footer_action" />
         </LinearLayout>
     </LinearLayout>

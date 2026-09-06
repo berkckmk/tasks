@@ -75,15 +75,42 @@ into the future, so `createHabit` rejects it), `createdAt`, `updatedAt`.
 day can only be logged once per habit.
 
 ### `tasks/{taskId}`
-`title` (non-empty), `description`, `dueDate` (nullable), `priority` ∈
-`low|medium|high`, `status` ∈ `todo|inProgress|done`, `relatedGoalId`
-(nullable), `createdAt`, `updatedAt`. `createTask` always sets `status: "todo"`
-— status is an update-time concern.
+`title` (non-empty), `description`, `startDate` (nullable), `dueDate`
+(nullable), `allDay` (bool), `priority` ∈ `low|medium|high`, `status` ∈
+`todo|inProgress|done`, `relatedGoalId` (nullable), `createdAt`, `updatedAt`.
+`createTask` always sets `status: "todo"` — status is an update-time concern.
+
+**A task is scheduled over a range.** `startDate` is its first day and
+`dueDate` stays the last day *and* the deadline, so every existing reader —
+the Today rail, the widget, the Calendar sync function — keeps working
+unchanged and a single-day task simply has both set to the same date. A
+document written before ranges existed has no `startDate`; `effectiveStart`
+falls back to `dueDate` rather than treating it as unscheduled.
+
+`allDay` absent reads as **true**, which is what every task written before the
+field existed was: a date and no clock time. The UI requires a date and offers
+the time, and a task with no time is labelled "All day" rather than shown at a
+fabricated midnight.
+
+`FirestoreTaskRepository.saveTask` patches `startDate`/`dueDate`/`allDay` onto
+the new document immediately after the `createTask` callable returns, instead
+of trusting the callable to have written them. The function does write them
+now, but the deployed one can be older than this repo (see
+`docs/DEPLOYMENT_STATE.md`), and the patch is a plain `update`, which rules
+allow on an existing task.
 
 ### `reminders/{reminderId}`
-`title` (non-empty), `message`, `dueAt` (nullable timestamp), `status` ∈
+`title` (non-empty), `message`, `dueAt` (nullable timestamp — **the UI now
+requires it**, see below), `status` ∈
 `scheduled|completed|snoozed|missed`, `createdAt`, `updatedAt`, `notifiedAt`
 (nullable timestamp, **written by the backend**).
+
+`dueAt` is nullable in the schema and required by every path that writes one:
+the edit screen, the widget's quick-add modal. A reminder without a moment
+cannot fire, cannot be placed on the rail, and — because `watchReminders`
+orders by `dueAt` and **Firestore omits documents that lack the field a query
+orders on** — cannot even be listed. Times are AM/PM throughout the reminders
+surface, pickers included.
 
 `notifiedAt` is the idempotency marker for `sendDueReminders` — set once the
 push has gone out, so a retried run doesn't send it twice. The client clears it

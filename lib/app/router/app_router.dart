@@ -118,28 +118,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AnalyticsScreen(),
       ),
       // Habits and Profile used to be shell branches with a bottom-tab slot
-      // each. Six tabs was too many, so they moved inside More — which means
-      // they are pushed onto the root navigator like /analytics and the paid
-      // modules, not stacked inside a branch. The screens themselves are
-      // unchanged apart from styling.
-      GoRoute(
-        path: '/habits',
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const HabitsScreen(),
-        routes: [
-          GoRoute(
-            path: 'new',
-            parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) => const AddEditHabitScreen(),
-          ),
-          GoRoute(
-            path: ':habitId/edit',
-            parentNavigatorKey: _rootNavigatorKey,
-            builder: (context, state) =>
-                AddEditHabitScreen(habitId: state.pathParameters['habitId']),
-          ),
-        ],
-      ),
+      // each. Six tabs was too many, so they moved inside More. Now Habits
+      // moves back to a shell branch as tab 2 (between Today and Tasks) —
+      // five tabs is fine on mobile, and the owner wants Habits at the same
+      // level as the other core pillars.
       GoRoute(
         path: '/profile',
         parentNavigatorKey: _rootNavigatorKey,
@@ -196,13 +178,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const AddEditReminderScreen(),
+                    pageBuilder: (context, state) {
+                      final title = state.uri.queryParameters['title'] ??
+                          (state.extra as String?);
+                      return sheetPage(
+                        state,
+                        AddEditReminderScreen(initialTitle: title),
+                      );
+                    },
                   ),
                   GoRoute(
                     path: ':reminderId/edit',
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => AddEditReminderScreen(
-                      reminderId: state.pathParameters['reminderId'],
+                    pageBuilder: (context, state) => sheetPage(
+                      state,
+                      AddEditReminderScreen(
+                        reminderId: state.pathParameters['reminderId'],
+                      ),
                     ),
                   ),
                 ],
@@ -223,6 +215,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: '/habits',
+                builder: (context, state) => const HabitsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    pageBuilder: (context, state) => sheetPage(
+                      state,
+                      const AddEditHabitScreen(),
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':habitId/edit',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    pageBuilder: (context, state) => sheetPage(
+                      state,
+                      AddEditHabitScreen(
+                        habitId: state.pathParameters['habitId'],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/tasks',
                 builder: (context, state) => const TasksScreen(),
                 routes: [
@@ -234,8 +254,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     parentNavigatorKey: _rootNavigatorKey,
-                    pageBuilder: (context, state) =>
-                        sheetPage(state, const AddEditTaskScreen()),
+                    pageBuilder: (context, state) {
+                      final title = state.uri.queryParameters['title'] ??
+                          (state.extra as String?);
+                      return sheetPage(
+                        state,
+                        AddEditTaskScreen(initialTitle: title),
+                      );
+                    },
                   ),
                   GoRoute(
                     path: ':taskId/edit',
@@ -301,8 +327,8 @@ class _AppShell extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  /// Four, in this order. Habits, Profile and every paid module now live
-  /// inside More.
+  /// Five, in this order. Profile and every paid module still live
+  /// inside More; Habits is back as its own tab.
   ///
   /// Regular glyph when inactive, Fill when selected — see
   /// [NavDestinationItem.selectedIcon].
@@ -316,6 +342,11 @@ class _AppShell extends StatelessWidget {
       icon: AppIcons.sunHorizon,
       selectedIcon: AppIcons.sunHorizonFill,
       label: 'Today',
+    ),
+    NavDestinationItem(
+      icon: AppIcons.plant,
+      selectedIcon: AppIcons.plantFill,
+      label: 'Habits',
     ),
     NavDestinationItem(
       icon: AppIcons.checkSquareOffset,

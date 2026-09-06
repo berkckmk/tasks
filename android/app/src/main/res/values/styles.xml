@@ -41,9 +41,35 @@
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowNoTitle">true</item>
+        <!--
+            **No scrim.** A dim over the whole home screen made a three-row
+            popup read as a mode you had entered rather than a menu hanging
+            off the chip — and it dimmed the widget the popup belongs to,
+            which is the one thing on screen that should stay legible while
+            you choose. The quick-add modal keeps its 0.5 dim: that one *is* a
+            mode, with a keyboard and a commit step.
+        -->
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <!--
+        The quick-add modal's theme.
+
+        The scope picker's translucency, with two differences that matter:
+        `windowIsFloating=true`, because this panel *is* centred and framework
+        sizing is exactly what it wants, and a 0.5 dim — the 50% scrim that
+        makes the home screen read as "behind a modal" rather than "still
+        interactive".
+    -->
+    <style name="WidgetQuickAddTheme" parent="@android:style/Theme.DeviceDefault.Dialog.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.5</item>
-        <item name="android:windowAnimationStyle">@null</item>
     </style>
 
     <!-- Section heading on the setup screen: Nocturne's `h6` kicker. -->

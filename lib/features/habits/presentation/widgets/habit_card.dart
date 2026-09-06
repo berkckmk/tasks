@@ -23,12 +23,20 @@ class HabitCard extends StatelessWidget {
     required this.habit,
     required this.onToggle,
     this.onTap,
+    this.onLongPress,
+    this.isSelectionMode = false,
+    this.isSelected = false,
+    this.onSelect,
     this.showDivider = true,
   });
 
   final Habit habit;
   final VoidCallback onToggle;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+  final bool isSelectionMode;
+  final bool isSelected;
+  final VoidCallback? onSelect;
   final bool showDivider;
 
   @override
@@ -47,6 +55,7 @@ class HabitCard extends StatelessWidget {
       completed: habit.isCompletedToday,
       child: DecoratedBox(
         decoration: BoxDecoration(
+          color: isSelected ? c.accentTint(0.08) : Colors.transparent,
           border: showDivider
               ? Border(bottom: BorderSide(color: c.divider))
               : null,
@@ -54,19 +63,32 @@ class HabitCard extends StatelessWidget {
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: onTap,
+            onTap: isSelectionMode ? onSelect : onTap,
+            onLongPress: onLongPress,
             splashColor: c.accentTint(0.10),
             highlightColor: c.accentTint(0.05),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: Row(
                 children: [
-                  CheckCircle(
-                    checked: habit.isCompletedToday,
-                    size: 17,
-                    semanticLabel: habit.name,
-                    onChanged: (_) => onToggle(),
-                  ),
+                  if (isSelectionMode)
+                    Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: Icon(
+                        isSelected
+                            ? Icons.check_circle
+                            : Icons.radio_button_unchecked,
+                        size: 20,
+                        color: isSelected ? c.accent : c.inactive,
+                      ),
+                    )
+                  else
+                    CheckCircle(
+                      checked: habit.isCompletedToday,
+                      size: 17,
+                      semanticLabel: habit.name,
+                      onChanged: (_) => onToggle(),
+                    ),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(

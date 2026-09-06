@@ -15,7 +15,7 @@ import '../../reminders/application/reminder_providers.dart';
 import '../../tasks/application/task_providers.dart';
 import '../application/today_actions.dart';
 import '../application/today_providers.dart';
-import 'widgets/quick_capture_bar.dart';
+
 import 'widgets/time_rail.dart';
 
 /// **Today** — `2b` Rail.
@@ -76,9 +76,7 @@ class DashboardScreen extends ConsumerWidget {
                   AppSpacing.screenH,
                   AppSpacing.lg,
                   AppSpacing.screenH,
-                  // Room for the quick-capture bar, which floats over the
-                  // list rather than displacing it.
-                  QuickCaptureBar.reservedHeight,
+                  AppSpacing.xl,
                 ),
                 children: [
                   _Header(now: now, done: done, total: entries.length),
@@ -100,10 +98,7 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                 ],
               ),
-            const Align(
-              alignment: Alignment.bottomCenter,
-              child: QuickCaptureBar(),
-            ),
+
           ],
         ),
       ),

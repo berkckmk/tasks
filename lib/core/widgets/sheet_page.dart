@@ -68,33 +68,41 @@ class SheetPanel extends StatelessWidget {
               onTap: () => Navigator.maybePop(context),
             ),
           ),
-          Align(
-            alignment: Alignment.bottomCenter,
+          SafeArea(
+            bottom: false,
+            minimum: const EdgeInsets.only(top: AppSpacing.sm),
             child: Padding(
               padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: media.size.height * 0.9,
-                  // On a wide window the sheet stops being full-bleed —
-                  // a form stretched to 1400px is unreadable.
-                  maxWidth: 560,
-                ),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: c.surface,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppSpacing.radiusLg),
+              child: LayoutBuilder(
+                builder: (context, constraints) => Align(
+                  alignment: Alignment.bottomCenter,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: constraints.maxHeight,
+                      maxWidth: 560,
                     ),
-                    border: Border.all(color: c.edgeLg),
-                    boxShadow: c.shadowLg,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppSpacing.radiusLg),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: SafeArea(top: false, child: child),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: c.surface,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(AppSpacing.radiusLg),
+                        ),
+                        border: Border.all(color: c.edgeLg),
+                        boxShadow: c.shadowLg,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(AppSpacing.radiusLg),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: MediaQuery.removeViewInsets(
+                            context: context,
+                            removeBottom: true,
+                            child: SafeArea(top: false, child: child),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),

@@ -9,20 +9,20 @@
         <path
             android:pathData="M8.4,3.6 L20.4,3.6 L20.4,15.6"
             android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="1.6"
+            android:strokeWidth="2"
             android:strokeLineCap="round"
             android:strokeLineJoin="round"
             android:fillColor="@android:color/transparent" />
         <path
             android:pathData="M3.6,8.4 L15.6,8.4 L15.6,20.4 L3.6,20.4 Z"
             android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="1.6"
+            android:strokeWidth="2"
             android:strokeLineJoin="round"
             android:fillColor="@android:color/transparent" />
         <path
             android:pathData="M6.8,14.4 L8.9,16.5 L12.6,12.5"
             android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="1.6"
+            android:strokeWidth="2"
             android:strokeLineCap="round"
             android:strokeLineJoin="round"
             android:fillColor="@android:color/transparent" />

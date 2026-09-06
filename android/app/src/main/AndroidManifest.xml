@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!-- Requested at runtime by PushNotificationsRepository.requestPermission. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:label="Steady Progress"
@@ -90,6 +94,17 @@
             android:noHistory="true"
             android:exported="false" />
 
+        <!-- The `+`'s quick-add modal. Same translucent treatment as the
+             scope picker, but `windowSoftInputMode=adjustResize` because this
+             one has a text field and must not sit under the keyboard, and no
+             `noHistory` so a rotation mid-compose doesn't discard the line. -->
+        <activity
+            android:name=".widget.WidgetQuickAddActivity"
+            android:theme="@style/WidgetQuickAddTheme"
+            android:excludeFromRecents="true"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
+
         <!-- Feeds the widget's scrolling rows.
 
              BIND_REMOTEVIEWS is a signature-level permission held by the
@@ -100,6 +115,21 @@
             android:name=".widget.WidgetItemsService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
+
+        <!-- Exact alarm receiver for on-time reminder and medication alerts -->
+        <receiver
+            android:name=".reminders.AlarmReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.steadyprogress.ACTION_ALARM" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Default notification channel for push messages -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="channel_normal" />
 
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

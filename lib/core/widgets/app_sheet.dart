@@ -28,6 +28,7 @@ Future<T?> showAppSheet<T>({
   double? initialSize,
   bool isDismissible = true,
 }) {
+  assert(initialSize == null || (initialSize > 0 && initialSize <= 1));
   final c = AppColorsScheme.of(context);
 
   return showModalBottomSheet<T>(
@@ -38,6 +39,7 @@ Future<T?> showAppSheet<T>({
     barrierColor: Colors.black.withValues(alpha: 0.62),
     elevation: 0,
     useSafeArea: true,
+    clipBehavior: Clip.antiAlias,
     shape: RoundedRectangleBorder(
       borderRadius: const BorderRadius.vertical(
         top: Radius.circular(AppSpacing.radiusLg),
@@ -45,25 +47,32 @@ Future<T?> showAppSheet<T>({
       side: BorderSide(color: c.edgeMd),
     ),
     builder: (context) {
-      final body = Padding(
-        // Lifts the sheet clear of the IME.
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.viewInsetsOf(context).bottom,
+      return Padding(
+        // Own keyboard avoidance here, before computing the sheet height.
+        // Descendants receive consumed insets and must not reserve it again.
+        padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: MediaQuery.removeViewInsets(
+          context: context,
+          removeBottom: true,
+          child: SafeArea(
+            top: false,
+            child: LayoutBuilder(
+              builder: (context, constraints) => ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: 560,
+                  maxHeight: constraints.maxHeight * (initialSize ?? 1),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const _GrabHandle(),
+                    Flexible(child: builder(context)),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const _GrabHandle(),
-            Flexible(child: builder(context)),
-          ],
-        ),
-      );
-
-      if (initialSize == null) return body;
-
-      return FractionallySizedBox(
-        heightFactor: initialSize,
-        child: body,
       );
     },
   );

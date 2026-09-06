@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants/app_icons.dart';
 import '../core/constants/app_spacing.dart';
+import '../core/widgets/app_viewport.dart';
 import 'router/app_router.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
@@ -22,6 +23,7 @@ class SteadyProgressApp extends ConsumerWidget {
         theme: AppTheme.light(),
         darkTheme: AppTheme.dark(),
         themeMode: ThemeMode.dark,
+        builder: (context, child) => AppViewport(child: child!),
         home: _FirebaseInitErrorScreen(error: firebaseInitError!),
       );
     }
@@ -38,6 +40,7 @@ class SteadyProgressApp extends ConsumerWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.dark,
+      builder: (context, child) => AppViewport(child: child!),
       // The glass backdrop that used to be installed here is gone. Nocturne
       // has nothing to refract: every Scaffold paints an opaque `bg` ground
       // of its own, which is what lets a 1px hairline read as an edge rather

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -41,6 +43,49 @@ class SeedResult {
 
 const int kSeedCount = 5;
 
+/// Every seeded date is drawn from this window, and every one of them is in
+/// the **future** — including the ones a real account would carry in the past
+/// (a finance transaction, a logged workout). That is deliberate: the point of
+/// a seed run is to populate the surfaces that only show upcoming items — the
+/// Today rail, the reminders groups, the home-screen widget — and a backdated
+/// row is invisible on all three.
+const int _kMinDaysAhead = 1;
+const int _kMaxDaysAhead = 45;
+
+/// Re-seeded per run, so two runs against the same account produce different
+/// days and times rather than the same five rows twice.
+final Random _random = Random();
+
+/// A day between [_kMinDaysAhead] and [_kMaxDaysAhead] from [base], at
+/// midnight.
+DateTime _futureDay(DateTime base) => base.add(
+      Duration(
+        days: _kMinDaysAhead +
+            _random.nextInt(_kMaxDaysAhead - _kMinDaysAhead + 1),
+      ),
+    );
+
+/// A waking-hours moment on [day] — 07:00 to 21:45, on the quarter hour.
+/// Random minutes to the second would only produce times no human would set.
+DateTime _atRandomTime(DateTime day) => DateTime(
+      day.year,
+      day.month,
+      day.day,
+      7 + _random.nextInt(15),
+      [0, 15, 30, 45][_random.nextInt(4)],
+    );
+
+/// A future moment: a random day at a random time.
+DateTime _futureMoment(DateTime base) => _atRandomTime(_futureDay(base));
+
+/// The 12-hour label a habit's reminder time is stored as — the same shape
+/// `TimeOfDay.format` produces and `parseHabitTime` reads back.
+String _timeLabel(DateTime value) {
+  final hour = value.hour % 12 == 0 ? 12 : value.hour % 12;
+  final minute = value.minute.toString().padLeft(2, '0');
+  return '$hour:$minute ${value.hour < 12 ? 'AM' : 'PM'}';
+}
+
 Future<List<SeedResult>> seedAllModulesForCurrentUser({
   FirebaseFirestore? firestore,
   FirebaseFunctions? functions,
@@ -67,14 +112,17 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
       'habits',
       userDoc.collection('habits'),
       const [
-        ('Morning run', 'morning', '07:00'),
-        ('Drink 2L water', 'health', '10:00'),
-        ('Read 20 pages', 'evening', '21:00'),
-        ('Stretch routine', 'morning', '08:00'),
-        ('Inbox zero', 'work', '17:00'),
+        ('Morning run', 'morning'),
+        ('Drink 2L water', 'health'),
+        ('Read 20 pages', 'evening'),
+        ('Stretch routine', 'morning'),
+        ('Inbox zero', 'work'),
       ],
       (seed) async {
-        final (name, category, time) = seed;
+        final (name, category) = seed;
+        // A habit recurs, so it has no date — only a time of day, and that
+        // one is randomised like everything else.
+        final time = _timeLabel(_atRandomTime(baseDay));
         final res = await fns
             .httpsCallable('createHabit')
             .call<Map<String, dynamic>>({
@@ -90,6 +138,11 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
   );
 
   // Habit logs — one completed log per habit created in this run.
+  //
+  // The one thing here that is deliberately *not* forward-dated: a log says
+  // "this habit was completed on this day", and a completion dated next
+  // Tuesday is a claim about something that has not happened. It also feeds
+  // the streak derivation, which would read a future log as a gap.
   results.add(
     await _run('habit_logs', () async {
       if (habitIds.isEmpty) {
@@ -111,7 +164,6 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
   );
 
   // Tasks — also callable-only. The function pins status to 'todo'.
-  var taskOffset = 0;
   results.add(
     await _seed(
       'tasks',
@@ -125,20 +177,40 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
       ],
       (seed) async {
         final (title, priority) = seed;
-        await fns.httpsCallable('createTask').call<Map<String, dynamic>>({
-          'title': title,
-          'description': 'Seed verisi — gerçek DB testi.',
-          'priority': priority,
-          'dueDate': baseDay
-              .add(Duration(days: taskOffset++))
-              .toIso8601String(),
-        });
+        // A task is scheduled over a range: a start day, and a deadline up to
+        // four days later. Roughly a third get a clock time; the rest are
+        // all-day, which is the ordinary case.
+        final start = _futureDay(baseDay);
+        final endDay = start.add(Duration(days: _random.nextInt(5)));
+        final allDay = _random.nextInt(3) != 0;
+        final due = allDay ? endDay : _atRandomTime(endDay);
+        final created = await fns
+            .httpsCallable('createTask')
+            .call<Map<String, dynamic>>({
+              'title': title,
+              'description': 'Seed verisi — gerçek DB testi.',
+              'priority': priority,
+              'startDate': start.toIso8601String(),
+              'dueDate': due.toIso8601String(),
+              'allDay': allDay,
+            });
+        // Patched in rather than trusted to the callable, for the reason
+        // FirestoreTaskRepository.saveTask does the same: the deployed
+        // function can be older than this repo.
+        final id = created.data['id'] as String?;
+        if (id != null) {
+          await userDoc.collection('tasks').doc(id).set({
+            'startDate': Timestamp.fromDate(start),
+            'dueDate': Timestamp.fromDate(due),
+            'allDay': allDay,
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        }
       },
     ),
   );
 
   // Reminders.
-  var reminderOffset = 0;
   results.add(
     await _seed(
       'reminders',
@@ -155,9 +227,10 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
         await userDoc.collection('reminders').add({
           'title': title,
           'message': message,
-          'dueAt': Timestamp.fromDate(
-            baseDay.add(Duration(days: reminderOffset++, hours: 9)),
-          ),
+          // Date *and* time, both required — a reminder without a moment
+          // cannot fire and, because watchReminders orders by dueAt, would
+          // not even be listed.
+          'dueAt': Timestamp.fromDate(_futureMoment(baseDay)),
           'status': 'scheduled',
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -167,7 +240,6 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
   );
 
   // Goals — requires Growth or above (the closed beta grants it).
-  var goalOffset = 0;
   results.add(
     await _seed(
       'goals',
@@ -185,9 +257,7 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
           'title': title,
           'description': 'Seed verisi — gerçek DB testi.',
           'category': category,
-          'targetDate': Timestamp.fromDate(
-            baseDay.add(Duration(days: 30 + goalOffset++ * 15)),
-          ),
+          'targetDate': Timestamp.fromDate(_futureDay(baseDay)),
           'progressType': progressType,
           'manualProgress': progress,
           'milestones': progressType == 'milestones'
@@ -205,7 +275,6 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
   );
 
   // Finance transactions — Complete plan only.
-  var txOffset = 0;
   results.add(
     await _seed(
       'finance_transactions',
@@ -224,9 +293,9 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
           'amount': amount,
           'category': category,
           'note': note,
-          'date': Timestamp.fromDate(
-            baseDay.subtract(Duration(days: txOffset++ * 3)),
-          ),
+          // Forward-dated like everything else here. A real ledger is
+          // historical; a seeded one exists to be seen.
+          'date': Timestamp.fromDate(_futureDay(baseDay)),
           'createdAt': FieldValue.serverTimestamp(),
         });
       },
@@ -234,7 +303,6 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
   );
 
   // Savings goals.
-  var savingsOffset = 0;
   results.add(
     await _seed(
       'savings_goals',
@@ -252,9 +320,7 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
           'title': title,
           'targetAmount': target,
           'currentAmount': current,
-          'targetDate': Timestamp.fromDate(
-            baseDay.add(Duration(days: 60 + savingsOffset++ * 30)),
-          ),
+          'targetDate': Timestamp.fromDate(_futureDay(baseDay)),
           'createdAt': FieldValue.serverTimestamp(),
         });
       },
@@ -262,7 +328,6 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
   );
 
   // Workouts.
-  var workoutOffset = 0;
   results.add(
     await _seed(
       'workouts',
@@ -271,9 +336,7 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
       (name) async {
         final ref = await userDoc.collection('workouts').add({
           'name': name,
-          'date': Timestamp.fromDate(
-            baseDay.subtract(Duration(days: workoutOffset++)),
-          ),
+          'date': Timestamp.fromDate(_futureMoment(baseDay)),
           'createdAt': FieldValue.serverTimestamp(),
         });
         workoutIds.add(ref.id);
@@ -341,7 +404,6 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
   );
 
   // Content items.
-  var contentOffset = 0;
   results.add(
     await _seed(
       'content_items',
@@ -358,9 +420,7 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
         await userDoc.collection('content_items').add({
           'title': title,
           'platform': platform,
-          'publishDate': Timestamp.fromDate(
-            baseDay.add(Duration(days: contentOffset++ * 2)),
-          ),
+          'publishDate': Timestamp.fromDate(_futureDay(baseDay)),
           'status': status,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -372,8 +432,19 @@ Future<List<SeedResult>> seedAllModulesForCurrentUser({
   return results;
 }
 
-/// Tops [collection] up to [kSeedCount] by writing only the shortfall, taking
-/// the tail of [seeds] so a re-run adds items the previous run didn't.
+/// Writes [kSeedCount] rows into [collection], on top of whatever is already
+/// there.
+///
+/// It used to top *up* to [kSeedCount] and skip a collection already at that
+/// count, which is the right shape for "bring an empty account to life" and
+/// the wrong one for "show me five upcoming items in every area": an account
+/// whose five tasks are all in the past and all ticked would be reported as
+/// full and left exactly as it was. Now every module gets its five, and the
+/// prior count is reported rather than subtracted.
+///
+/// Dates and times are randomised per run, so two runs are visibly different
+/// rows rather than the same five twice — but they *are* additive. Re-running
+/// four times leaves twenty tasks.
 Future<SeedResult> _seed<T>(
   String module,
   CollectionReference<Map<String, dynamic>> collection,
@@ -383,14 +454,10 @@ Future<SeedResult> _seed<T>(
   return _run(module, () async {
     final snapshot = await collection.count().get();
     final existing = snapshot.count ?? 0;
-    final need = kSeedCount - existing;
-    if (need <= 0) return SeedResult(module, 0, existing: existing);
-
-    final pending = seeds.sublist(seeds.length - need);
-    for (final seed in pending) {
+    for (final seed in seeds) {
       await write(seed);
     }
-    return SeedResult(module, pending.length, existing: existing);
+    return SeedResult(module, seeds.length, existing: existing);
   });
 }
 

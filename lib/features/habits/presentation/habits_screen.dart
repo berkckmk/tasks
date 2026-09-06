@@ -7,8 +7,9 @@ import '../../../app/theme/app_type.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_spacing.dart';
 import '../../../core/layout/scroll_insets.dart';
+import '../../../core/widgets/app_dialogs.dart';
 import '../../../core/widgets/app_fab.dart';
-import '../../../core/widgets/app_top_bar.dart';
+
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/nocturne.dart';
@@ -18,17 +19,87 @@ import '../domain/habit.dart';
 import '../domain/habit_schedule.dart';
 import 'widgets/habit_card.dart';
 
-/// **Habits** — reached from More now, not from a bottom tab.
-///
-/// Split into "Today" and "Other days" using the schedule derivation the
-/// redesign adds ([HabitSchedule.isScheduledOn]). The old screen listed every
-/// habit in one flat list regardless of when it was due, which is why a
-/// Weekdays habit looked unfinished all weekend.
-class HabitsScreen extends ConsumerWidget {
+/// **Habits** — reached from More, with multi-selection support.
+class HabitsScreen extends ConsumerStatefulWidget {
   const HabitsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HabitsScreen> createState() => _HabitsScreenState();
+}
+
+class _HabitsScreenState extends ConsumerState<HabitsScreen> {
+  bool _isSelectionMode = false;
+  final Set<String> _selectedIds = {};
+
+  void _startSelection(String initialId) {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedIds.add(initialId);
+    });
+  }
+
+  void _toggleSelect(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _selectAll(List<Habit> habits) {
+    setState(() {
+      if (_selectedIds.length == habits.length) {
+        _selectedIds.clear();
+        _isSelectionMode = false;
+      } else {
+        _selectedIds.addAll(habits.map((h) => h.id));
+      }
+    });
+  }
+
+  Future<void> _deleteSelected() async {
+    if (_selectedIds.isEmpty) return;
+    final count = _selectedIds.length;
+    final confirmed = await confirmDestructive(
+      context,
+      title: 'Seçilen $count alışkanlık silinsin mi?',
+      message: 'Bu işlem geri alınamaz.',
+    );
+    if (!confirmed || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final toDelete = _selectedIds.toList();
+    try {
+      await Future.wait(
+        toDelete.map(
+          (id) => ref.read(habitActionsProvider).deleteHabit(id),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _selectedIds.clear();
+          _isSelectionMode = false;
+        });
+        messenger.showSnackBar(
+          SnackBar(content: Text('$count alışkanlık silindi')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Alışkanlıklar silinemedi: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final c = AppColorsScheme.of(context);
     final habitsAsync = ref.watch(habitsProvider);
     final filter = ref.watch(habitFilterProvider);
@@ -36,11 +107,12 @@ class HabitsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.bg,
-      appBar: const AppTopBar(),
-      floatingActionButton: AppFab(
-        tooltip: 'Add habit',
-        onPressed: () => GuardedCreate.habit(context, ref),
-      ),
+      floatingActionButton: _isSelectionMode
+          ? null
+          : AppFab(
+              tooltip: 'Add habit',
+              onPressed: () => GuardedCreate.habit(context, ref),
+            ),
       body: habitsAsync.when(
         error: (error, stackTrace) => ErrorState(error: error),
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -59,7 +131,64 @@ class HabitsScreen extends ConsumerWidget {
           return ListView(
             padding: scrollInsets(context),
             children: [
-              Text('Habits', style: AppType.h2.copyWith(color: c.text)),
+              if (_isSelectionMode)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    border: Border.all(color: c.edgeMd),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(AppIcons.x),
+                        tooltip: 'Vazgeç',
+                        onPressed: () => setState(() {
+                          _selectedIds.clear();
+                          _isSelectionMode = false;
+                        }),
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        '${_selectedIds.length} seçildi',
+                        style: AppType.h5.copyWith(color: c.text),
+                      ),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () => _selectAll(filtered),
+                        child: Text(
+                          _selectedIds.length == filtered.length
+                              ? 'Seçimi Kaldır'
+                              : 'Tümünü Seç',
+                          style: AppType.metaSmall.copyWith(color: c.accent),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(AppIcons.trash, color: Colors.redAccent),
+                        tooltip: 'Seçilenleri Sil',
+                        onPressed: _selectedIds.isEmpty ? null : _deleteSelected,
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Row(
+                  children: [
+                    Text('Habits', style: AppType.h2.copyWith(color: c.text)),
+                    const Spacer(),
+                    if (filtered.isNotEmpty)
+                      GhostIconButton(
+                        icon: AppIcons.checkSquareOffset,
+                        tooltip: 'Toplu seçim',
+                        onPressed: () =>
+                            setState(() => _isSelectionMode = true),
+                      ),
+                  ],
+                ),
               const SizedBox(height: AppSpacing.lg),
               _CategoryFilter(filter: filter),
               const SizedBox(height: AppSpacing.xl),
@@ -82,12 +211,20 @@ class HabitsScreen extends ConsumerWidget {
                     habits: today,
                     done: today.where((h) => h.isCompletedToday).length,
                     ref: ref,
+                    isSelectionMode: _isSelectionMode,
+                    selectedIds: _selectedIds,
+                    onToggleSelect: _toggleSelect,
+                    onStartSelection: _startSelection,
                   ),
                 if (otherDays.isNotEmpty)
                   _Group(
                     label: 'Other days',
                     habits: otherDays,
                     ref: ref,
+                    isSelectionMode: _isSelectionMode,
+                    selectedIds: _selectedIds,
+                    onToggleSelect: _toggleSelect,
+                    onStartSelection: _startSelection,
                   ),
               ],
             ],
@@ -111,15 +248,20 @@ class _Group extends StatelessWidget {
     required this.habits,
     required this.ref,
     this.done,
+    this.isSelectionMode = false,
+    this.selectedIds = const {},
+    this.onToggleSelect,
+    this.onStartSelection,
   });
 
   final String label;
   final List<Habit> habits;
   final WidgetRef ref;
-
-  /// Shown as "3 of 5 done" beside the kicker. Null for a group where
-  /// completion isn't the point — nothing on "Other days" is due today.
   final int? done;
+  final bool isSelectionMode;
+  final Set<String> selectedIds;
+  final ValueChanged<String>? onToggleSelect;
+  final ValueChanged<String>? onStartSelection;
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +296,8 @@ class _Group extends StatelessWidget {
                     HabitCard(
                       key: ValueKey(habits[i].id),
                       habit: habits[i],
+                      isSelectionMode: isSelectionMode,
+                      isSelected: selectedIds.contains(habits[i].id),
                       showDivider: i < habits.length - 1,
                       onToggle: () => ref
                           .read(habitActionsProvider)
@@ -161,7 +305,19 @@ class _Group extends StatelessWidget {
                             habits[i].id,
                             habits[i].isCompletedToday,
                           ),
-                      onTap: () => context.push('/habits/${habits[i].id}/edit'),
+                      onSelect: () => onToggleSelect?.call(habits[i].id),
+                      onLongPress: () {
+                        if (!isSelectionMode) {
+                          onStartSelection?.call(habits[i].id);
+                        }
+                      },
+                      onTap: () {
+                        if (isSelectionMode) {
+                          onToggleSelect?.call(habits[i].id);
+                        } else {
+                          context.push('/habits/${habits[i].id}/edit');
+                        }
+                      },
                     ),
                 ],
               ),
@@ -173,11 +329,6 @@ class _Group extends StatelessWidget {
   }
 }
 
-/// All / Morning / Evening / Health / Work.
-///
-/// A scrolling row of tag chips rather than a segmented control: there are
-/// five options plus All, which is more than a segmented control reads well at
-/// on a phone.
 class _CategoryFilter extends ConsumerWidget {
   const _CategoryFilter({required this.filter});
 

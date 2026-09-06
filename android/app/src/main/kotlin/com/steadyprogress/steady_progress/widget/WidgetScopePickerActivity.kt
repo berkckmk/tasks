@@ -58,15 +58,30 @@ class WidgetScopePickerActivity : Activity() {
         val current = WidgetConfigStore.read(this, appWidgetId).scope
         val panel = findViewById<LinearLayout>(R.id.picker_panel)
 
-        // Anchored under the chip. The launcher never tells an app where its
-        // widget sits — `getAppWidgetOptions` reports the size and never the
-        // position — so this is placed relative to the *screen* using the
-        // chip's own offset within the panel, which is the closest an app can
-        // get. Clamped below so it can't run off the edge.
-        (panel.layoutParams as FrameLayout.LayoutParams).apply {
-            gravity = Gravity.START or Gravity.TOP
-            leftMargin = dp(ANCHOR_LEFT_DP)
-            topMargin = dp(ANCHOR_TOP_DP)
+        // Anchored so the popup's own top-left lands on the chip that opened
+        // it, rather than in the screen's corner.
+        //
+        // **The launcher never tells an app where its widget sits.**
+        // `getAppWidgetOptions` reports the size and never the position, and
+        // a `PendingIntent` carries no touch coordinates — so this cannot be
+        // measured, only placed. The constants below are the chip's position
+        // for a widget in the home screen's **top row**, which is where these
+        // offsets used to be measured from too; the previous pair described
+        // the chip's offset *inside the panel* (13, 32) and were then applied
+        // as screen coordinates, which is why the popup opened above and to
+        // the left of the chip instead of on it.
+        //
+        // Clamped so a widget placed lower down still gets a popup fully on
+        // screen rather than one hanging off the bottom edge.
+        panel.post {
+            val params = panel.layoutParams as FrameLayout.LayoutParams
+            val root = findViewById<View>(R.id.picker_scrim)
+            params.gravity = Gravity.START or Gravity.TOP
+            params.leftMargin = dp(ANCHOR_LEFT_DP)
+                .coerceAtMost((root.width - panel.width - dp(8)).coerceAtLeast(0))
+            params.topMargin = dp(ANCHOR_TOP_DP)
+                .coerceAtMost((root.height - panel.height - dp(8)).coerceAtLeast(0))
+            panel.layoutParams = params
         }
 
         for (scope in WidgetScope.entries) {
@@ -128,7 +143,9 @@ class WidgetScopePickerActivity : Activity() {
     ).toInt()
 
     private companion object {
-        const val ANCHOR_LEFT_DP = 13
-        const val ANCHOR_TOP_DP = 32
+        /** The scope chip's own top-left, for a widget in the home screen's
+         *  top row: the panel's inset plus the chip's offset within it. */
+        const val ANCHOR_LEFT_DP = 30
+        const val ANCHOR_TOP_DP = 79
     }
 }

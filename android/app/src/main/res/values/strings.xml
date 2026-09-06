@@ -27,6 +27,24 @@
     <string name="widget_footer_more">+%1$d later this week</string>
     <string name="widget_footer_action">Remind me</string>
 
+    <!-- Quick-add button (replaces the clock). -->
+    <string name="widget_quick_add">Add new item</string>
+
+    <!-- The quick-add modal the `+` opens. Composed on the home screen and
+         created by the app on its next run — see WidgetPendingAdds. -->
+    <string name="widget_add_title">Quick add</string>
+    <string name="widget_add_hint">Title</string>
+    <string name="widget_add_when_empty">Pick a date</string>
+    <string name="widget_add_when_needed">A date and time are required</string>
+    <string name="widget_add_all_day">All day</string>
+    <string name="widget_add_time_prompt">Add a time?</string>
+    <string name="widget_add_time_pick">Pick a time</string>
+    <string name="widget_add_range_start">Starts</string>
+    <string name="widget_add_range_end">Ends</string>
+    <string name="widget_add_cancel">Cancel</string>
+    <string name="widget_add_confirm">Add</string>
+    <string name="widget_add_queued">Added — syncs when you next open the app</string>
+
     <!-- ===== Widget setup screen ===== -->
     <string name="config_title">Widget setup</string>
     <string name="config_preview_description">Live preview of the widget with the settings you have chosen.</string>

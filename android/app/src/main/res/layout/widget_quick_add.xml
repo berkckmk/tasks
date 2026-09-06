@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The quick-add modal, shown by a translucent no-title Activity.
+
+    The header's `+` used to launch the app on `/reminders/new`, which is a
+    cold start and a full-screen form for what is usually one line of text.
+    This is that line, over a 50% scrim, without leaving the launcher.
+
+    ## The shape
+
+    Google's own reminder sheet, restated in this app's palette: a title, a
+    borderless field, then one **row per decision** — a leading icon, a label,
+    and the current value — separated by hairlines. Rows rather than a stack
+    of labelled fields, because a row reads as "this is set to X" and a
+    labelled field reads as "this is unfinished".
+
+    Three rows: when, area, and (for tasks) the range's second date is folded
+    into the same when-row rather than adding a fourth.
+
+    ## The position
+
+    Near the top, not centred. A translucent, non-floating window does not get
+    resized for the IME, so a centred panel is measured against the full
+    screen height and its buttons land behind the keyboard — which is exactly
+    what the first version did. `adjustResize` and `fitsSystemWindows` were
+    both tried and neither helps for this window type. A top anchor clears a
+    full-height keyboard with no inset plumbing at all.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/add_scrim"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+
+    <LinearLayout
+        android:id="@+id/add_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="48dp"
+        android:orientation="vertical"
+        android:background="@drawable/widget_picker_panel"
+        android:paddingTop="18dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/add_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginEnd="18dp"
+            android:textSize="19sp"
+            android:fontFamily="@font/inter_semibold"
+            android:textColor="@color/nocturne_text"
+            android:text="@string/widget_add_title" />
+
+        <!-- The one line the modal exists for. Borderless like the reference:
+             the panel is already a surface, and a well inside it would be a
+             second one. `imeOptions=actionNext` rather than `actionDone` — the
+             keyboard's key moves on to the schedule instead of committing an
+             item whose date has not been chosen yet. -->
+        <EditText
+            android:id="@+id/add_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="18dp"
+            android:layout_marginEnd="18dp"
+            android:layout_marginTop="14dp"
+            android:layout_marginBottom="4dp"
+            android:background="@null"
+            android:textSize="17sp"
+            android:fontFamily="@font/inter_regular"
+            android:textColor="@color/nocturne_text"
+            android:textColorHint="@color/nocturne_text_unchecked"
+            android:hint="@string/widget_add_hint"
+            android:inputType="textCapSentences"
+            android:imeOptions="actionNext"
+            android:maxLines="1"
+            android:importantForAutofill="no" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/nocturne_divider" />
+
+        <!-- When. Tapping it runs the pickers for the current area: date and
+             time for a reminder (both required), start date, end date and an
+             optional time for a task. -->
+        <LinearLayout
+            android:id="@+id/add_when_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="?android:attr/selectableItemBackground"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp">
+
+            <ImageView
+                android:id="@+id/add_when_icon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/widget_calendar"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/add_when_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:textSize="16sp"
+                android:textColor="@color/nocturne_text_unchecked"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="@string/widget_add_when_empty" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/nocturne_divider" />
+
+        <!-- Area. The reference's "Hatırlatıcılarım" row — which list this
+             lands in — except this app has three lists, so the row carries the
+             choice itself rather than naming one. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="6dp">
+
+            <ImageView
+                android:id="@+id/add_area_icon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/widget_kind_reminder"
+                android:contentDescription="@null" />
+
+            <LinearLayout
+                android:id="@+id/add_kinds"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="12dp"
+                android:orientation="horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="10dp"
+            android:orientation="horizontal"
+            android:gravity="end|center_vertical">
+
+            <TextView
+                android:id="@+id/add_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:textSize="15sp"
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/nocturne_text_muted"
+                android:background="?android:attr/selectableItemBackground"
+                android:text="@string/widget_add_cancel" />
+
+            <TextView
+                android:id="@+id/add_confirm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/widget_add_confirm"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:textSize="15sp"
+                android:fontFamily="@font/inter_semibold"
+                android:textColor="@color/nocturne_ink"
+                android:text="@string/widget_add_confirm" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

@@ -150,6 +150,14 @@ class AppIcons {
   static const IconData arrowDown = IconData(0xe03e, fontFamily: _regular);
   static const IconData alarm = IconData(0xe006, fontFamily: _regular);
   static const IconData plusCircle = IconData(0xe3d6, fontFamily: _regular);
+  static const IconData minusCircle = IconData(0xe328, fontFamily: _regular);
   static const IconData checkCircle = IconData(0xe184, fontFamily: _regular);
   static const IconData squaresFour = IconData(0xe464, fontFamily: _regular);
+  static const IconData arrowsClockwise = IconData(0xe072, fontFamily: _regular);
+  static const IconData speakerHigh = IconData(0xe456, fontFamily: _regular);
+  static const IconData mapPin = IconData(0xe316, fontFamily: _regular);
+  static const IconData tag = IconData(0xe47a, fontFamily: _regular);
+  static const IconData camera = IconData(0xe128, fontFamily: _regular);
+  static const IconData checkSquare = IconData(0xe186, fontFamily: _regular);
+  static const IconData note = IconData(0xe34a, fontFamily: _regular);
 }

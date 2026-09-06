@@ -105,10 +105,14 @@
                             android:paddingEnd="7dp"
                             android:paddingTop="2dp"
                             android:paddingBottom="2dp"
-                            android:textSize="9sp"
-                            android:textStyle="bold"
-                            android:letterSpacing="0.13"
+                            android:textSize="9.5sp"
+                            android:fontFamily="@font/inter_semibold"
+                            android:letterSpacing="0.08"
                             android:textColor="@color/nocturne_ink_accent"
+                            android:shadowColor="@color/nocturne_text_shadow"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="3"
                             android:text="@string/widget_scope_today" />
 
                         <TextView
@@ -116,16 +120,21 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="9dp"
-                            android:textSize="11sp"
+                            android:textSize="11.5sp"
+                            android:fontFamily="@font/inter_semibold"
                             android:maxLines="1"
                             android:textColor="@color/nocturne_text_note"
+                            android:shadowColor="@color/nocturne_text_shadow"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="3"
                             android:text="@string/config_preview_summary" />
                     </LinearLayout>
 
                     <ProgressBar
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="3dp"
+                        android:layout_height="4dp"
                         android:layout_marginTop="9dp"
                         android:max="100"
                         android:progress="42"

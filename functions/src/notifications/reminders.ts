@@ -15,7 +15,12 @@ import { digestHour, wantsNotification } from "./preferences";
 /** How often sendHabitReminders runs; also the width of its match window. */
 const REMINDER_SLOT_MINUTES = 15;
 
-async function sendToUserTokens(uid: string, title: string, body: string): Promise<void> {
+async function sendToUserTokens(
+  uid: string,
+  title: string,
+  body: string,
+  channelId: string = "channel_normal"
+): Promise<void> {
   const tokensSnapshot = await db.collection("users").doc(uid).collection("fcmTokens").get();
   if (tokensSnapshot.empty) return;
 
@@ -23,6 +28,14 @@ async function sendToUserTokens(uid: string, title: string, body: string): Promi
   const response = await getMessaging().sendEachForMulticast({
     tokens,
     notification: { title, body },
+    android: {
+      priority: "high",
+      notification: {
+        channelId,
+        defaultSound: channelId !== "channel_low",
+        defaultVibrateTimings: channelId !== "channel_low",
+      },
+    },
   });
 
   // Clean up tokens the platform reports as no longer valid (app
@@ -202,11 +215,19 @@ export const sendDueReminders = onSchedule(
         const title = (reminder.title as string | undefined) ?? "Reminder";
         const message = (reminder.message as string | undefined) ?? "";
         const at = wallClockLabelInTimeZone(dueAt.toDate(), timezone);
+        const priorityStr = (reminder.priority as string | undefined) ?? "normal";
+        const channelId =
+          priorityStr === "important"
+            ? "channel_important"
+            : priorityStr === "low"
+            ? "channel_low"
+            : "channel_normal";
 
         await sendToUserTokens(
           userDoc.id,
           title,
-          message.length > 0 ? message : `Due at ${at}.`
+          message.length > 0 ? message : `Due at ${at}.`,
+          channelId
         );
         await reminderDoc.ref.update({ notifiedAt: now });
       }

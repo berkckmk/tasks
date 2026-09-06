@@ -61,6 +61,9 @@ class ResponsiveScaffold extends StatelessWidget {
 
         return Scaffold(
           backgroundColor: c.bg,
+          // The nested page owns keyboard resizing; doing it in both
+          // scaffolds subtracts the IME twice.
+          resizeToAvoidBottomInset: false,
           body: isWide
               ? Row(children: [_rail(context), Expanded(child: child)])
               : child,

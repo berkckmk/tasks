@@ -7,10 +7,12 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_type.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_spacing.dart';
+import '../../../core/widgets/app_dialogs.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/error_state.dart';
 import '../../../core/widgets/nocturne.dart';
-import '../../dashboard/presentation/widgets/quick_capture_bar.dart';
+import '../../../core/widgets/app_fab.dart';
+import '../../subscription/presentation/guarded_create.dart';
 import '../application/reminder_providers.dart';
 import '../domain/reminder.dart';
 import 'widgets/reminder_card.dart';
@@ -32,6 +34,75 @@ class RemindersScreen extends ConsumerStatefulWidget {
 class _RemindersScreenState extends ConsumerState<RemindersScreen> {
   String _query = '';
   bool _searching = false;
+  bool _isSelectionMode = false;
+  final Set<String> _selectedIds = {};
+
+  void _startSelection(String initialId) {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedIds.add(initialId);
+    });
+  }
+
+  void _toggleSelect(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _selectAll(List<ReminderItem> all) {
+    setState(() {
+      if (_selectedIds.length == all.length) {
+        _selectedIds.clear();
+        _isSelectionMode = false;
+      } else {
+        _selectedIds.addAll(all.map((r) => r.id));
+      }
+    });
+  }
+
+  Future<void> _deleteSelected() async {
+    if (_selectedIds.isEmpty) return;
+    final count = _selectedIds.length;
+    final confirmed = await confirmDestructive(
+      context,
+      title: 'Seçilen $count hatırlatıcı silinsin mi?',
+      message: 'Bu işlem geri alınamaz.',
+    );
+    if (!confirmed || !mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final toDelete = _selectedIds.toList();
+    try {
+      await Future.wait(
+        toDelete.map(
+          (id) => ref.read(reminderActionsProvider).deleteReminder(id),
+        ),
+      );
+      if (mounted) {
+        setState(() {
+          _selectedIds.clear();
+          _isSelectionMode = false;
+        });
+        messenger.showSnackBar(
+          SnackBar(content: Text('$count hatırlatıcı silindi')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Hatırlatıcılar silinemedi: $e')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,20 +111,18 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
 
     return Scaffold(
       backgroundColor: c.bg,
+      floatingActionButton: _isSelectionMode
+          ? null
+          : AppFab(
+              tooltip: 'Add reminder',
+              onPressed: () => GuardedCreate.reminder(context, ref),
+            ),
       body: SafeArea(
         bottom: false,
-        child: Stack(
-          children: [
-            remindersAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => ErrorState(error: error),
-              data: (reminders) => _body(context, reminders),
-            ),
-            const Align(
-              alignment: Alignment.bottomCenter,
-              child: QuickCaptureBar(),
-            ),
-          ],
+        child: remindersAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => ErrorState(error: error),
+          data: (reminders) => _body(context, reminders),
         ),
       ),
     );
@@ -65,28 +134,79 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
     final groups = _group(all, now);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
+      padding: EdgeInsets.fromLTRB(
         AppSpacing.screenH,
         AppSpacing.lg,
         AppSpacing.screenH,
-        QuickCaptureBar.reservedHeight,
+        AppSpacing.xl,
       ),
       children: [
-        Row(
-          children: [
-            Text('Reminders', style: AppType.h2.copyWith(color: c.text)),
-            const Spacer(),
-            GhostIconButton(
-              icon: _searching ? AppIcons.x : AppIcons.magnifyingGlass,
-              tooltip: _searching ? 'Close search' : 'Search reminders',
-              onPressed: () => setState(() {
-                _searching = !_searching;
-                if (!_searching) _query = '';
-              }),
+        if (_isSelectionMode)
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xs,
             ),
-          ],
-        ),
-        if (_searching) ...[
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              border: Border.all(color: c.edgeMd),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(AppIcons.x),
+                  tooltip: 'Vazgeç',
+                  onPressed: () => setState(() {
+                    _selectedIds.clear();
+                    _isSelectionMode = false;
+                  }),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  '${_selectedIds.length} seçildi',
+                  style: AppType.h5.copyWith(color: c.text),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => _selectAll(all),
+                  child: Text(
+                    _selectedIds.length == all.length
+                        ? 'Seçimi Kaldır'
+                        : 'Tümünü Seç',
+                    style: AppType.metaSmall.copyWith(color: c.accent),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(AppIcons.trash, color: Colors.redAccent),
+                  tooltip: 'Seçilenleri Sil',
+                  onPressed: _selectedIds.isEmpty ? null : _deleteSelected,
+                ),
+              ],
+            ),
+          )
+        else
+          Row(
+            children: [
+              Text('Reminders', style: AppType.h2.copyWith(color: c.text)),
+              const Spacer(),
+              if (all.isNotEmpty)
+                GhostIconButton(
+                  icon: AppIcons.checkSquareOffset,
+                  tooltip: 'Toplu seçim',
+                  onPressed: () => setState(() => _isSelectionMode = true),
+                ),
+              GhostIconButton(
+                icon: _searching ? AppIcons.x : AppIcons.magnifyingGlass,
+                tooltip: _searching ? 'Close search' : 'Search reminders',
+                onPressed: () => setState(() {
+                  _searching = !_searching;
+                  if (!_searching) _query = '';
+                }),
+              ),
+            ],
+          ),
+        if (_searching && !_isSelectionMode) ...[
           const SizedBox(height: AppSpacing.sm),
           TextField(
             autofocus: true,
@@ -118,7 +238,13 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         else
           for (final group in groups)
             if (group.reminders.isNotEmpty) ...[
-              _Group(group: group),
+              _Group(
+                group: group,
+                isSelectionMode: _isSelectionMode,
+                selectedIds: _selectedIds,
+                onToggleSelect: _toggleSelect,
+                onStartSelection: _startSelection,
+              ),
               const SizedBox(height: AppSpacing.xl),
             ],
       ],
@@ -196,9 +322,19 @@ class _ReminderGroup {
 }
 
 class _Group extends ConsumerWidget {
-  const _Group({required this.group});
+  const _Group({
+    required this.group,
+    this.isSelectionMode = false,
+    this.selectedIds = const {},
+    this.onToggleSelect,
+    this.onStartSelection,
+  });
 
   final _ReminderGroup group;
+  final bool isSelectionMode;
+  final Set<String> selectedIds;
+  final ValueChanged<String>? onToggleSelect;
+  final ValueChanged<String>? onStartSelection;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -250,13 +386,24 @@ class _Group extends ConsumerWidget {
                     key: ValueKey(group.reminders[i].id),
                     reminder: group.reminders[i],
                     overdue: group.overdue,
-                    // No rule under the last row — the group's own left
-                    // border already closes it, and a trailing hairline
-                    // reads as a missing row.
+                    isSelectionMode: isSelectionMode,
+                    isSelected: selectedIds.contains(group.reminders[i].id),
                     showDivider: i < group.reminders.length - 1,
-                    onTap: () => context.push(
-                      '/reminders/${group.reminders[i].id}/edit',
-                    ),
+                    onSelect: () => onToggleSelect?.call(group.reminders[i].id),
+                    onLongPress: () {
+                      if (!isSelectionMode) {
+                        onStartSelection?.call(group.reminders[i].id);
+                      }
+                    },
+                    onTap: () {
+                      if (isSelectionMode) {
+                        onToggleSelect?.call(group.reminders[i].id);
+                      } else {
+                        context.push(
+                          '/reminders/${group.reminders[i].id}/edit',
+                        );
+                      }
+                    },
                   ),
               ],
             ),
@@ -271,12 +418,19 @@ class _Group extends ConsumerWidget {
 ///
 /// Time alone for today, weekday + time within the week, date + time beyond
 /// it. The column is fixed-width and tabular either way.
+///
+/// **The time is always shown, and always as AM/PM.** The two outer branches
+/// used to print a weekday or a date and stop there, which meant the one
+/// thing a reminder actually is — a moment — was missing from every row that
+/// wasn't today's. `DateFormat.jm()` is the 12-hour pattern for the locale;
+/// the whole reminders surface is pinned to it, pickers included.
 String reminderTimeLabel(DateTime? due, DateTime now) {
   if (due == null) return '';
+  final time = DateFormat.jm().format(due);
   if (due.year == now.year && due.month == now.month && due.day == now.day) {
-    return DateFormat.jm().format(due);
+    return time;
   }
   final days = due.difference(DateTime(now.year, now.month, now.day)).inDays;
-  if (days.abs() < 7) return DateFormat('EEE').format(due);
-  return DateFormat('d MMM').format(due);
+  if (days.abs() < 7) return '${DateFormat('EEE').format(due)} $time';
+  return '${DateFormat('d MMM').format(due)} $time';
 }
