@@ -62,15 +62,18 @@ class AuthActions {
       user.uid,
       authRepository.linkedProviderIds,
     );
+    try {
+      await _ref.read(pushNotificationsActionsProvider).syncTokenIfGranted();
+    } catch (_) {}
   }
 
   /// Only creates the Firebase Auth account and sends the verification
   /// email — the profile/subscription bootstrap is deferred to
   /// [checkEmailVerified] (see its doc comment and firestore.rules'
   /// `isOwner()` for why: the token isn't verified yet at this point, so
-  /// Firestore would reject the write anyway).
-  Future<void> signUp({required String email, required String password}) async {
-    await _ref
+  /// this write would be rejected).
+  Future<void> signUp({required String email, required String password}) {
+    return _ref
         .read(authRepositoryProvider)
         .signUpWithEmail(email: email, password: password);
   }
@@ -79,11 +82,9 @@ class AuthActions {
     await _ref
         .read(authRepositoryProvider)
         .signInWithEmail(email: email, password: password);
-    // No bootstrap call here: an existing account was already bootstrapped
-    // either at Google sign-in or at its first post-verification
-    // checkEmailVerified() — signing back in later never needs it again,
-    // and an *unverified* password account can't reach this screen at all
-    // (the router keeps it on /verify-email).
+    try {
+      await _ref.read(pushNotificationsActionsProvider).syncTokenIfGranted();
+    } catch (_) {}
   }
 
   /// Google sign-in from the Auth screen. Bootstraps a profile/subscription

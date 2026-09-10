@@ -19,7 +19,8 @@ async function sendToUserTokens(
   uid: string,
   title: string,
   body: string,
-  channelId: string = "channel_normal"
+  channelId: string = "channel_normal",
+  data: Record<string, string> = {}
 ): Promise<void> {
   const tokensSnapshot = await db.collection("users").doc(uid).collection("fcmTokens").get();
   if (tokensSnapshot.empty) return;
@@ -28,6 +29,7 @@ async function sendToUserTokens(
   const response = await getMessaging().sendEachForMulticast({
     tokens,
     notification: { title, body },
+    data,
     android: {
       priority: "high",
       notification: {
@@ -97,7 +99,16 @@ export const sendHabitReminders = onSchedule(
         const alreadySentFor = habit.lastReminderSentOn as string | undefined;
         if (alreadySentFor === today) continue;
 
-        await sendToUserTokens(userDoc.id, "Habit reminder", `Time for: ${habit.name as string}`);
+        await sendToUserTokens(
+          userDoc.id,
+          "Habit reminder",
+          `Time for: ${habit.name as string}`,
+          "channel_normal",
+          {
+            habitId: habitDoc.id,
+            type: "habit",
+          }
+        );
         await habitDoc.ref.update({ lastReminderSentOn: today });
       }
     });
@@ -148,7 +159,11 @@ export const sendDailyTaskDigest = onSchedule(
         await sendToUserTokens(
           userDoc.id,
           "Today's tasks",
-          `You have ${dueToday.length} task${dueToday.length === 1 ? "" : "s"} due today.`
+          `You have ${dueToday.length} task${dueToday.length === 1 ? "" : "s"} due today.`,
+          "channel_normal",
+          {
+            type: "digest",
+          }
         );
       }
     });
@@ -227,7 +242,12 @@ export const sendDueReminders = onSchedule(
           userDoc.id,
           title,
           message.length > 0 ? message : `Due at ${at}.`,
-          channelId
+          channelId,
+          {
+            reminderId: reminderDoc.id,
+            priority: priorityStr,
+            type: "reminder",
+          }
         );
         await reminderDoc.ref.update({ notifiedAt: now });
       }

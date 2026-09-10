@@ -13,12 +13,25 @@ import com.steadyprogress.steady_progress.R
 class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        val action = intent.action
+        Log.i(TAG, "onReceive triggered with action: $action")
+
+        if (action == Intent.ACTION_BOOT_COMPLETED ||
+            action == Intent.ACTION_MY_PACKAGE_REPLACED ||
+            action == "android.intent.action.QUICKBOOT_POWERON" ||
+            action == "com.htc.intent.action.QUICKBOOT_POWERON"
+        ) {
+            NotificationChannels.ensureCreated(context)
+            AlarmScheduler.rescheduleAll(context)
+            return
+        }
+
         val id = intent.getStringExtra(EXTRA_ID) ?: return
         val title = intent.getStringExtra(EXTRA_TITLE) ?: "Hatırlatıcı"
         val message = intent.getStringExtra(EXTRA_MESSAGE) ?: ""
         val priority = intent.getStringExtra(EXTRA_PRIORITY) ?: "normal"
 
-        Log.i(TAG, "onReceive triggered for id=$id, title=$title, priority=$priority")
+        Log.i(TAG, "Triggering alarm notification for id=$id, title=$title, priority=$priority")
 
         NotificationChannels.ensureCreated(context)
 
@@ -34,7 +47,7 @@ class AlarmReceiver : BroadcastReceiver() {
         )
 
         val channelId = when (priority) {
-            "important" -> NotificationChannels.CHANNEL_IMPORTANT
+            "important" -> NotificationChannels.CHANNEL_IMPORTANT_ALARM_V1
             "low" -> NotificationChannels.CHANNEL_LOW
             else -> NotificationChannels.CHANNEL_NORMAL
         }
@@ -48,12 +61,12 @@ class AlarmReceiver : BroadcastReceiver() {
 
         when (priority) {
             "important" -> {
-                builder.setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                builder.setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setCategory(NotificationCompat.CATEGORY_ALARM)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setVibrate(longArrayOf(0, 350, 150, 350))
                     // Heads-up banner pops up on screen and rings watch/headphones
-                    .setFullScreenIntent(clickPendingIntent, false)
+                    .setFullScreenIntent(clickPendingIntent, true)
             }
             "low" -> {
                 builder.setPriority(NotificationCompat.PRIORITY_LOW)
@@ -68,8 +81,9 @@ class AlarmReceiver : BroadcastReceiver() {
         try {
             val notificationManager = NotificationManagerCompat.from(context)
             notificationManager.notify(id.hashCode(), builder.build())
+            AlarmScheduler.markFired(context, id)
         } catch (e: SecurityException) {
-            // Android 13+ POST_NOTIFICATIONS permission not granted
+            Log.w(TAG, "Cannot show notification, POST_NOTIFICATIONS permission not granted: $e")
         }
     }
 
@@ -82,3 +96,4 @@ class AlarmReceiver : BroadcastReceiver() {
         const val EXTRA_PRIORITY = "extra_priority"
     }
 }
+

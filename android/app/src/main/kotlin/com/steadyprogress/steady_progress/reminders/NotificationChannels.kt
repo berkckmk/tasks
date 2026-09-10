@@ -39,6 +39,27 @@ object NotificationChannels {
             setShowBadge(true)
         }
 
+        // 1b. Önemli Alarm Kanalı (channel_important_alarm_v1)
+        val importantAlarmChannel = NotificationChannel(
+            CHANNEL_IMPORTANT_ALARM_V1,
+            "Önemli Hatırlatıcılar & İlaçlar (Alarm)",
+            NotificationManager.IMPORTANCE_HIGH,
+        ).apply {
+            description = "Sessiz modda da alarm ses akışını kullanan önemli hatırlatıcılar."
+            enableVibration(true)
+            vibrationPattern = longArrayOf(0, 350, 150, 350)
+            val alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val alarmAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+            setSound(alarmSound, alarmAttributes)
+            setBypassDnd(true)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            setShowBadge(true)
+        }
+
         // 2. Normal (Standart bildirimler)
         val normalChannel = NotificationChannel(
             CHANNEL_NORMAL,
@@ -63,6 +84,8 @@ object NotificationChannels {
             setShowBadge(false)
         }
 
-        manager.createNotificationChannels(listOf(importantChannel, normalChannel, lowChannel))
+        manager.createNotificationChannels(listOf(importantChannel, importantAlarmChannel, normalChannel, lowChannel))
     }
+
+    const val CHANNEL_IMPORTANT_ALARM_V1 = "channel_important_alarm_v1"
 }

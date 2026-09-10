@@ -97,6 +97,11 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, ALARM_CHANNEL)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
+                    "getInitialReminderId" -> {
+                        val id = pendingReminderId ?: intent?.getStringExtra("reminder_id")
+                        pendingReminderId = null
+                        result.success(id)
+                    }
                     "scheduleAlarm" -> {
                         val id = call.argument<String>("id") ?: ""
                         val timestampMs = call.argument<Number>("timestampMs")?.toLong() ?: 0L
@@ -138,9 +143,31 @@ class MainActivity : FlutterActivity() {
             }
     }
 
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        pendingReminderId = intent?.getStringExtra("reminder_id")
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val id = intent.getStringExtra("reminder_id")
+        if (id != null) {
+            flutterEngine?.let { engine ->
+                MethodChannel(engine.dartExecutor.binaryMessenger, ALARM_CHANNEL)
+                    .invokeMethod("onReminderClicked", id)
+            } ?: run {
+                pendingReminderId = id
+            }
+        }
+    }
+
+    private var pendingReminderId: String? = null
+
     companion object {
         private const val DEVICE_INFO_CHANNEL = "com.steadyprogress/device_info"
         private const val WIDGET_CHANNEL = "com.steadyprogress/widget"
         private const val ALARM_CHANNEL = "com.steadyprogress/reminders_alarm"
     }
 }
+

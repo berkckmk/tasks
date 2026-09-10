@@ -36,8 +36,8 @@ class LocalReminderScheduler {
         'message': reminder.message.isNotEmpty
             ? reminder.message
             : (reminder.priority == ReminderPriority.important
-                ? 'Zamanı geldi! Lütfen kontrol edin.'
-                : 'Hatırlatıcı zamanı.'),
+                  ? 'Zamanı geldi! Lütfen kontrol edin.'
+                  : 'Hatırlatıcı zamanı.'),
         'priority': reminder.priority.name,
       });
       debugPrint(
@@ -87,6 +87,17 @@ class LocalReminderScheduler {
       });
     } catch (e) {
       debugPrint('Failed to send test notification: $e');
+    }
+  }
+
+  /// Retrieves any reminder id from the launch intent that opened the app.
+  Future<String?> getInitialReminderId() async {
+    if (!_isSupported) return null;
+    try {
+      return await _channel.invokeMethod<String>('getInitialReminderId');
+    } catch (e) {
+      debugPrint('Failed to get initial reminder id: $e');
+      return null;
     }
   }
 }

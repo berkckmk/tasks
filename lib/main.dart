@@ -10,6 +10,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/app.dart';
 import 'core/google/google_auth_config.dart';
+import 'features/reminders/application/local_reminder_scheduler.dart';
 import 'firebase_options.dart';
 
 /// Must be a top-level function — the OS calls this in a separate isolate
@@ -58,10 +59,21 @@ void main() async {
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessage.listen((message) {
-      // Foreground pushes don't show a system notification on their own;
-      // this is the hook for an in-app banner if/when that's built. For now
-      // just make sure the message actually arrives.
-      debugPrint('Foreground FCM message: ${message.notification?.title}');
+      final notif = message.notification;
+      debugPrint('Foreground FCM message: ${notif?.title}');
+      if (notif != null && !kIsWeb) {
+        final title = notif.title ?? 'Steady Progress';
+        final body = notif.body ?? '';
+        final priority = message.data['priority']?.toString() ?? 'normal';
+        const LocalReminderScheduler().testNotification(
+          id:
+              message.messageId ??
+              DateTime.now().millisecondsSinceEpoch.toString(),
+          title: title,
+          message: body,
+          priority: priority,
+        );
+      }
     });
   }
 
@@ -85,7 +97,5 @@ void main() async {
     );
   }
 
-  runApp(
-    ProviderScope(child: SteadyProgressApp(firebaseInitError: initError)),
-  );
+  runApp(ProviderScope(child: SteadyProgressApp(firebaseInitError: initError)));
 }

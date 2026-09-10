@@ -51,6 +51,7 @@ class NotificationSettings {
     required this.masterEnabled,
     required this.disabledChannels,
     required this.taskDigestHour,
+    this.importantBypassSilent = true,
   });
 
   /// The top-level switch. Off means nothing is sent regardless of the
@@ -68,6 +69,10 @@ class NotificationSettings {
   /// 08:00 happens at a different instant in every zone. See
   /// `functions/src/lib/datetime.ts`.
   final int taskDigestHour;
+
+  /// Whether important/medication reminders should play sound and vibrate
+  /// even when the phone is in silent or vibrate mode (using the alarm stream).
+  final bool importantBypassSilent;
 
   static const defaultDigestHour = 8;
 
@@ -87,6 +92,7 @@ class NotificationSettings {
           if (prefs[channel.key] == false) channel,
       },
       taskDigestHour: _readHour(prefs['taskDigestHour']),
+      importantBypassSilent: prefs['importantBypassSilent'] as bool? ?? true,
     );
   }
 
@@ -110,6 +116,7 @@ class NotificationSettings {
       for (final channel in NotificationChannel.values)
         channel.key: !disabledChannels.contains(channel),
       'taskDigestHour': taskDigestHour,
+      'importantBypassSilent': importantBypassSilent,
     };
   }
 
@@ -117,11 +124,14 @@ class NotificationSettings {
     bool? masterEnabled,
     Set<NotificationChannel>? disabledChannels,
     int? taskDigestHour,
+    bool? importantBypassSilent,
   }) {
     return NotificationSettings(
       masterEnabled: masterEnabled ?? this.masterEnabled,
       disabledChannels: disabledChannels ?? this.disabledChannels,
       taskDigestHour: taskDigestHour ?? this.taskDigestHour,
+      importantBypassSilent:
+          importantBypassSilent ?? this.importantBypassSilent,
     );
   }
 

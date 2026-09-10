@@ -11,15 +11,12 @@ import '../../../core/widgets/app_dialogs.dart';
 import '../../../core/widgets/edit_target.dart';
 import '../../../core/widgets/item_detail_sheet_components.dart';
 import '../../../core/widgets/sheet_page.dart';
+import '../../notifications/application/push_notifications_providers.dart';
 import '../application/reminder_providers.dart';
 import '../domain/reminder.dart';
 
 class AddEditReminderScreen extends ConsumerStatefulWidget {
-  const AddEditReminderScreen({
-    super.key,
-    this.reminderId,
-    this.initialTitle,
-  });
+  const AddEditReminderScreen({super.key, this.reminderId, this.initialTitle});
 
   final String? reminderId;
   final String? initialTitle;
@@ -71,7 +68,8 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
   void _onTitleChanged() {
     if (!_userChangedPriority) {
       final lower = _titleController.text.toLowerCase();
-      final isMed = lower.contains('duxet') ||
+      final isMed =
+          lower.contains('duxet') ||
           lower.contains('aubagio') ||
           lower.contains('folik') ||
           lower.contains('ilaç') ||
@@ -93,11 +91,14 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
     _dueAt = reminder.dueAt;
     _status = reminder.status;
     _priority = reminder.priority;
-    _starred = reminder.starred || reminder.priority == ReminderPriority.important;
+    _starred =
+        reminder.starred || reminder.priority == ReminderPriority.important;
     _earlyAlertMinutes = reminder.earlyAlertMinutes;
     _repeatRule = reminder.repeatRule ?? 'Tekrarlama';
     _location = reminder.location;
-    _category = reminder.category.isNotEmpty ? reminder.category : 'Hatırlatıcılarım';
+    _category = reminder.category.isNotEmpty
+        ? reminder.category
+        : 'Hatırlatıcılarım';
     _checklist = List.from(reminder.checklist);
     _showNotes = reminder.message.isNotEmpty;
     _showChecklist = reminder.checklist.isNotEmpty;
@@ -211,8 +212,8 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
       iconOf: (p) => p == ReminderPriority.important
           ? AppIcons.speakerHigh
           : (p == ReminderPriority.low
-              ? AppIcons.bellSimpleSlash
-              : AppIcons.bell),
+                ? AppIcons.bellSimpleSlash
+                : AppIcons.bell),
       subtitleOf: (p) => p.description,
     );
     if (picked != null && mounted) {
@@ -270,9 +271,8 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
       if (context.mounted) context.pop();
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text("Silinemedi: $e")));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Silinemedi: $e")));
       }
     }
   }
@@ -280,15 +280,32 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
   Future<void> _save(ReminderItem? existing) async {
     final titleText = _titleController.text.trim();
     if (titleText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lütfen bir başlık girin')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Lütfen bir başlık girin')));
       return;
     }
 
     setState(() => _isSaving = true);
     try {
-      await ref.read(reminderActionsProvider).saveReminder(
+      if (_status == ReminderStatus.scheduled && _dueAt != null) {
+        try {
+          final pushRepo = ref.read(pushNotificationsRepositoryProvider);
+          final hasPerm = await pushRepo.isPermissionGranted();
+          if (!hasPerm) {
+            final granted = await pushRepo.requestPermission();
+            if (granted) {
+              await ref
+                  .read(pushNotificationsActionsProvider)
+                  .syncTokenIfGranted();
+            }
+          }
+        } catch (_) {}
+      }
+
+      await ref
+          .read(reminderActionsProvider)
+          .saveReminder(
             id: existing?.id,
             title: titleText,
             message: _messageController.text.trim(),
@@ -305,15 +322,14 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
       if (mounted) context.pop();
     } on FirebaseFunctionsException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? "Kaydedilemedi.")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message ?? "Kaydedilemedi.")));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Kaydedilemedi: $e")),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Kaydedilemedi: $e")));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -324,7 +340,9 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
   Widget build(BuildContext context) {
     final c = AppColorsScheme.of(context);
     final isEditing = widget.reminderId != null;
-    final screenTitle = isEditing ? 'Hatırlatıcıyı düzenle' : 'Yeni hatırlatıcı';
+    final screenTitle = isEditing
+        ? 'Hatırlatıcıyı düzenle'
+        : 'Yeni hatırlatıcı';
 
     final target = EditTarget.resolve<ReminderItem>(
       id: widget.reminderId,
@@ -387,7 +405,9 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
                         color: _starred ? const Color(0xFFFFB300) : c.muted,
                         size: 24,
                       ),
-                      tooltip: _starred ? 'Önemli işaretini kaldır' : 'Önemli işaretle',
+                      tooltip: _starred
+                          ? 'Önemli işaretini kaldır'
+                          : 'Önemli işaretle',
                       onPressed: () {
                         setState(() {
                           _starred = !_starred;
@@ -478,7 +498,9 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
                         filled: false,
                         border: InputBorder.none,
                         hintText: 'Açıklama veya not ekleyin...',
-                        hintStyle: AppType.bodySmall.copyWith(color: c.inactive),
+                        hintStyle: AppType.bodySmall.copyWith(
+                          color: c.inactive,
+                        ),
                       ),
                     ),
                   ),
@@ -497,21 +519,37 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Alt Maddeler', style: AppType.meta.copyWith(color: c.muted)),
+                        Text(
+                          'Alt Maddeler',
+                          style: AppType.meta.copyWith(color: c.muted),
+                        ),
                         const SizedBox(height: 6),
                         for (int i = 0; i < _checklist.length; i++)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Row(
                               children: [
-                                const Icon(Icons.check_box_outline_blank, size: 18),
+                                const Icon(
+                                  Icons.check_box_outline_blank,
+                                  size: 18,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  child: Text(_checklist[i], style: AppType.bodySmall.copyWith(color: c.text)),
+                                  child: Text(
+                                    _checklist[i],
+                                    style: AppType.bodySmall.copyWith(
+                                      color: c.text,
+                                    ),
+                                  ),
                                 ),
                                 GestureDetector(
-                                  onTap: () => setState(() => _checklist.removeAt(i)),
-                                  child: Icon(AppIcons.x, size: 16, color: c.inactive),
+                                  onTap: () =>
+                                      setState(() => _checklist.removeAt(i)),
+                                  child: Icon(
+                                    AppIcons.x,
+                                    size: 16,
+                                    color: c.inactive,
+                                  ),
                                 ),
                               ],
                             ),
@@ -522,12 +560,16 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
                             Expanded(
                               child: TextField(
                                 controller: _newChecklistItemController,
-                                style: AppType.bodySmall.copyWith(color: c.text),
+                                style: AppType.bodySmall.copyWith(
+                                  color: c.text,
+                                ),
                                 decoration: InputDecoration(
                                   isDense: true,
                                   border: InputBorder.none,
                                   hintText: '+ Yeni madde yazın...',
-                                  hintStyle: AppType.bodySmall.copyWith(color: c.inactive),
+                                  hintStyle: AppType.bodySmall.copyWith(
+                                    color: c.inactive,
+                                  ),
                                 ),
                                 onSubmitted: (_) => _addChecklistItem(),
                               ),
@@ -603,7 +645,9 @@ class _AddEditReminderScreenState extends ConsumerState<AddEditReminderScreen> {
                 DetailRowItem(
                   icon: AppIcons.bell,
                   title: _category,
-                  iconColor: const Color(0xFF8B5CF6), // Purple accent from screenshot
+                  iconColor: const Color(
+                    0xFF8B5CF6,
+                  ), // Purple accent from screenshot
                   textColor: c.text,
                   onTap: _pickCategory,
                   showDivider: false,

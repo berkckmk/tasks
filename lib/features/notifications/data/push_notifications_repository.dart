@@ -16,10 +16,22 @@ class PushNotificationsRepository {
   final FirebaseFirestore _firestore;
 
   Future<bool> requestPermission() async {
-    final settings = await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    final settings = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
     return settings.authorizationStatus == AuthorizationStatus.authorized ||
         settings.authorizationStatus == AuthorizationStatus.provisional;
   }
+
+  Future<bool> isPermissionGranted() async {
+    final settings = await _messaging.getNotificationSettings();
+    return settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+  }
+
+  Stream<String> get onTokenRefresh => _messaging.onTokenRefresh;
 
   Future<void> registerTokenForUser(String uid) async {
     final token = await _messaging.getToken(
@@ -34,15 +46,25 @@ class PushNotificationsRepository {
       vapidKey: kIsWeb ? FcmConfig.webVapidKey : null,
     );
     if (token == null) return;
-    await _firestore.collection('users').doc(uid).collection('fcmTokens').doc(token).delete();
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('fcmTokens')
+        .doc(token)
+        .delete();
     await _messaging.deleteToken();
   }
 
   Future<void> _saveToken(String uid, String token) async {
-    await _firestore.collection('users').doc(uid).collection('fcmTokens').doc(token).set({
-      'token': token,
-      'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('fcmTokens')
+        .doc(token)
+        .set({
+          'token': token,
+          'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
   }
 }

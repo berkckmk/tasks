@@ -72,6 +72,12 @@ class NotificationSettingsActions {
     );
   }
 
+  Future<void> setImportantBypassSilent(bool value) {
+    return _write(
+      (settings) => settings.copyWith(importantBypassSilent: value),
+    );
+  }
+
   /// Reads the current preferences map, applies [change], writes it back.
   ///
   /// The whole map is round-tripped because `updateAppPreferences` replaces

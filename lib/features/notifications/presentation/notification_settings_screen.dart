@@ -97,6 +97,25 @@ class NotificationSettingsScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.sm),
           ],
           const SizedBox(height: AppSpacing.md),
+          const _SectionLabel('Kritik Bildirim Davranışı'),
+          AppCard(
+            child: SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              activeThumbColor: AppColors.deepGreen,
+              title: const Text(
+                'Sessiz Modda Ses ve Titreşim',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: const Text(
+                'Telefonunuz sessiz veya titreşim modundayken kritik sağlık ve ilaç hatırlatıcıları alarm sesi ve titreşim ile bildirilir.',
+              ),
+              value: settings.importantBypassSilent,
+              onChanged: settings.masterEnabled
+                  ? (value) => actions.setImportantBypassSilent(value)
+                  : null,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           _TimeZoneNote(timezone: timezone),
         ],
       ),
