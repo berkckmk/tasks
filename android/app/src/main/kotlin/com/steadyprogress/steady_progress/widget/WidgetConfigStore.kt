@@ -25,21 +25,24 @@ import android.graphics.Color
  * always a worse question than "what should this widget be about".
  */
 enum class WidgetScope(val key: String, val label: String) {
-    /** Everything due today, across all three pillars. */
+    /** Everything due today, across all four pillars. */
     TODAY("today", "Today"),
+    REMINDERS("reminders", "Reminders"),
     TASKS("tasks", "Tasks"),
-    REMINDERS("reminders", "Reminders");
+    HABITS("habits", "Habits");
 
     fun next(): WidgetScope = when (this) {
-        TODAY -> TASKS
-        TASKS -> REMINDERS
-        REMINDERS -> TODAY
+        TODAY -> REMINDERS
+        REMINDERS -> TASKS
+        TASKS -> HABITS
+        HABITS -> TODAY
     }
 
     companion object {
         fun fromKey(key: String?): WidgetScope = when (key?.lowercase()?.trim()) {
-            "tasks", "task" -> TASKS
             "reminders", "reminder" -> REMINDERS
+            "tasks", "task" -> TASKS
+            "habits", "habit" -> HABITS
             else -> TODAY
         }
     }

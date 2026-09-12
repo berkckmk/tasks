@@ -109,10 +109,21 @@ class WidgetQuickAddActivity : Activity() {
         installKeyboardAvoidance()
 
         // Default area follows current widget scope
-        kind = when (WidgetConfigStore.read(this, appWidgetId).scope) {
-            WidgetScope.TASKS -> WidgetItemKind.TASK
-            WidgetScope.REMINDERS -> WidgetItemKind.REMINDER
-            WidgetScope.TODAY -> WidgetItemKind.REMINDER
+        val activeScopeStr = try {
+            expo.modules.steadywidget.WidgetStore.getSnapshot(this).selectedView.lowercase().trim()
+        } catch (_: Exception) {
+            WidgetConfigStore.read(this, appWidgetId).scope.key
+        }
+        kind = when (activeScopeStr) {
+            "tasks", "task" -> WidgetItemKind.TASK
+            "habits", "habit" -> WidgetItemKind.HABIT
+            "reminders", "reminder" -> WidgetItemKind.REMINDER
+            else -> when (WidgetConfigStore.read(this, appWidgetId).scope) {
+                WidgetScope.TASKS -> WidgetItemKind.TASK
+                WidgetScope.HABITS -> WidgetItemKind.HABIT
+                WidgetScope.REMINDERS -> WidgetItemKind.REMINDER
+                WidgetScope.TODAY -> WidgetItemKind.REMINDER
+            }
         }
 
         // 1. Build Kind Selector Chips at top

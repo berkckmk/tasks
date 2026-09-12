@@ -70,6 +70,7 @@ data class WidgetData(
         val pool = when (config.scope) {
             WidgetScope.REMINDERS -> reminders
             WidgetScope.TASKS -> tasks
+            WidgetScope.HABITS -> habits
             WidgetScope.TODAY -> buildList {
                 if (config.includes(WidgetInclude.REMINDERS)) addAll(reminders)
                 if (config.includes(WidgetInclude.TASKS)) addAll(tasks)

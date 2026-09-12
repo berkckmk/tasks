@@ -110,6 +110,7 @@ class WidgetScopePickerActivity : Activity() {
                     WidgetScope.TODAY -> R.drawable.widget_kind_habit
                     WidgetScope.REMINDERS -> R.drawable.widget_kind_reminder
                     WidgetScope.TASKS -> R.drawable.widget_kind_task
+                    WidgetScope.HABITS -> R.drawable.widget_kind_habit
                 },
             )
             setColorFilter(if (selected) WidgetPalette.INK_ACCENT else WidgetPalette.TEXT)

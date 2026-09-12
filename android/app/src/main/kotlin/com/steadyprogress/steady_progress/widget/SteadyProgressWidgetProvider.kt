@@ -189,22 +189,28 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
             isNarrow: Boolean,
             widgetId: Int,
         ) {
-            views.setTextViewText(R.id.scope_chip, config.scope.label.uppercase())
+            views.setTextViewText(R.id.scope_chip, config.scope.label.uppercase() + " ▾")
+
+            val scopeItems = data.itemsFor(config)
+            val doneCount = scopeItems.count { it.done }
+            val totalCount = scopeItems.size
+            val progress = if (totalCount > 0) (doneCount.toFloat() / totalCount).coerceIn(0f, 1f) else 0f
 
             // 2x2 shows the count alone; 4x2 and 4x4 add the streak. Never a
             // streak of 0 dressed up as a fact.
+            val showStreak = data.bestStreak > 0 && (config.scope == WidgetScope.TODAY || config.scope == WidgetScope.HABITS)
             val summary = when {
                 !data.hasData -> ""
-                isNarrow -> "${data.doneCount} / ${data.totalCount}"
-                data.bestStreak > 0 ->
-                    "${data.doneCount} / ${data.totalCount} · ${data.bestStreak} day streak"
-                else -> "${data.doneCount} / ${data.totalCount}"
+                isNarrow -> "$doneCount / $totalCount"
+                showStreak ->
+                    "$doneCount / $totalCount · ${data.bestStreak} day streak"
+                else -> "$doneCount / $totalCount"
             }
             views.setTextViewText(R.id.summary, summary)
             views.setProgressBar(
                 R.id.progress,
                 100,
-                (data.progress * 100).toInt(),
+                (progress * 100).toInt(),
                 false,
             )
 

@@ -14,7 +14,7 @@ data class WidgetItem(
 )
 
 data class WidgetSnapshot(
-    val selectedView: String = "today", // "today" | "tasks" | "reminders"
+    val selectedView: String = "today", // "today" | "tasks" | "reminders" | "habits"
     val completed: Int = 0,
     val total: Int = 0,
     val bestStreak: Int = 0,
@@ -22,12 +22,13 @@ data class WidgetSnapshot(
     val items: List<WidgetItem> = emptyList(),
 ) {
     val progress: Float
-        get() = if (total > 0) (completed.toFloat() / total).coerceIn(0f, 1f) else 0f
+        get() = progressForScope(selectedView)
 
     fun itemsForScope(scope: String): List<WidgetItem> {
         val filtered = when (scope.lowercase().trim()) {
             "tasks", "task" -> items.filter { it.type.lowercase().startsWith("task") }
             "reminders", "reminder" -> items.filter { it.type.lowercase().startsWith("reminder") }
+            "habits", "habit" -> items.filter { it.type.lowercase().startsWith("habit") }
             else -> items // "today" shows all
         }
         return filtered.sortedWith(
@@ -36,6 +37,17 @@ data class WidgetSnapshot(
                 .thenBy { it.time }
                 .thenBy { it.title }
         )
+    }
+
+    fun completedForScope(scope: String): Int =
+        itemsForScope(scope).count { it.completed }
+
+    fun totalForScope(scope: String): Int =
+        itemsForScope(scope).size
+
+    fun progressForScope(scope: String): Float {
+        val total = totalForScope(scope)
+        return if (total > 0) (completedForScope(scope).toFloat() / total).coerceIn(0f, 1f) else 0f
     }
 }
 
@@ -202,6 +214,8 @@ object WidgetStore {
         val nextScope = when (current.selectedView.lowercase().trim()) {
             "today" -> "reminders"
             "reminders", "reminder" -> "tasks"
+            "tasks", "task" -> "habits"
+            "habits", "habit" -> "today"
             else -> "today"
         }
         val updated = current.copy(selectedView = nextScope)

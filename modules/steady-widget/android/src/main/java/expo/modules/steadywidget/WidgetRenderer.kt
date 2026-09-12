@@ -95,12 +95,13 @@ object WidgetRenderer {
             }
         }
 
-        // 2. Scope Chip (TODAY ▾ / REMINDERS ▾ / TASKS ▾)
+        // 2. Scope Chip (TODAY ▾ / REMINDERS ▾ / TASKS ▾ / HABITS ▾)
         val scopeChipId = resId(context, "scope_chip", "id")
         if (scopeChipId != 0) {
             val scopeLabel = when (snapshot.selectedView.lowercase().trim()) {
                 "reminders", "reminder" -> "REMINDERS ▾"
                 "tasks", "task" -> "TASKS ▾"
+                "habits", "habit" -> "HABITS ▾"
                 else -> "TODAY ▾"
             }
             views.setTextViewText(scopeChipId, scopeLabel)
@@ -120,20 +121,27 @@ object WidgetRenderer {
             )
         }
 
-        // 3. Summary & Progress
+        // 3. Summary & Progress for the currently active scope
+        val scopeItems = snapshot.itemsForScope(snapshot.selectedView)
+        val scopeCompleted = scopeItems.count { it.completed }
+        val scopeTotal = scopeItems.size
+        val scopeProgress = if (scopeTotal > 0) (scopeCompleted.toFloat() / scopeTotal).coerceIn(0f, 1f) else 0f
+
         val summaryId = resId(context, "summary", "id")
         if (summaryId != 0) {
+            val normalizedScope = snapshot.selectedView.lowercase().trim()
+            val isHabitOrToday = normalizedScope.startsWith("habit") || normalizedScope == "today"
             val text = when {
                 !snapshot.hasData -> ""
-                snapshot.bestStreak > 0 -> "${snapshot.completed} / ${snapshot.total} · ${snapshot.bestStreak}d streak"
-                else -> "${snapshot.completed} / ${snapshot.total}"
+                snapshot.bestStreak > 0 && isHabitOrToday -> "$scopeCompleted / $scopeTotal · ${snapshot.bestStreak}d streak"
+                else -> "$scopeCompleted / $scopeTotal"
             }
             views.setTextViewText(summaryId, text)
         }
 
         val progressId = resId(context, "progress", "id")
         if (progressId != 0) {
-            views.setProgressBar(progressId, 100, (snapshot.progress * 100).toInt(), false)
+            views.setProgressBar(progressId, 100, (scopeProgress * 100).toInt(), false)
         }
 
         // 4. Quick-Add (+) Button -> Native Quick Add Modal
@@ -160,7 +168,7 @@ object WidgetRenderer {
         val emptyViewId = resId(context, "empty", "id")
         val rowLayoutId = resId(context, "widget_row", "layout")
 
-        val displayItems = snapshot.itemsForScope(snapshot.selectedView)
+        val displayItems = scopeItems
 
         if (itemsViewId != 0 && rowLayoutId != 0) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
