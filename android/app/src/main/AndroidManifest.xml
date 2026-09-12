@@ -1,151 +1,54 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Declared explicitly rather than relying on manifest merging from
-         firebase_messaging. The release build only had network access because
-         that plugin happened to contribute INTERNET; dropping or replacing FCM
-         would have removed it with no compile-time error. -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <!-- Requested at runtime by PushNotificationsRepository.requestPermission. -->
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-
-    <application
-        android:label="Steady Progress"
-        android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:taskAffinity=""
-            android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
-            android:windowSoftInputMode="adjustResize">
-            <!-- Specifies an Android theme to apply to this Activity as soon as
-                 the Android process has started. This theme is visible to the user
-                 while the Flutter UI initializes. After that, this theme continues
-                 to determine the Window background behind the Flutter UI. -->
-            <meta-data
-              android:name="io.flutter.embedding.android.NormalTheme"
-              android:resource="@style/NormalTheme"
-              />
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
-        </activity>
-        <!-- Home-screen widget. Not exported: it's driven by the system
-             AppWidgetManager broadcast below and by in-process refreshes from
-             the app, so nothing outside the app needs to reach it.
-
-             android:label is what the launcher's widget picker shows as the
-             widget's name. Without it the widget inherits the application
-             label and the picker reads "Steady Progress / Steady Progress". -->
-        <receiver
-            android:name=".widget.SteadyProgressWidgetProvider"
-            android:label="@string/widget_name"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <!-- Where the collection's fill-in intents land: a row tap and
-                     a toggle tap both arrive here through the list's single
-                     PendingIntent template. -->
-                <action android:name="com.steadyprogress.ACTION_WIDGET_ROW" />
-            </intent-filter>
-            <meta-data
-                android:name="android.appwidget.provider"
-                android:resource="@xml/widget_steady_progress_info" />
-        </receiver>
-
-
-        <!-- Setup screen for a placed widget. Exported because the
-             *launcher* starts it — both when the widget is first dropped and
-             from the long-press "configure" affordance — and the launcher is
-             a different app. It acts only on the appWidgetId it is handed. -->
-        <activity
-            android:name=".widget.SteadyProgressWidgetConfigureActivity"
-            android:label="@string/config_title"
-            android:theme="@style/WidgetConfigureTheme"
-            android:excludeFromRecents="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
-            </intent-filter>
-        </activity>
-
-        <!-- The scope picker: Today / Reminders / Tasks.
-
-             RemoteViews has no popup and no Spinner, so the widget's header
-             chip fires a PendingIntent into this transparent, no-title
-             Activity instead. Not exported: only the widget's own
-             PendingIntent starts it, and that is created in-process.
-
-             excludeFromRecents + noHistory because it is a menu, not a
-             screen — it should never appear in the recents switcher and
-             should not survive being backgrounded. -->
-        <activity
-            android:name=".widget.WidgetScopePickerActivity"
-            android:theme="@style/WidgetScopePickerTheme"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:exported="false" />
-
-        <!-- The `+`'s quick-add modal. Same translucent treatment as the
-             scope picker, but `windowSoftInputMode=adjustResize` because this
-             one has a text field and must not sit under the keyboard, and no
-             `noHistory` so a rotation mid-compose doesn't discard the line. -->
-        <activity
-            android:name=".widget.WidgetQuickAddActivity"
-            android:theme="@style/WidgetQuickAddTheme"
-            android:excludeFromRecents="true"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
-
-        <!-- Feeds the widget's scrolling rows.
-
-             BIND_REMOTEVIEWS is a signature-level permission held by the
-             system: requiring it here means only the platform's
-             AppWidgetService can bind this, not another app. Every widget
-             collection service must declare it. -->
-        <service
-            android:name=".widget.WidgetItemsService"
-            android:permission="android.permission.BIND_REMOTEVIEWS"
-            android:exported="false" />
-
-        <!-- Exact alarm receiver for on-time reminder and medication alerts -->
-        <receiver
-            android:name=".reminders.AlarmReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="com.steadyprogress.ACTION_ALARM" />
-            </intent-filter>
-        </receiver>
-
-        <!-- Default notification channel for push messages -->
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="channel_normal" />
-
-        <!-- Don't delete the meta-data below.
-             This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
-    </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
-
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
-    <queries>
-        <intent>
-            <action android:name="android.intent.action.PROCESS_TEXT"/>
-            <data android:mimeType="text/plain"/>
-        </intent>
-    </queries>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.VIBRATE" />
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+  <uses-permission android:name="android.permission.TURN_SCREEN_ON" />
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.VIEW" />
+      <category android:name="android.intent.category.BROWSABLE" />
+      <data android:scheme="https" />
+    </intent>
+  </queries>
+  <application android:name="com.steadyprogress.steady_progress.MainApplication" android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:allowBackup="true" android:theme="@style/AppTheme" android:supportsRtl="true" android:enableOnBackInvokedCallback="false">
+    <meta-data android:name="expo.modules.updates.ENABLED" android:value="false" />
+    <meta-data android:name="expo.modules.updates.ENABLE_BSDIFF_PATCH_SUPPORT" android:value="true" />
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS" />
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0" />
+    <activity android:name="com.steadyprogress.steady_progress.MainActivity" android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode|smallestScreenSize|assetsPaths" android:launchMode="singleTask" android:windowSoftInputMode="adjustResize" android:theme="@style/Theme.App.SplashScreen" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="${appScheme}" />
+        <data android:scheme="exp+steady-progress-mobile" />
+      </intent-filter>
+    </activity>
+    <activity android:name="com.steadyprogress.steady_progress.widget.SteadyProgressWidgetConfigureActivity" android:label="@string/config_title" android:theme="@style/WidgetConfigureTheme" android:excludeFromRecents="true" android:exported="true">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+      </intent-filter>
+    </activity>
+    <activity android:name="com.steadyprogress.steady_progress.widget.WidgetScopePickerActivity" android:theme="@style/WidgetScopePickerTheme" android:excludeFromRecents="true" android:noHistory="true" android:exported="false" />
+    <activity
+        android:name="com.steadyprogress.steady_progress.widget.WidgetQuickAddActivity"
+        android:theme="@style/WidgetQuickAddTheme"
+        android:taskAffinity=""
+        android:launchMode="singleInstance"
+        android:excludeFromRecents="true"
+        android:noHistory="true"
+        android:windowSoftInputMode="adjustResize"
+        android:exported="true" />
+  </application>
 </manifest>

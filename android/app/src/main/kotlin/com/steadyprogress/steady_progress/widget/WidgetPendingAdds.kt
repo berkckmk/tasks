@@ -19,6 +19,13 @@ data class PendingAdd(
     /** No clock time was chosen — the item is on the day, not at a moment. */
     val allDay: Boolean,
     val at: Long,
+    val description: String = "",
+    val priority: String = "medium",
+    val repeatRule: String = "",
+    val isImportant: Boolean = false,
+    val category: String = "morning",
+    val frequency: String = "Daily",
+    val color: Long = 0xFF9184D9,
 )
 
 /**
@@ -85,6 +92,13 @@ object WidgetPendingAdds {
                     // queued before the schedule existed was.
                     allDay = o.optBoolean("allDay", true),
                     at = o.optLong("at"),
+                    description = o.optString("description", ""),
+                    priority = o.optString("priority", "medium"),
+                    repeatRule = o.optString("repeatRule", ""),
+                    isImportant = o.optBoolean("isImportant", false),
+                    category = o.optString("category", "morning"),
+                    frequency = o.optString("frequency", "Daily"),
+                    color = o.optLong("color", 0xFF9184D9L),
                 )
             }
         } catch (error: Exception) {
@@ -103,7 +117,14 @@ object WidgetPendingAdds {
                     .put("startAt", a.startAt ?: 0L)
                     .put("endAt", a.endAt ?: 0L)
                     .put("allDay", a.allDay)
-                    .put("at", a.at),
+                    .put("at", a.at)
+                    .put("description", a.description)
+                    .put("priority", a.priority)
+                    .put("repeatRule", a.repeatRule)
+                    .put("isImportant", a.isImportant)
+                    .put("category", a.category)
+                    .put("frequency", a.frequency)
+                    .put("color", a.color),
             )
         }
     }.toString()
@@ -127,7 +148,14 @@ object WidgetPendingAdds {
                     .put("startAt", a.startAt ?: 0L)
                     .put("endAt", a.endAt ?: 0L)
                     .put("allDay", a.allDay)
-                    .put("at", a.at),
+                    .put("at", a.at)
+                    .put("description", a.description)
+                    .put("priority", a.priority)
+                    .put("repeatRule", a.repeatRule)
+                    .put("isImportant", a.isImportant)
+                    .put("category", a.category)
+                    .put("frequency", a.frequency)
+                    .put("color", a.color),
             )
         }
         prefs(context).edit().putString(KEY_QUEUE, array.toString()).apply()

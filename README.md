@@ -1,87 +1,56 @@
-# Steady Progress
+# Welcome to your Expo app 👋
 
-A calm, premium life-management app (Flutter, Android + Web) with a
-Firebase backend — focused on three pillars: Tasks, Reminders, and Habits.
-The product is intentionally scoped to those areas so people can track the
-core routines they need without extra modules or unrelated planning surfaces.
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-> **The deployed backend can be older than this repo.** Rules and functions are
-> deployed by hand and have drifted before, which presents as a whole feature
-> area failing while the source looks correct. Check
-> [`docs/DEPLOYMENT_STATE.md`](docs/DEPLOYMENT_STATE.md) before debugging any
-> "works locally, fails on device" gap.
+## Get started
 
-## Documentation
+1. Install dependencies
 
-[`CLAUDE.md`](CLAUDE.md) is the orientation page — architecture, commands, and
-the invariants not to regress. Then, by task:
+   ```bash
+   npm install
+   ```
 
-| Document | Read before |
-|---|---|
-| [`docs/DEPLOYMENT_STATE.md`](docs/DEPLOYMENT_STATE.md) | Deploying, or diagnosing repo-vs-production gaps |
-| [`docs/FIRESTORE_DATA_MODEL.md`](docs/FIRESTORE_DATA_MODEL.md) | Adding a collection, field, or write path |
-| [`docs/GOOGLE_INTEGRATIONS_AND_PRODUCTION.md`](docs/GOOGLE_INTEGRATIONS_AND_PRODUCTION.md) | Google Sign-In, Calendar/Sheets/Drive/Docs, Cloud Functions, release prep |
-| [`docs/SECURITY_REVIEW.md`](docs/SECURITY_REVIEW.md) | Plan enforcement, billing, rules — the backend axis |
-| [`docs/ANDROID_SECURITY_POSTURE.md`](docs/ANDROID_SECURITY_POSTURE.md) | Permissions and the app's footprint on a user's device |
-| [`docs/ANDROID_WIDGET.md`](docs/ANDROID_WIDGET.md) | Anything under `android/.../widget/` or `res/layout/widget_*` |
-| [`docs/DEVICE_DEBUGGING.md`](docs/DEVICE_DEBUGGING.md) | Running on a physical Android device |
-| [`docs/SEEDING_TEST_DATA.md`](docs/SEEDING_TEST_DATA.md) | Populating an account with realistic data |
+2. Start the app
 
-## Getting Started
+   ```bash
+   npx expo start
+   ```
 
-```bash
-flutter pub get
-flutter run                 # Android/iOS
-flutter run -d chrome       # Web
-```
+In the output, you'll find options to open the app in a
 
-Verification used throughout development:
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Get a fresh project
+
+When you're ready, run:
 
 ```bash
-flutter analyze
-flutter test
-(cd functions && npx tsc --noEmit)
-firebase deploy --only firestore:rules --dry-run   # rules compile check
+npm run reset-project
 ```
 
-## Plans and access
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-The app is in a **closed beta**: every signed-in account is granted the
-Complete plan for free by the `kBetaAllAccess` flag in
-[`lib/features/subscription/domain/beta_access.dart`](lib/features/subscription/domain/beta_access.dart),
-which is mirrored in `functions/src/lib/plan.ts` and `firestore.rules`.
+### Other setup steps
 
-Entitlement itself (`users/{uid}/subscription/status`) is Admin-SDK-only —
-only the verified Stripe webhook and Play purchase check may grant a paid
-plan. See `docs/GOOGLE_INTEGRATIONS_AND_PRODUCTION.md` §7 for the exact steps
-to end the beta and switch on real billing.
+- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
+- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
+- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
 
-## Home-screen widget (Android)
+## Learn more
 
-A resizable home-screen widget showing today's completion ring, habit/task
-counts and best streak, rendered in an Apple "Liquid Glass" material.
+To learn more about developing your project with Expo, look at the following resources:
 
-Because `RemoteViews` can't host a custom `View` (so no `RenderEffect`, no
-shaders) and a widget can't read the wallpaper by itself, the panel is drawn
-into a bitmap and shown in a single `ImageView`. The setup screen can take a
-wallpaper image from you and let you drag the panel to where the widget sits,
-which is what gives the glass something real to refract. See the header
-comment in
-[`LiquidGlass.kt`](android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/LiquidGlass.kt)
-for what that reproduces and why.
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-Data flows one way: Flutter pushes a snapshot over a method channel whenever
-the counts change ([`HomeWidgetSync`](lib/features/home_widget/presentation/home_widget_sync.dart)),
-the widget renders from that. It never touches Firestore.
+## Join the community
 
-The rendering is covered by instrumentation tests, which have to run on a
-device or emulator — `Bitmap`/`BlurMaskFilter`/`Path` are native:
+Join our community of developers creating universal apps.
 
-```bash
-(cd android && ./gradlew :app:connectedDebugAndroidTest)
-```
-
-## Learning Flutter
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Flutter documentation](https://docs.flutter.dev/)
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

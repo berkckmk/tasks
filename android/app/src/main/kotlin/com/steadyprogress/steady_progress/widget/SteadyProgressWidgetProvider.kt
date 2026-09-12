@@ -47,23 +47,17 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray,
     ) {
         for (id in appWidgetIds) {
-            buildInto(context, appWidgetManager, id)
+            expo.modules.steadywidget.WidgetRenderer.render(context, appWidgetManager, id)
         }
     }
 
-    /**
-     * Rebuilds at the new size when the user resizes.
-     *
-     * The row count and the footer depend on the height, so the layout
-     * genuinely differs between 2x2, 4x2 and 4x4 — this is not just a redraw.
-     */
     override fun onAppWidgetOptionsChanged(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
         newOptions: Bundle,
     ) {
-        buildInto(context, appWidgetManager, appWidgetId)
+        expo.modules.steadywidget.WidgetRenderer.render(context, appWidgetManager, appWidgetId)
     }
 
     /** Drops each removed widget's settings. Left behind, the keys accumulate
@@ -77,17 +71,35 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
+        if (intent.action == ACTION_CYCLE_SCOPE) {
+            val widgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+            if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+                val current = WidgetConfigStore.read(context, widgetId).scope
+                WidgetConfigStore.writeScope(context, widgetId, current.next())
+                refresh(context, widgetId)
+            }
+            return
+        }
+
         if (intent.action != ACTION_ROW) return
 
         when (intent.getStringExtra(EXTRA_ACTION)) {
             ACTION_TOGGLE -> {
                 val itemId = intent.getStringExtra(EXTRA_ITEM_ID) ?: return
                 val kind = WidgetItemKind.fromKey(intent.getStringExtra(EXTRA_ITEM_KIND))
-                // Never write from onReceive. A broadcast receiver gets a few
-                // seconds, and this has to reach SharedPreferences, the
-                // launcher and eventually Firestore — so it enqueues and
-                // returns. See WidgetToggleWorker.
-                WidgetToggleWorker.enqueue(context, itemId, kind)
+                val newState = WidgetDataStore.toggleLocally(context, itemId, kind)
+                if (newState != null) {
+                    WidgetPendingToggles.enqueue(
+                        context,
+                        PendingToggle(
+                            id = itemId,
+                            kind = kind,
+                            done = newState,
+                            at = System.currentTimeMillis(),
+                        ),
+                    )
+                }
+                refreshAll(context)
             }
             ACTION_OPEN -> {
                 val itemId = intent.getStringExtra(EXTRA_ITEM_ID)
@@ -100,6 +112,7 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
     companion object {
         /** The broadcast the collection's fill-in intents land on. */
         const val ACTION_ROW = "com.steadyprogress.ACTION_WIDGET_ROW"
+        const val ACTION_CYCLE_SCOPE = "com.steadyprogress.ACTION_CYCLE_SCOPE"
 
         const val EXTRA_ACTION = "action"
         const val EXTRA_ITEM_ID = "itemId"
@@ -110,23 +123,14 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
 
         /** Rebuilds every placed widget. */
         fun refreshAll(context: Context) {
-            val manager = AppWidgetManager.getInstance(context)
-            val ids = manager.getAppWidgetIds(
-                ComponentName(context, SteadyProgressWidgetProvider::class.java),
-            )
-            if (ids.isEmpty()) return
-            for (id in ids) buildInto(context, manager, id)
-            // The panel is rebuilt above; the *collection* has to be told
-            // separately, or the rows keep whatever the factory last built.
-            manager.notifyAppWidgetViewDataChanged(ids, R.id.items)
+            expo.modules.steadywidget.WidgetRenderer.renderAll(context)
         }
 
         /** Rebuilds one instance — used by the setup screen and the scope
          *  picker, where the layout itself may have changed, not just data. */
         fun refresh(context: Context, appWidgetId: Int) {
             val manager = AppWidgetManager.getInstance(context)
-            buildInto(context, manager, appWidgetId)
-            manager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.items)
+            expo.modules.steadywidget.WidgetRenderer.render(context, manager, appWidgetId)
         }
 
         private fun buildInto(context: Context, manager: AppWidgetManager, widgetId: Int) {
@@ -185,7 +189,7 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
             isNarrow: Boolean,
             widgetId: Int,
         ) {
-            views.setTextViewText(R.id.scope_chip, config.scope.label.uppercase() + " ⌄")
+            views.setTextViewText(R.id.scope_chip, config.scope.label.uppercase())
 
             // 2x2 shows the count alone; 4x2 and 4x4 add the streak. Never a
             // streak of 0 dressed up as a fact.
@@ -211,7 +215,7 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
             // modal composes the item, queues it, and drops an optimistic row
             // straight into the widget. See WidgetQuickAddActivity.
             val addIntent = Intent(context, WidgetQuickAddActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                 // Per-widget data URI for the same reason the collection
                 // intent carries one: PendingIntent equality ignores extras,
@@ -270,18 +274,19 @@ class SteadyProgressWidgetProvider : AppWidgetProvider() {
                 ),
             )
 
-            // The scope chip opens the picker. RemoteViews has no popup and no
-            // Spinner, so this is a transparent Activity.
+            // One tap advances through Tasks -> Reminders -> Today -> Tasks.
+            // The current scope is persisted per widget before its rows are
+            // rebuilt, so multiple placed widgets keep independent positions.
+            val cycleIntent = Intent(context, SteadyProgressWidgetProvider::class.java).apply {
+                action = ACTION_CYCLE_SCOPE
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+            }
             views.setOnClickPendingIntent(
                 R.id.scope_chip,
-                PendingIntent.getActivity(
+                PendingIntent.getBroadcast(
                     context,
-                    widgetId,
-                    Intent(context, WidgetScopePickerActivity::class.java).apply {
-                        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                            Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    },
+                    widgetId + 20_000,
+                    cycleIntent,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 ),
             )

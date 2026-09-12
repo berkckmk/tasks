@@ -32,18 +32,48 @@
 
     <!-- The quick-add modal the `+` opens. Composed on the home screen and
          created by the app on its next run — see WidgetPendingAdds. -->
-    <string name="widget_add_title">Quick add</string>
-    <string name="widget_add_hint">Title</string>
-    <string name="widget_add_when_empty">Pick a date</string>
-    <string name="widget_add_when_needed">A date and time are required</string>
-    <string name="widget_add_all_day">All day</string>
-    <string name="widget_add_time_prompt">Add a time?</string>
-    <string name="widget_add_time_pick">Pick a time</string>
-    <string name="widget_add_range_start">Starts</string>
-    <string name="widget_add_range_end">Ends</string>
-    <string name="widget_add_cancel">Cancel</string>
-    <string name="widget_add_confirm">Add</string>
-    <string name="widget_add_queued">Added — syncs when you next open the app</string>
+    <string name="widget_add_title">Yeni Ekle</string>
+    <string name="widget_add_title_task">Yeni Görev</string>
+    <string name="widget_add_title_reminder">Yeni Hatırlatıcı</string>
+    <string name="widget_add_title_habit">Yeni Alışkanlık</string>
+    <string name="widget_add_hint">Başlık</string>
+    <string name="widget_add_hint_task">Görev başlığı</string>
+    <string name="widget_add_hint_reminder">Hatırlatıcı başlığı</string>
+    <string name="widget_add_hint_habit">Alışkanlık adı</string>
+    <string name="widget_add_desc_hint">Açıklama / Not (isteğe bağlı)</string>
+    <string name="widget_priority_label">Öncelik</string>
+    <string name="widget_priority_low">Düşük</string>
+    <string name="widget_priority_medium">Orta</string>
+    <string name="widget_priority_high">Yüksek</string>
+    <string name="widget_repeat_label">Tekrar</string>
+    <string name="widget_repeat_none">Tek seferlik</string>
+    <string name="widget_repeat_daily">Günlük</string>
+    <string name="widget_repeat_weekdays">Hafta içi</string>
+    <string name="widget_repeat_weekly">Haftalık</string>
+    <string name="widget_repeat_monthly">Aylık</string>
+    <string name="widget_important_title">Sesli Alarm (Önemli Hatırlatıcı)</string>
+    <string name="widget_important_subtitle">Sessiz modda bile yüksek sesle çalar</string>
+    <string name="widget_habit_category_label">Kategori</string>
+    <string name="widget_habit_cat_morning">Sabah</string>
+    <string name="widget_habit_cat_daily">Günlük</string>
+    <string name="widget_habit_cat_evening">Akşam</string>
+    <string name="widget_habit_cat_health">Sağlık</string>
+    <string name="widget_habit_frequency_label">Sıklık</string>
+    <string name="widget_habit_freq_daily">Her gün</string>
+    <string name="widget_habit_freq_weekdays">Hafta içi</string>
+    <string name="widget_habit_freq_weekends">Hafta sonu</string>
+    <string name="widget_habit_time_label">Hatırlatıcı Saati (isteğe bağlı)</string>
+    <string name="widget_habit_color_label">Renk</string>
+    <string name="widget_add_when_empty">Tarih seç</string>
+    <string name="widget_add_when_needed">Bir tarih ve saat seçilmelidir</string>
+    <string name="widget_add_all_day">Tüm gün</string>
+    <string name="widget_add_time_prompt">Saat eklensin mi?</string>
+    <string name="widget_add_time_pick">Saat seç</string>
+    <string name="widget_add_range_start">Başlangıç</string>
+    <string name="widget_add_range_end">Bitiş</string>
+    <string name="widget_add_cancel">İptal</string>
+    <string name="widget_add_confirm">Kaydet</string>
+    <string name="widget_add_queued">Eklendi — uygulamayı açtığınızda eşitlenir</string>
 
     <!-- ===== Widget setup screen ===== -->
     <string name="config_title">Widget setup</string>

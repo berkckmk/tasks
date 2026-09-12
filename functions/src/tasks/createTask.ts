@@ -1,6 +1,7 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import { db } from "../lib/admin";
+import { clientMutationDocumentId } from "../lib/clientMutation";
 import { getUserPlanId } from "../lib/plan";
 import {
   MAX_DESCRIPTION_LENGTH,
@@ -44,6 +45,7 @@ export const createTask = onCall(async (request) => {
   const priority = requireEnum(data.priority, "priority", VALID_PRIORITIES);
   const description = optionalString(data.description, "description", MAX_DESCRIPTION_LENGTH) ?? "";
   const relatedGoalId = optionalString(data.relatedGoalId, "relatedGoalId", MAX_ID_LENGTH);
+  const clientMutationId = optionalString(data.clientMutationId, "clientMutationId", MAX_ID_LENGTH);
 
   const parseDate = (value: unknown, field: string): Date | null => {
     if (typeof value !== "string") return null;
@@ -70,9 +72,16 @@ export const createTask = onCall(async (request) => {
   const tasksRef = db.collection("users").doc(uid).collection("tasks");
   const planId = await getUserPlanId(uid);
   const now = new Date();
-  const docRef = tasksRef.doc();
+  const docRef = clientMutationId
+    ? tasksRef.doc(clientMutationDocumentId(clientMutationId))
+    : tasksRef.doc();
 
   await db.runTransaction(async (tx) => {
+    // Widget retries reuse one document. This read must precede the plan
+    // count so a successful first attempt can be acknowledged even if it
+    // filled the user's final Starter slot.
+    if (clientMutationId && (await tx.get(docRef)).exists) return;
+
     // See createHabit.ts for why this counts documents inside a transaction
     // rather than using an aggregation query: read-then-write let N
     // concurrent calls all observe the same under-limit count and all
@@ -98,6 +107,7 @@ export const createTask = onCall(async (request) => {
       priority,
       status: "todo",
       relatedGoalId,
+      ...(clientMutationId ? { clientMutationId } : {}),
       createdAt: now,
       updatedAt: now,
     });

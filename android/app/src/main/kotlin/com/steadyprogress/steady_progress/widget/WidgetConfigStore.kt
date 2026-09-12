@@ -27,12 +27,21 @@ import android.graphics.Color
 enum class WidgetScope(val key: String, val label: String) {
     /** Everything due today, across all three pillars. */
     TODAY("today", "Today"),
-    REMINDERS("reminders", "Reminders"),
-    TASKS("tasks", "Tasks");
+    TASKS("tasks", "Tasks"),
+    REMINDERS("reminders", "Reminders");
+
+    fun next(): WidgetScope = when (this) {
+        TODAY -> TASKS
+        TASKS -> REMINDERS
+        REMINDERS -> TODAY
+    }
 
     companion object {
-        fun fromKey(key: String?): WidgetScope =
-            entries.firstOrNull { it.key == key } ?: TODAY
+        fun fromKey(key: String?): WidgetScope = when (key?.lowercase()?.trim()) {
+            "tasks", "task" -> TASKS
+            "reminders", "reminder" -> REMINDERS
+            else -> TODAY
+        }
     }
 }
 
@@ -146,8 +155,8 @@ data class WidgetConfig(
     )
 
     companion object {
-        /** Tuned: reads as a panel without erasing the wallpaper behind it. */
-        const val DEFAULT_OPACITY = 58
+        /** Default is completely transparent: content floats directly on wallpaper. */
+        const val DEFAULT_OPACITY = 0
 
         /** The segmented control offers 1 / 2 / 3 / 5. */
         const val DEFAULT_ROWS = 3
@@ -161,6 +170,7 @@ object WidgetConfigStore {
 
     private const val PREFS = "steady_progress_widget_config"
 
+    private const val KEY_CONFIGURED = "configured"
     private const val KEY_SCOPE = "scope"
     private const val KEY_GROUND = "ground"
     private const val KEY_OPACITY = "opacity"
@@ -175,14 +185,21 @@ object WidgetConfigStore {
     fun read(context: Context, appWidgetId: Int): WidgetConfig {
         val p = prefs(context)
         val includeKeys = p.getStringSet(key(appWidgetId, KEY_INCLUDE), null)
+        val isConfigured = p.getBoolean(key(appWidgetId, KEY_CONFIGURED), false)
+
         return WidgetConfig(
             scope = WidgetScope.fromKey(p.getString(key(appWidgetId, KEY_SCOPE), null)),
-            ground = WidgetGround.fromKey(p.getString(key(appWidgetId, KEY_GROUND), null)),
-            opacity = p.getInt(key(appWidgetId, KEY_OPACITY), WidgetConfig.DEFAULT_OPACITY),
+            ground = if (isConfigured) {
+                WidgetGround.fromKey(p.getString(key(appWidgetId, KEY_GROUND), "none"))
+            } else {
+                WidgetGround.NONE
+            },
+            opacity = if (isConfigured) {
+                p.getInt(key(appWidgetId, KEY_OPACITY), 0)
+            } else {
+                0
+            },
             rows = p.getInt(key(appWidgetId, KEY_ROWS), WidgetConfig.DEFAULT_ROWS),
-            // A widget placed before this feature existed has no key at all,
-            // and must keep showing everything rather than going blank after
-            // an app update.
             include = includeKeys
                 ?.mapNotNull { k -> WidgetInclude.entries.firstOrNull { it.key == k } }
                 ?.toSet()
@@ -192,6 +209,7 @@ object WidgetConfigStore {
 
     fun write(context: Context, appWidgetId: Int, config: WidgetConfig) {
         prefs(context).edit()
+            .putBoolean(key(appWidgetId, KEY_CONFIGURED), true)
             .putString(key(appWidgetId, KEY_SCOPE), config.scope.key)
             .putString(key(appWidgetId, KEY_GROUND), config.ground.key)
             .putInt(key(appWidgetId, KEY_OPACITY), config.opacity)

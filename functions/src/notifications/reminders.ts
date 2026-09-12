@@ -233,7 +233,7 @@ export const sendDueReminders = onSchedule(
         const priorityStr = (reminder.priority as string | undefined) ?? "normal";
         const channelId =
           priorityStr === "important"
-            ? "channel_important"
+            ? "channel_important_alarm_v1"
             : priorityStr === "low"
             ? "channel_low"
             : "channel_normal";

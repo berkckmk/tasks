@@ -10,15 +10,15 @@
     wallpapers out there.
 -->
 <resources>
-    <color name="config_background">#161826</color>
-    <color name="config_bar">#232532</color>
-    <color name="config_text">#E9E9ED</color>
-    <color name="config_text_muted">#94E9E9ED</color>
-    <color name="config_accent">#9184D9</color>
-    <color name="config_on_accent">#161826</color>
-    <color name="config_divider">#29E9E9ED</color>
-    <color name="config_preview_backdrop_a">#3F424D</color>
-    <color name="config_preview_backdrop_b">#292B31</color>
+    <color name="config_background">#201E1B</color>
+    <color name="config_bar">#292724</color>
+    <color name="config_text">#FAF7F1</color>
+    <color name="config_text_muted">#DDD7CD</color>
+    <color name="config_accent">#FAF7F1</color>
+    <color name="config_on_accent">#292724</color>
+    <color name="config_divider">#423F3A</color>
+    <color name="config_preview_backdrop_a">#33302B</color>
+    <color name="config_preview_backdrop_b">#292724</color>
     <!-- Unfilled part of a slider track. -->
-    <color name="config_track">#29E9E9ED</color>
+    <color name="config_track">#423F3A</color>
 </resources>

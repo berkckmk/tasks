@@ -15,6 +15,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
+    android:fitsSystemWindows="true"
     android:background="@color/config_background">
 
     <LinearLayout
@@ -252,7 +253,8 @@
                 android:paddingTop="13dp"
                 android:paddingBottom="13dp"
                 android:textSize="15sp"
-                android:textColor="@color/config_text"
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/config_text_muted"
                 android:text="@string/config_cancel" />
 
             <TextView
@@ -260,13 +262,14 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="8dp"
                 android:background="@drawable/config_button_primary"
                 android:gravity="center"
                 android:paddingTop="13dp"
                 android:paddingBottom="13dp"
                 android:textSize="15sp"
-                android:textColor="@color/config_accent"
+                android:fontFamily="@font/inter_semibold"
+                android:textColor="@color/config_on_accent"
                 android:text="@string/config_save" />
         </LinearLayout>
     </LinearLayout>

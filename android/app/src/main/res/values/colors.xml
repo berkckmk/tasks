@@ -78,20 +78,34 @@
          drawable/launch_background.xml. -->
     <color name="launch_background">#161826</color>
 
+    <!-- ===== Warm Stone Theme (Matches React Native App Palette) ===== -->
+    <color name="stone_bg">#E8E4DC</color>
+    <color name="stone_surface">#FAF7F1</color>
+    <color name="stone_surface_soft">#F0ECE5</color>
+    <color name="stone_text">#292724</color>
+    <color name="stone_text_muted">#6F6A63</color>
+    <color name="stone_text_caption">#969087</color>
+    <color name="stone_border">#C9C2B7</color>
+    <color name="stone_divider">#D6D0C6</color>
+    <color name="stone_accent_primary">#292724</color>
+    <color name="stone_on_accent">#FAF7F1</color>
+
+    <color name="stone_reminder">#9E86FF</color>
+    <color name="stone_task">#FF86EC</color>
+    <color name="stone_habit">#86E6B0</color>
+
     <!-- ===== Setup screen (an Activity, so it follows the device theme). ===== -->
-    <color name="config_background">#E4E7F5</color>
-    <color name="config_bar">#F3F5FE</color>
-    <color name="config_text">#292B31</color>
-    <color name="config_text_muted">#75798C</color>
-    <color name="config_accent">#9184D9</color>
-    <!-- Label colour on top of config_accent. Themed rather than a hardcoded
-         white: the accent is the same in both themes, and the ink that reads
-         on it is not. -->
-    <color name="config_on_accent">#F3F5FE</color>
-    <color name="config_divider">#CFD3E5</color>
+    <color name="config_background">#E8E4DC</color>
+    <color name="config_bar">#FAF7F1</color>
+    <color name="config_text">#292724</color>
+    <color name="config_text_muted">#6F6A63</color>
+    <color name="config_accent">#292724</color>
+    <!-- Label colour on top of config_accent. -->
+    <color name="config_on_accent">#FAF7F1</color>
+    <color name="config_divider">#D6D0C6</color>
     <!-- The setup screen's live preview sits on a wallpaper-ish ground. -->
-    <color name="config_preview_backdrop_a">#B2B6CA</color>
-    <color name="config_preview_backdrop_b">#9397AB</color>
+    <color name="config_preview_backdrop_a">#DDD7CD</color>
+    <color name="config_preview_backdrop_b">#C9C2B7</color>
     <!-- Unfilled part of a slider track. -->
-    <color name="config_track">#CFD3E5</color>
+    <color name="config_track">#D6D0C6</color>
 </resources>

@@ -116,20 +116,18 @@ class SteadyProgressWidgetConfigureActivity : Activity() {
                         R.drawable.config_swatch
                     },
                 )
-                // "None" has no colour to show, so it shows the absence: the
-                // shape with no fill, which reads as an empty slot.
-                setColorFilter(
-                    if (ground == WidgetGround.NONE) {
-                        Color.TRANSPARENT
-                    } else {
+                if (ground == WidgetGround.NONE) {
+                    setColorFilter(Color.parseColor("#15161B"), PorterDuff.Mode.SRC_ATOP)
+                } else {
+                    setColorFilter(
                         Color.rgb(
                             (ground.rgb shr 16) and 0xFF,
                             (ground.rgb shr 8) and 0xFF,
                             ground.rgb and 0xFF,
-                        )
-                    },
-                    PorterDuff.Mode.SRC_ATOP,
-                )
+                        ),
+                        PorterDuff.Mode.SRC_ATOP,
+                    )
+                }
                 contentDescription = groundLabel(ground)
             }
 
@@ -147,7 +145,15 @@ class SteadyProgressWidgetConfigureActivity : Activity() {
             }
 
             column.setOnClickListener {
-                config = config.copy(ground = ground)
+                if (ground == WidgetGround.NONE) {
+                    config = config.copy(ground = ground, opacity = 0)
+                    findViewById<SeekBar>(R.id.opacity_bar).progress = 0
+                } else {
+                    val newOpacity = if (config.opacity == 0) 60 else config.opacity
+                    config = config.copy(ground = ground, opacity = newOpacity)
+                    findViewById<SeekBar>(R.id.opacity_bar).progress = newOpacity
+                }
+                showOpacity()
                 buildGroundSwatches()
                 refreshPreview()
             }
@@ -176,7 +182,17 @@ class SteadyProgressWidgetConfigureActivity : Activity() {
 
         bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, value: Int, fromUser: Boolean) {
-                config = config.copy(opacity = value)
+                if (fromUser) {
+                    val newGround = when {
+                        value == 0 -> WidgetGround.NONE
+                        config.ground == WidgetGround.NONE -> WidgetGround.SURFACE
+                        else -> config.ground
+                    }
+                    config = config.copy(opacity = value, ground = newGround)
+                    buildGroundSwatches()
+                } else {
+                    config = config.copy(opacity = value)
+                }
                 showOpacity()
                 refreshPreview()
             }
@@ -271,10 +287,17 @@ class SteadyProgressWidgetConfigureActivity : Activity() {
      * what lands on the home screen, rather than an approximation of it.
      */
     private fun refreshPreview() {
-        previewFill.setColorFilter(config.panelColor, PorterDuff.Mode.SRC_ATOP)
-        previewFill.imageAlpha = config.panelAlpha
-        findViewById<View>(R.id.preview_edge).visibility =
-            if (config.ground == WidgetGround.NONE) View.INVISIBLE else View.VISIBLE
+        val isTransparent = config.ground == WidgetGround.NONE || config.opacity <= 0
+        if (isTransparent) {
+            previewFill.visibility = View.INVISIBLE
+            findViewById<View>(R.id.preview_edge).visibility = View.INVISIBLE
+        } else {
+            previewFill.visibility = View.VISIBLE
+            previewFill.setColorFilter(config.panelColor, PorterDuff.Mode.SRC_ATOP)
+            previewFill.imageAlpha = config.panelAlpha
+            findViewById<View>(R.id.preview_edge).visibility = View.VISIBLE
+            (findViewById<View>(R.id.preview_edge) as? ImageView)?.imageAlpha = minOf(config.panelAlpha, 120)
+        }
 
         previewRows.removeAllViews()
         val sample = sampleRows().take(config.rows)
@@ -363,7 +386,8 @@ class SteadyProgressWidgetConfigureActivity : Activity() {
 
     private fun save() {
         WidgetConfigStore.write(this, appWidgetId, config)
-        SteadyProgressWidgetProvider.refresh(this, appWidgetId)
+        val appWidgetManager = AppWidgetManager.getInstance(this)
+        expo.modules.steadywidget.WidgetRenderer.render(this, appWidgetManager, appWidgetId)
         setResult(
             RESULT_OK,
             Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId),

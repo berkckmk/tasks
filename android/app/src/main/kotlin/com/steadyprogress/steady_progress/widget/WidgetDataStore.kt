@@ -135,12 +135,10 @@ object WidgetDataStore {
             .putInt(KEY_BEST_STREAK, asInt(data[KEY_BEST_STREAK]))
             .putString(
                 KEY_ITEMS,
-                // Rows the quick-add modal composed but the app has not
-                // created yet are folded back in. Without this the next push
-                // — which replaces the item lists wholesale — would delete a
-                // row the user can see on their home screen, and it would
-                // reappear only once Firestore had round-tripped.
-                withPendingAdds(context, data[KEY_ITEMS] as? String ?: ""),
+                // Rows the quick-add modal composed or checkboxes toggled before
+                // sync drains them are folded back in. Without this, an incoming
+                // snapshot push would prematurely overwrite pending optimistic states.
+                withPendingActions(context, data[KEY_ITEMS] as? String ?: ""),
             )
             .putBoolean(KEY_HAS_DATA, true)
             .apply()
@@ -259,6 +257,31 @@ object WidgetDataStore {
             root.toString()
         } catch (error: Exception) {
             itemsJson
+        }
+    }
+
+    private fun withPendingActions(context: Context, itemsJson: String): String {
+        val withAdds = withPendingAdds(context, itemsJson)
+        val pendingToggles = WidgetPendingToggles.read(context)
+        if (pendingToggles.isEmpty()) return withAdds
+        return try {
+            val root = if (withAdds.isEmpty()) JSONObject() else JSONObject(withAdds)
+            val toggleMap = pendingToggles.associateBy({ it.id to it.kind }, { it.done })
+            for (section in root.keys().asSequence().toList()) {
+                val array = root.optJSONArray(section) ?: continue
+                for (i in 0 until array.length()) {
+                    val o = array.optJSONObject(i) ?: continue
+                    val id = o.optString("id")
+                    val kind = WidgetItemKind.fromKey(o.optString("kind"))
+                    val pendingDone = toggleMap[id to kind]
+                    if (pendingDone != null) {
+                        o.put("done", pendingDone)
+                    }
+                }
+            }
+            root.toString()
+        } catch (error: Exception) {
+            withAdds
         }
     }
 

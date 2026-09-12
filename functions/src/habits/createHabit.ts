@@ -1,10 +1,12 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 import { db } from "../lib/admin";
+import { clientMutationDocumentId } from "../lib/clientMutation";
 import { parseReminderTime } from "../lib/datetime";
 import { getUserPlanId } from "../lib/plan";
 import {
   MAX_LABEL_LENGTH,
+  MAX_ID_LENGTH,
   MAX_TITLE_LENGTH,
   optionalString,
   requireEnum,
@@ -42,6 +44,7 @@ export const createHabit = onCall(async (request) => {
     "reminderTimeLabel",
     MAX_LABEL_LENGTH
   );
+  const clientMutationId = optionalString(data.clientMutationId, "clientMutationId", MAX_ID_LENGTH);
   // Rejected here rather than stored and dealt with later: an unparseable
   // label like "99:99" used to reach the calendar sync, where setHours(99, 99)
   // rolled the reminder event four days into the future.
@@ -52,9 +55,15 @@ export const createHabit = onCall(async (request) => {
   const habitsRef = db.collection("users").doc(uid).collection("habits");
   const planId = await getUserPlanId(uid);
   const now = new Date();
-  const docRef = habitsRef.doc();
+  const docRef = clientMutationId
+    ? habitsRef.doc(clientMutationDocumentId(clientMutationId))
+    : habitsRef.doc();
 
   await db.runTransaction(async (tx) => {
+    // A retry must return the document created by the first attempt rather
+    // than consuming another plan slot or creating a duplicate habit.
+    if (clientMutationId && (await tx.get(docRef)).exists) return;
+
     // Counted inside the transaction, so concurrent creates can't each read
     // "2 habits" and all succeed. An aggregation query (.count()) can't take
     // part in a transaction, so this reads at most LIMIT + 1 document refs
@@ -76,6 +85,7 @@ export const createHabit = onCall(async (request) => {
       frequencyLabel,
       colorValue,
       reminderTimeLabel,
+      ...(clientMutationId ? { clientMutationId } : {}),
       createdAt: now,
       updatedAt: now,
     });

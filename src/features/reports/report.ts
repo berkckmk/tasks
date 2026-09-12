@@ -1,0 +1,5 @@
+import { dateFromFirestore, enumValue } from '../../core/data/firestore-values.ts';
+export const reportTypes = ['weekly', 'monthly'] as const; export const reportStatuses = ['pending', 'generating', 'ready', 'failed'] as const;
+export type ReportType = typeof reportTypes[number]; export type ReportStatus = typeof reportStatuses[number];
+export type Report = { id: string; type: ReportType; periodStart: Date; periodEnd: Date; googleDocId: string | null; googleDocUrl: string | null; createdAt: Date; status: ReportStatus };
+export function reportFromDocument(id: string, data: Record<string, unknown>): Report { const now = new Date(); return { id, type: enumValue(data.type, reportTypes, 'weekly'), periodStart: dateFromFirestore(data.periodStart) ?? now, periodEnd: dateFromFirestore(data.periodEnd) ?? now, googleDocId: typeof data.googleDocId === 'string' ? data.googleDocId : null, googleDocUrl: typeof data.googleDocUrl === 'string' ? data.googleDocUrl : null, createdAt: dateFromFirestore(data.createdAt) ?? now, status: enumValue(data.status, reportStatuses, 'pending') }; }

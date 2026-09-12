@@ -4,6 +4,6 @@
      a size difference. Ink-coloured label, not white — see nocturne_ink. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <corners android:radius="12dp" />
-    <solid android:color="@color/nocturne_accent" />
+    <corners android:radius="14dp" />
+    <solid android:color="@color/stone_accent_primary" />
 </shape>

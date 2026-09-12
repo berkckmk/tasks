@@ -39,6 +39,7 @@
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:src="@drawable/widget_panel_fill"
+        android:visibility="gone"
         android:contentDescription="@null" />
 
     <!-- The hairline, above the fill so it never fades with it. -->
@@ -48,6 +49,7 @@
         android:layout_height="match_parent"
         android:scaleType="fitXY"
         android:src="@drawable/widget_panel_edge"
+        android:visibility="gone"
         android:contentDescription="@null" />
 
     <LinearLayout

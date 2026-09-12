@@ -56,11 +56,11 @@
     <!--
         The quick-add modal's theme.
 
-        The scope picker's translucency, with two differences that matter:
-        `windowIsFloating=true`, because this panel *is* centred and framework
-        sizing is exactly what it wants, and a 0.5 dim — the 50% scrim that
-        makes the home screen read as "behind a modal" rather than "still
-        interactive".
+        The scope picker's translucency with a 0.5 dim, so the home screen
+        reads as "behind a modal" rather than "still interactive".
+        `windowIsFloating=false` gives the activity the full window bounds;
+        WidgetQuickAddActivity uses those bounds and the IME inset to keep the
+        panel above the keyboard.
     -->
     <style name="WidgetQuickAddTheme" parent="@android:style/Theme.DeviceDefault.Dialog.NoActionBar">
         <item name="android:windowBackground">@android:color/transparent</item>

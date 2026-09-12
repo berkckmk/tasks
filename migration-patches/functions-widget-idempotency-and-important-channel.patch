@@ -1,0 +1,113 @@
+diff --git a/functions/src/lib/clientMutation.ts b/functions/src/lib/clientMutation.ts
+new file mode 100644
+--- /dev/null
++++ b/functions/src/lib/clientMutation.ts
+@@ -0,0 +1,4 @@
++/** The RN client uses the same encoding for durable widget quick-add ids. */
++export function clientMutationDocumentId(clientMutationId: string): string {
++  return `widget_${encodeURIComponent(clientMutationId)}`;
++}
+diff --git a/functions/src/tasks/createTask.ts b/functions/src/tasks/createTask.ts
+--- a/functions/src/tasks/createTask.ts
++++ b/functions/src/tasks/createTask.ts
+@@ -1,6 +1,7 @@
+ import { HttpsError, onCall } from "firebase-functions/v2/https";
+ 
+ import { db } from "../lib/admin";
++import { clientMutationDocumentId } from "../lib/clientMutation";
+ import { getUserPlanId } from "../lib/plan";
+ import {
+   MAX_DESCRIPTION_LENGTH,
+@@ -45,6 +46,7 @@ export const createTask = onCall(async (request) => {
+   const priority = requireEnum(data.priority, "priority", VALID_PRIORITIES);
+   const description = optionalString(data.description, "description", MAX_DESCRIPTION_LENGTH) ?? "";
+   const relatedGoalId = optionalString(data.relatedGoalId, "relatedGoalId", MAX_ID_LENGTH);
++  const clientMutationId = optionalString(data.clientMutationId, "clientMutationId", MAX_ID_LENGTH);
+ 
+   const parseDate = (value: unknown, field: string): Date | null => {
+     if (typeof value !== "string") return null;
+@@ -70,9 +72,16 @@ export const createTask = onCall(async (request) => {
+   const tasksRef = db.collection("users").doc(uid).collection("tasks");
+   const planId = await getUserPlanId(uid);
+   const now = new Date();
+-  const docRef = tasksRef.doc();
++  const docRef = clientMutationId
++    ? tasksRef.doc(clientMutationDocumentId(clientMutationId))
++    : tasksRef.doc();
+ 
+   await db.runTransaction(async (tx) => {
++    // Widget retries reuse one document. This read must precede the plan
++    // count so a successful first attempt can be acknowledged even if it
++    // filled the user's final Starter slot.
++    if (clientMutationId && (await tx.get(docRef)).exists) return;
++
+     // See createHabit.ts for why this counts documents inside a transaction
+     // rather than using an aggregation query: read-then-write let N
+     // concurrent calls all observe the same under-limit count and all
+@@ -99,5 +108,6 @@ export const createTask = onCall(async (request) => {
+       status: "todo",
+       relatedGoalId,
++      ...(clientMutationId ? { clientMutationId } : {}),
+       createdAt: now,
+       updatedAt: now,
+     });
+diff --git a/functions/src/habits/createHabit.ts b/functions/src/habits/createHabit.ts
+--- a/functions/src/habits/createHabit.ts
++++ b/functions/src/habits/createHabit.ts
+@@ -1,6 +1,7 @@
+ import { HttpsError, onCall } from "firebase-functions/v2/https";
+ 
+ import { db } from "../lib/admin";
++import { clientMutationDocumentId } from "../lib/clientMutation";
+ import { parseReminderTime } from "../lib/datetime";
+ import { getUserPlanId } from "../lib/plan";
+ import {
+@@ -8,4 +9,5 @@ import {
+   MAX_LABEL_LENGTH,
++  MAX_ID_LENGTH,
+   MAX_TITLE_LENGTH,
+   optionalString,
+   requireEnum,
+@@ -40,5 +42,6 @@ export const createHabit = onCall(async (request) => {
+     "reminderTimeLabel",
+     MAX_LABEL_LENGTH
+   );
++  const clientMutationId = optionalString(data.clientMutationId, "clientMutationId", MAX_ID_LENGTH);
+   // Rejected here rather than stored and dealt with later: an unparseable
+   // label like "99:99" used to reach the calendar sync, where setHours(99, 99)
+@@ -52,8 +55,14 @@ export const createHabit = onCall(async (request) => {
+   const habitsRef = db.collection("users").doc(uid).collection("habits");
+   const planId = await getUserPlanId(uid);
+   const now = new Date();
+-  const docRef = habitsRef.doc();
++  const docRef = clientMutationId
++    ? habitsRef.doc(clientMutationDocumentId(clientMutationId))
++    : habitsRef.doc();
+ 
+   await db.runTransaction(async (tx) => {
++    // A retry must return the document created by the first attempt rather
++    // than consuming another plan slot or creating a duplicate habit.
++    if (clientMutationId && (await tx.get(docRef)).exists) return;
++
+     // Counted inside the transaction, so concurrent creates can't each read
+     // "2 habits" and all succeed. An aggregation query (.count()) can't take
+@@ -78,6 +87,7 @@ export const createHabit = onCall(async (request) => {
+       frequencyLabel,
+       colorValue,
+       reminderTimeLabel,
++      ...(clientMutationId ? { clientMutationId } : {}),
+       createdAt: now,
+       updatedAt: now,
+     });
+diff --git a/functions/src/notifications/reminders.ts b/functions/src/notifications/reminders.ts
+--- a/functions/src/notifications/reminders.ts
++++ b/functions/src/notifications/reminders.ts
+@@ -218,7 +218,7 @@ export const sendDueReminders = onSchedule(
+         const priorityStr = (reminder.priority as string | undefined) ?? "normal";
+         const channelId =
+           priorityStr === "important"
+-            ? "channel_important"
++            ? "channel_important_alarm_v1"
+             : priorityStr === "low"
+             ? "channel_low"
+             : "channel_normal";
