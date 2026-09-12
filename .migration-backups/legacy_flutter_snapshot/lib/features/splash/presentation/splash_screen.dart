@@ -1,0 +1,85 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../app/theme/app_colors.dart';
+import '../../../core/constants/app_spacing.dart';
+import '../../auth/application/auth_providers.dart';
+import '../../profile/application/profile_providers.dart';
+import '../../../core/constants/app_icons.dart';
+
+class SplashScreen extends ConsumerStatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _decideNextScreen();
+  }
+
+  /// Waits for Firebase to resolve whether a session is already persisted
+  /// (so a returning signed-in user skips straight to Reminders instead
+  /// of onboarding), with a small minimum splash time so the brand doesn't
+  /// just flash by.
+  Future<void> _decideNextScreen() async {
+    final stopwatch = Stopwatch()..start();
+    final user = await ref.read(authStateChangesProvider.future);
+
+    if (user != null) {
+      // Fire-and-forget: repairs a stale/abbreviation timezone on the profile
+      // (see ProfileActions.syncTimezone). Nothing on this screen depends on
+      // it, so it must never delay the splash or fail the launch.
+      unawaited(
+        ref
+            .read(profileActionsProvider)
+            .syncTimezone()
+            .catchError(
+              (Object error) => debugPrint('Timezone sync failed: $error'),
+            ),
+      );
+    }
+
+    final remaining = 900 - stopwatch.elapsedMilliseconds;
+    if (remaining > 0) {
+      await Future.delayed(Duration(milliseconds: remaining));
+    }
+    if (!mounted) return;
+
+    context.go(user != null ? '/reminders' : '/onboarding');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              AppIcons.plant,
+              size: 48,
+              color: AppColors.deepGreen,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Steady Progress',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            const Text(
+              'Calm, steady progress on what matters.',
+              style: TextStyle(color: AppColors.subtleText),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

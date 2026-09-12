@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Phosphor `check-square-offset` — the row's type mark for a task. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <group>
+        <path
+            android:pathData="M8.4,3.6 L20.4,3.6 L20.4,15.6"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="@android:color/transparent" />
+        <path
+            android:pathData="M3.6,8.4 L15.6,8.4 L15.6,20.4 L3.6,20.4 Z"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2"
+            android:strokeLineJoin="round"
+            android:fillColor="@android:color/transparent" />
+        <path
+            android:pathData="M6.8,14.4 L8.9,16.5 L12.6,12.5"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="@android:color/transparent" />
+    </group>
+</vector>

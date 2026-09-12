@@ -1,0 +1,47 @@
+PROJE UI IMPLEMENTATION PROMPT
+
+Bu projede UI üzerinde çalışmadan önce `/design-system` klasöründeki aşağıdaki dosyaların
+tamamını oku ve bunları zorunlu source-of-truth olarak kabul et:
+
+- BRAND_GUIDE.md
+- DESIGN_TOKENS.json
+- TYPOGRAPHY.md
+- COMPONENTS.md
+- NAVBAR.md
+- WIDGET_GUIDE.md
+- AI_UI_RULES.md
+- MOTION_SYSTEM.md
+- MOTION_TOKENS.json
+- INTERACTION_PATTERNS.md
+- NAVBAR_FIGMA_REFERENCE.css
+
+Görev:
+
+1. Mevcut uygulamanın ekran tasarımını yeniden tasarlama; mevcut dili standardize et.
+2. Bottom navigation'ı Figma referansındaki mantığa göre tek reusable component olarak uygula.
+3. Sekmelerin fixed accent renkleri:
+   - Reminders #9E86FF
+   - Today #FFB986
+   - Habits #86E6B0
+   - Tasks #FF86EC
+   - More #86DBFF
+4. Seçili sekmenin icon + label + active pill gradient'i kendi accent rengini kullanmalı.
+5. Pasif sekmeler ortak neutral renkte kalmalı.
+6. Seçili tab'ın accent rengini ilgili ekranın üst page title/header alanında yumuşak gradient fade
+   olarak da kullan. Örnek: Reminders ekranında Reminders başlığının arkasında mor fade.
+7. Bu renk bütün sayfaya, bütün butonlara veya kartlara uygulanmamalı.
+8. Project'te mevcut font family varsa onu koru ve tek family olarak standardize et.
+   Eğer font açıkça tanımlı değilse Inter/system fallback kullan.
+9. Yeni renk, font, radius, spacing, icon family veya UI pattern üretme.
+10. Figma icon SVG'leri mevcutsa onları kullan; yaklaşık başka icon seçme.
+11. Widget'lar aynı design system'i kullanmalı; sadece platform limitleri için layout uyarlaması yap.
+12. Bir değerin design token karşılığı varsa hard-code etme.
+13. Yeni bir token veya component gerçekten gerekiyorsa kodlamadan önce eksikliği belirt.
+14. Etkileşim animasyonlarını uygulamadan önce MOTION_SYSTEM.md ve INTERACTION_PATTERNS.md
+    dosyalarını oku. MOTION_TOKENS.json dışında keyfi animasyon değeri kullanma.
+
+ÖNEMLİ:
+- Figma CSS'i web CSS olarak körü körüne kopyalama.
+- Kullanılan framework/platformun native styling sistemine çevir.
+- Ancak ölçü, renk ilişkisi, gradient karakteri, hiyerarşi ve component davranışını koru.
+- Fonksiyonel davranışı bozma.

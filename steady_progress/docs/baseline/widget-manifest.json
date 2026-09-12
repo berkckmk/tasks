@@ -1,0 +1,360 @@
+{
+  "createdAt": "20260906T074815Z",
+  "files": [
+    {
+      "path": "android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetLayoutInflationTest.kt",
+      "sha256": "6f10612bb1e2f5a2cc99af08ec1b94e754b0aff9f305437e2c934f42b802c569",
+      "bytes": 6768
+    },
+    {
+      "path": "android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetRenderCaptureTest.kt",
+      "sha256": "036df954b573b0da78a7b1d82c96a5abd00b38f42bf4732acb4c0f8c5f9f204f",
+      "bytes": 10742
+    },
+    {
+      "path": "android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetTextContrastTest.kt",
+      "sha256": "5b5758c993c91a690dce6990511302abd43935b772567704ab3f3c60f4b86c99",
+      "bytes": 11432
+    },
+    {
+      "path": "android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/ZzTypeScaleSweepTest.kt",
+      "sha256": "61ed49f2133b234fcc6f0920f32e99af14d6471e94dc7ad644cb4d4b8e6a53e4",
+      "bytes": 5934
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/SteadyProgressWidgetConfigureActivity.kt",
+      "sha256": "aef1629b2265eb2bf420aa765834b43a67a878ca67e0289a84bf8e5cefda5a71",
+      "bytes": 14427
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/SteadyProgressWidgetProvider.kt",
+      "sha256": "f52d03559d2a8168e198faa0db118ff9461bc8242432fb942d56caedd0951ebf",
+      "bytes": 16149
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetConfigStore.kt",
+      "sha256": "7728766fd708dc33f9d2a3893095a07f9355c69e309b0aa03e19739c7f8451a5",
+      "bytes": 8889
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetDataStore.kt",
+      "sha256": "97d5d2195ea0590e6e95647095d437eeff154cac44edad7b56817294edcb0451",
+      "bytes": 14686
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetItemsService.kt",
+      "sha256": "49e420a427b64084afdce66c0bd769619c2800e788a52bee3532449e454f6b80",
+      "bytes": 8560
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetPalette.kt",
+      "sha256": "f619243ae3518eaeb8e59e476f2279c9d56dc5388f51643fcae04cac7516cd51",
+      "bytes": 4051
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetPendingAdds.kt",
+      "sha256": "29872c84611bbbbbf71428ee6dca3077e4ef537488c8a6e0ccf55f3bbc31d863",
+      "bytes": 5290
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetPendingToggles.kt",
+      "sha256": "8c95ecc68f566e3fb7a730d9cbc02bf70377a59a9bddb0a49b08a9e59031edac",
+      "bytes": 5569
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetQuickAddActivity.kt",
+      "sha256": "74dc4b8a7db0242b1f6330f302e02c3ca14b35f29086b55f90567dc4b4b29c4a",
+      "bytes": 16110
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetScopePickerActivity.kt",
+      "sha256": "f67cefc9f9e713122b3f80fdfe3276729bbafbfea2285d30f42740181086c61a",
+      "bytes": 6192
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetToggleWorker.kt",
+      "sha256": "674bbcff1453b0f5f8c65550c3adf53cf7a434520e9c54becd3624dc5d628c68",
+      "bytes": 3246
+    },
+    {
+      "path": "android/app/src/main/res/drawable-v21/launch_background.xml",
+      "sha256": "438be7184ba5f08a7d8a2ee3afb2f6f96dfb232ffe282cb48f54e100c09a646d",
+      "bytes": 848
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_button_primary.xml",
+      "sha256": "9459929bf35402b0c142f65c7a91affe8406c3eefd7f04ce905e21861f7c9399",
+      "bytes": 447
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_button_secondary.xml",
+      "sha256": "ab7c55e2c3a6cd74593838b4a7048e6b52b0faf2f37e2a1462079efdd3b500da",
+      "bytes": 405
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_segment_selected.xml",
+      "sha256": "c3e67e621c4ee65448012d27f6c4343d083dc7ad2f6ca649a1eb39d89a9a9691",
+      "bytes": 654
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_segmented.xml",
+      "sha256": "5b54dfe40165728e679ee9a4d21061c4ad4303f69fde50bf9333aee251d696dc",
+      "bytes": 459
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_swatch.xml",
+      "sha256": "d104277f31eb336eb4d74f9135ec7989b0dccc1d15c5462c82675dbb6872ff76",
+      "bytes": 423
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_swatch_selected.xml",
+      "sha256": "25178a52ca82ffefe9035ff91baafdad8608ebf0cac197fa358eaba1c08c9a4c",
+      "bytes": 366
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_tag.xml",
+      "sha256": "08c84e1e01551ef858b426e4f76b9d23e6ce52e14329720bbbbe7577c736f700",
+      "bytes": 367
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_tag_selected.xml",
+      "sha256": "62d75b7edb83b6957c8ba127ff85c7d7f593d412da0eb60164cef90c05476ee0",
+      "bytes": 393
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_launcher_background.xml",
+      "sha256": "547a20f9ba4c4b80043bae1eaf5ec1f2c1ecc8499140408828ff2200320a490b",
+      "bytes": 634
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_launcher_foreground.xml",
+      "sha256": "cbae34ab08491eaf5ddb57bc7a588c3b869f354385fa47d97e41370b19323a63",
+      "bytes": 3163
+    },
+    {
+      "path": "android/app/src/main/res/drawable/launch_background.xml",
+      "sha256": "438be7184ba5f08a7d8a2ee3afb2f6f96dfb232ffe282cb48f54e100c09a646d",
+      "bytes": 848
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_add_confirm.xml",
+      "sha256": "e00d520a869197d134a0206ea09c94aac55c391d722a0e2029c97bc6e0226c82",
+      "bytes": 468
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_add_field.xml",
+      "sha256": "36fbd705c6b8172841806ee2da57a77376a51fdfe47ff709657e7603b0c53660",
+      "bytes": 545
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_bell_slash.xml",
+      "sha256": "96d98f667cda71f7a5c0c0801473dbbb1ee6503202962490417130c6c2631133",
+      "bytes": 1366
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_calendar.xml",
+      "sha256": "74c4117db13267024aa2d3c210463ee602720056da6c47f768aca42cb524bff3",
+      "bytes": 810
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_check_circle_fill.xml",
+      "sha256": "5f3e91f361dde4be99a193ba116df1d1a3aabd76210d290a76d6cfde889e195c",
+      "bytes": 963
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_chip_selected.xml",
+      "sha256": "605b9f91c3d02ea515c5af8042262af342a9afbe38b65baa2108dccf4e4a415b",
+      "bytes": 475
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_circle.xml",
+      "sha256": "4eecd30b620b337146c66a33556a795c536943af33be09859a9c324182f48b71",
+      "bytes": 1275
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_kind_habit.xml",
+      "sha256": "a7f63c8ffcd60cd8fdadd5a24053e0ddda5acf4257d039299a751c33c300bd47",
+      "bytes": 1151
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_kind_reminder.xml",
+      "sha256": "235c45b4abbee1e3f28d9f9a91c4bb791de3c32c80453fe8b38ff13922e3278f",
+      "bytes": 976
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_kind_task.xml",
+      "sha256": "0edf3baf6f88b65b0a524078dbe92ea874f06f2c67f0480d9f8960b9ccf22e5d",
+      "bytes": 1209
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_outline_pill.xml",
+      "sha256": "f03631830bbd284347d2e9d4c9d7dab8ba1299899b518291642e1ab53b6f1ccb",
+      "bytes": 497
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_panel_edge.xml",
+      "sha256": "166e1c8e5a731e3875f302e73ea1bad4c1b5a8c48a24c337cccec21f35fee496",
+      "bytes": 723
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_panel_fill.xml",
+      "sha256": "592e2356fe32fba894b6f700aa2fce545460bd80af3aeb01f456832b0ebf24a2",
+      "bytes": 1725
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_picker_panel.xml",
+      "sha256": "7eb3c07330aa44b22a19887e4b21e710f0b7e372b5195178544dc0068d9dbed5",
+      "bytes": 601
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_picker_row_selected.xml",
+      "sha256": "6ee9aa754d4efdb48c3bedcf3f9139c3fbad13cd501addaa81919458830a0176",
+      "bytes": 422
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_plus.xml",
+      "sha256": "3fbf9d2690401e5c1ff40d779772b6de566ac9c462cad64032d131f60ea20e48",
+      "bytes": 734
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_progress.xml",
+      "sha256": "2c15f8cbc9055fedfb14cea58e3bbb7fa1a54bb15f918ff80b8dd1768eedb310",
+      "bytes": 965
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_scope_chip.xml",
+      "sha256": "6f9d5233bf5657328cd30c83ecb65a9a4df97ed369f3809f0ccebc18a5ff09fd",
+      "bytes": 556
+    },
+    {
+      "path": "android/app/src/main/res/font/inter.xml",
+      "sha256": "5244845f00b9e09fe719ec945902485a658acecdd4bf548228ca11d9ab250447",
+      "bytes": 1069
+    },
+    {
+      "path": "android/app/src/main/res/font/inter_bold.ttf",
+      "sha256": "288316099b1e0a47a4716d159098005eef7c0066921f34e3200393dbdb01947f",
+      "bytes": 420428
+    },
+    {
+      "path": "android/app/src/main/res/font/inter_medium.ttf",
+      "sha256": "97ad806f526e41546d46365bb3a393145f75b7b1568913db74549ad8b8dba872",
+      "bytes": 417300
+    },
+    {
+      "path": "android/app/src/main/res/font/inter_regular.ttf",
+      "sha256": "40d692fce188e4471e2b3cba937be967878f631ad3ebbbdcd587687c7ebe0c82",
+      "bytes": 411640
+    },
+    {
+      "path": "android/app/src/main/res/font/inter_semibold.ttf",
+      "sha256": "78a843fade9d4612a5567302fb595b56976eb5fcebf4fea5a5912d638bafcde3",
+      "bytes": 419744
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_configure.xml",
+      "sha256": "c1516946a585ba58c1083435e862e0d214c9d9b469cf393f4747f92af2f6823e",
+      "bytes": 11595
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_configure_slider.xml",
+      "sha256": "74e105572de3214e6deffb2603568440ecf8e5bc0fac409bb88f0281339b942b",
+      "bytes": 2074
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_quick_add.xml",
+      "sha256": "481a3076a791f9358ecbffc723919434491e5cf7da62a88418d70657537e72df",
+      "bytes": 8406
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_quick_add_kind.xml",
+      "sha256": "a7d350563f63b2cb07f5500ec00336de532f2c0ea1ad3a8dc0d8b61944b427e4",
+      "bytes": 1245
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_row.xml",
+      "sha256": "07bc1eea7adeea51b16d7d57b631dd76325b9b9a7b2787ea48b6a5b815cd1cf9",
+      "bytes": 5030
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_scope_picker.xml",
+      "sha256": "1b5bade259511da5c11b082fcd83df9eb82c3930c36cd9aa068c54220361e83b",
+      "bytes": 1545
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_scope_picker_row.xml",
+      "sha256": "17e0d12d34f6da2561664b07bb6c6be37008e8717e6b75ca9ebdd65c66683fe7",
+      "bytes": 1224
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_steady_progress.xml",
+      "sha256": "84590f12af8fc20796de26893f2652212fa1f44d63a06f792dab400810f2b542",
+      "bytes": 9926
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "sha256": "686ce8f89a41873c0a591330f62ec400596b37c37d6f02f9aa507f79e371b62e",
+      "bytes": 801
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "sha256": "6211ff13828ba201169ed40649f5227779c6959883312a05a9c9ca2abc2b705f",
+      "bytes": 4402
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "sha256": "72ef3885cccf0bd3347dbe5112301953abd8881e095c32a34e44fced18f94f42",
+      "bytes": 2921
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "sha256": "1ded9d4986104bf87224be62b740a8139a980ca46362e831a5c1e2cdda9e6ee7",
+      "bytes": 5921
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "sha256": "240221580f60d37f6dfefe45d6cd65b1077820133e674a7ae6831651057af97e",
+      "bytes": 9546
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "sha256": "f8bfa3e24283f65a613b701f8b089df2b67307ba04fee4c84b357b4836ad208f",
+      "bytes": 12940
+    },
+    {
+      "path": "android/app/src/main/res/values-night/colors.xml",
+      "sha256": "7e9d03d55be4b817f906a14655028616c3805d76ae48e07c64e3201d6361f477",
+      "bytes": 1071
+    },
+    {
+      "path": "android/app/src/main/res/values-night/styles.xml",
+      "sha256": "fa7400120fa9e8f3a4b828941a4206350942a33f53cc945908905c254f6abbf9",
+      "bytes": 1552
+    },
+    {
+      "path": "android/app/src/main/res/values/colors.xml",
+      "sha256": "1d44c0d6051b341f38044fce395238b03342e98452f3f5460fb2497480c40fba",
+      "bytes": 5042
+    },
+    {
+      "path": "android/app/src/main/res/values/dimens.xml",
+      "sha256": "497b072cad9b4a65161d551a93bb7d7492ad05023160ccb697630739a13af47a",
+      "bytes": 340
+    },
+    {
+      "path": "android/app/src/main/res/values/strings.xml",
+      "sha256": "0b1a12d7dc3aa8957eee6a1302de983176d839014f6804dbc3cdadb444084db5",
+      "bytes": 4028
+    },
+    {
+      "path": "android/app/src/main/res/values/styles.xml",
+      "sha256": "3f2f2f23d0e73ed1268c5dd19dafef76c4393dcdd530c03882b3f0e3358d85ff",
+      "bytes": 5039
+    },
+    {
+      "path": "android/app/src/main/res/xml/widget_steady_progress_info.xml",
+      "sha256": "42f2ee4e8642a0893eddee058b9465dea6e1db0ee2fabbbca455f3032a867215",
+      "bytes": 2294
+    }
+  ]
+}

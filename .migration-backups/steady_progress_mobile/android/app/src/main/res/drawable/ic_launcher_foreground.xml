@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The app mark: the progress ring, and nothing else.
+
+    The same arc that carries "today" in the app (core/widgets/progress_ring.dart)
+    and on the home-screen widget. One arc at three sizes is what makes the
+    three read as one product.
+
+    ## The geometry, and why it's expressed like this
+
+    The spec is a 100x100 canvas: track `circle cx=50 cy=50 r=34` stroked at
+    13 in the accent at 22%; arc the same circle stroked at 13 in the accent,
+    round cap, `stroke-dasharray: 154 214` — 72% of the 213.6 circumference —
+    rotated -90 so it starts at twelve o'clock.
+
+    An adaptive icon's canvas is 108x108dp with only the **middle 66dp**
+    guaranteed unclipped by a launcher mask, so the 100x100 artwork is placed
+    inside a 108 viewport and scaled to sit within that safe circle. A ring
+    that a round mask crops is a ring with a bite out of it.
+
+    `stroke-dasharray` has no vector-drawable equivalent, so the 72% arc is
+    drawn as an explicit arc path instead: from 12 o'clock, 259.2° clockwise
+    (0.72 x 360), which lands at 169.2° — hence the large-arc flag and the end
+    point below.
+
+    Nothing but stroke: no letter, no gradient, no glyph. It has to stay
+    legible at 32px, and theming cannot break what has no fill.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!--
+        The 100x100 artwork placed inside the 108 viewport's 66dp safe circle.
+
+        The ring's outer radius is 34 + 13/2 = 40.5. Scaled by 0.80 that is
+        32.4, just inside the safe radius of 33 — so no launcher mask, round
+        or squircle, can clip it. The translate re-centres the scaled artwork
+        on the viewport's own centre (54,54): 54 - 50 x 0.80 = 14.
+    -->
+    <group
+        android:scaleX="0.80"
+        android:scaleY="0.80"
+        android:translateX="14"
+        android:translateY="14">
+        <!-- Track: the full circle at 22%, as two half arcs. A single
+             near-360 arc leaves a hairline seam where its ends meet. -->
+        <path
+            android:pathData="M16,50 A34,34 0 1 1 84,50 A34,34 0 1 1 16,50 Z"
+            android:strokeColor="#9184D9"
+            android:strokeAlpha="0.22"
+            android:strokeWidth="13"
+            android:fillColor="@android:color/transparent" />
+        <!--
+            The arc: 72% of the circle, from twelve o'clock, clockwise, round
+            cap.
+
+            `stroke-dasharray: 154 214` has no vector-drawable equivalent, so
+            the dash is drawn as an explicit arc instead. 0.72 x 360 = 259.2
+            degrees from (50,16) lands at (16.60, 56.37); large-arc-flag is 1
+            because the sweep exceeds 180, sweep-flag is 1 for clockwise.
+        -->
+        <path
+            android:pathData="M50,16 A34,34 0 1 1 16.60,56.37"
+            android:strokeColor="#9184D9"
+            android:strokeWidth="13"
+            android:strokeLineCap="round"
+            android:fillColor="@android:color/transparent" />
+    </group>
+</vector>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Dark variants of values/colors.xml.
+
+    Only the `config_*` tokens appear here. The `nocturne_*` tokens are
+    deliberately absent: they are the widget's own surface colours, and a
+    widget sits on the user's wallpaper with no app ground behind it — there
+    is nothing for it to follow. Flipping the panel to a light slab because
+    the phone is in light mode would put light-on-light on half the
+    wallpapers out there.
+-->
+<resources>
+    <color name="config_background">#201E1B</color>
+    <color name="config_bar">#292724</color>
+    <color name="config_text">#FAF7F1</color>
+    <color name="config_text_muted">#DDD7CD</color>
+    <color name="config_accent">#FAF7F1</color>
+    <color name="config_on_accent">#292724</color>
+    <color name="config_divider">#423F3A</color>
+    <color name="config_preview_backdrop_a">#33302B</color>
+    <color name="config_preview_backdrop_b">#292724</color>
+    <!-- Unfilled part of a slider track. -->
+    <color name="config_track">#423F3A</color>
+</resources>

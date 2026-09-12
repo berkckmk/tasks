@@ -1,0 +1,17 @@
+export const radius = {
+  sm: 4,
+  md: 8,
+  button: 16,
+  input: 18,
+  fab: 18,
+  lg: 14,
+  widgetPicker: 16,
+  card: 22,
+  widgetPanel: 22,
+  activePill: 15,
+  pageHeader: 26,
+  sheet: 28,
+  navBar: 24,
+  scopeChip: 10,
+  pill: 999,
+} as const;

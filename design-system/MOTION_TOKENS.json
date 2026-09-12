@@ -1,0 +1,39 @@
+{
+  "$schema": "planner-motion-tokens-v1",
+  "notes": {
+    "sync": "These values must be kept in sync with src/theme/motion.ts in the mobile project.",
+    "units": "Duration in milliseconds, distance in dp (density-independent pixels), scale as multiplier, opacity as 0–1 fraction.",
+    "easing": "String identifiers map to platform-native equivalents (e.g. LayoutAnimation.Types.easeInEaseOut for React Native)."
+  },
+  "duration": {
+    "micro": 150,
+    "state": 220,
+    "list": 260,
+    "page": 320,
+    "sheet": 360
+  },
+  "easing": {
+    "default": "easeInEaseOut",
+    "sheet": "spring",
+    "navPill": "spring"
+  },
+  "scale": {
+    "buttonPressed": 0.96,
+    "itemEnter": 0.98
+  },
+  "distance": {
+    "itemEnter": 10,
+    "pageTransition": 24
+  },
+  "opacity": {
+    "pressed": 0.80,
+    "disabled": 0.45,
+    "completed": 0.55,
+    "scrim": 0.45
+  },
+  "gesture": {
+    "swipeThreshold": 24,
+    "swipeRatio": 2,
+    "swipeRelease": 55
+  }
+}

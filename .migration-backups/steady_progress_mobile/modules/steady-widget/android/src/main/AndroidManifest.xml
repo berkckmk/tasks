@@ -1,0 +1,26 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <receiver
+            android:name=".SteadyWidgetProvider"
+            android:label="@string/widget_name"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_steady_progress_info" />
+        </receiver>
+
+        <receiver
+            android:name=".WidgetActionReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="expo.modules.steadywidget.ACTION_TOGGLE" />
+                <action android:name="expo.modules.steadywidget.ACTION_CYCLE_SCOPE" />
+                <action android:name="expo.modules.steadywidget.ACTION_ITEM_CLICK" />
+                <action android:name="expo.modules.steadywidget.ACTION_OPEN" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

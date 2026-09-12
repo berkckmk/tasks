@@ -1,0 +1,83 @@
+ M android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetLayoutInflationTest.kt
+ M android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetRenderCaptureTest.kt
+ M android/app/src/main/AndroidManifest.xml
+ M android/app/src/main/kotlin/com/steadyprogress/steady_progress/MainActivity.kt
+ M android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/SteadyProgressWidgetConfigureActivity.kt
+ M android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/SteadyProgressWidgetProvider.kt
+ M android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetConfigStore.kt
+ M android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetDataStore.kt
+ M android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetItemsService.kt
+ M android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetPalette.kt
+ M android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetScopePickerActivity.kt
+ M android/app/src/main/res/drawable/widget_circle.xml
+ M android/app/src/main/res/drawable/widget_kind_habit.xml
+ M android/app/src/main/res/drawable/widget_kind_reminder.xml
+ M android/app/src/main/res/drawable/widget_kind_task.xml
+ M android/app/src/main/res/layout/widget_configure.xml
+ M android/app/src/main/res/layout/widget_row.xml
+ M android/app/src/main/res/layout/widget_scope_picker.xml
+ M android/app/src/main/res/layout/widget_scope_picker_row.xml
+ M android/app/src/main/res/layout/widget_steady_progress.xml
+ M android/app/src/main/res/values/colors.xml
+ M android/app/src/main/res/values/strings.xml
+ M android/app/src/main/res/values/styles.xml
+ M docs/ANDROID_WIDGET.md
+ M docs/FIRESTORE_DATA_MODEL.md
+ M functions/src/notifications/reminders.ts
+ M functions/src/tasks/createTask.ts
+ M lib/app/app.dart
+ M lib/app/router/app_router.dart
+ M lib/core/constants/app_icons.dart
+ M lib/core/widgets/app_sheet.dart
+ M lib/core/widgets/responsive_scaffold.dart
+ M lib/core/widgets/sheet_page.dart
+ M lib/debug/seed_all.dart
+ M lib/features/content/presentation/widgets/add_edit_content_sheet.dart
+ M lib/features/dashboard/application/today_actions.dart
+ M lib/features/dashboard/presentation/dashboard_screen.dart
+ M lib/features/dashboard/presentation/widgets/quick_capture_bar.dart
+ M lib/features/finance/presentation/widgets/add_transaction_sheet.dart
+ M lib/features/finance/presentation/widgets/savings_goal_sheet.dart
+ M lib/features/habits/presentation/add_edit_habit_screen.dart
+ M lib/features/habits/presentation/habits_screen.dart
+ M lib/features/habits/presentation/widgets/habit_card.dart
+ M lib/features/home_widget/application/home_widget_providers.dart
+ M lib/features/home_widget/application/home_widget_service.dart
+ M lib/features/home_widget/presentation/home_widget_sync.dart
+ M lib/features/learning/presentation/widgets/add_edit_learning_sheet.dart
+ M lib/features/more/presentation/more_screen.dart
+ M lib/features/reminders/application/reminder_providers.dart
+ M lib/features/reminders/data/firestore_reminder_repository.dart
+ M lib/features/reminders/domain/reminder.dart
+ M lib/features/reminders/presentation/add_edit_reminder_screen.dart
+ M lib/features/reminders/presentation/reminders_screen.dart
+ M lib/features/reminders/presentation/widgets/reminder_card.dart
+ M lib/features/tasks/application/task_providers.dart
+ M lib/features/tasks/data/firestore_task_repository.dart
+ M lib/features/tasks/domain/task_item.dart
+ M lib/features/tasks/domain/task_repository.dart
+ M lib/features/tasks/presentation/add_edit_task_screen.dart
+ M lib/features/tasks/presentation/tasks_screen.dart
+ M lib/features/tasks/presentation/widgets/task_card.dart
+ M lib/features/workout/presentation/widgets/log_workout_sheet.dart
+ M lib/main.dart
+ M test/reminder_repository_test.dart
+?? android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetTextContrastTest.kt
+?? android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/ZzTypeScaleSweepTest.kt
+?? android/app/src/main/kotlin/com/steadyprogress/steady_progress/reminders/
+?? android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetPendingAdds.kt
+?? android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetQuickAddActivity.kt
+?? android/app/src/main/res/drawable/widget_add_confirm.xml
+?? android/app/src/main/res/drawable/widget_add_field.xml
+?? android/app/src/main/res/drawable/widget_calendar.xml
+?? android/app/src/main/res/drawable/widget_chip_selected.xml
+?? android/app/src/main/res/drawable/widget_plus.xml
+?? android/app/src/main/res/font/
+?? android/app/src/main/res/layout/widget_quick_add.xml
+?? android/app/src/main/res/layout/widget_quick_add_kind.xml
+?? android/app/src/main/res/values/dimens.xml
+?? docs/MOBILE_MIGRATION_PLAN.md
+?? lib/core/widgets/app_viewport.dart
+?? lib/core/widgets/item_detail_sheet_components.dart
+?? lib/debug/fcm_check_main.dart
+?? lib/features/reminders/application/local_reminder_scheduler.dart

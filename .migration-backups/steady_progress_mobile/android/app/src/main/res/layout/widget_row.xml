@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    One collection row.
+
+    Anatomy, per the handoff: toggle 21 · time 51dp tabular · title flex-1
+    ellipsised · kind label 14sp · type icon 18. Gap 8.
+
+    The muted steps are the widget's raised ramp, not the app's — see
+    WidgetPalette's "Why the muted steps are higher than the app's". Every
+    TextView here also carries a `nocturne_text_shadow` blur, which is what
+    keeps light type readable when the panel is turned down and the wallpaper
+    behind it is bright.
+
+    `fontFeatureSettings="tnum"` on the time is not cosmetic — the time column
+    is a fixed 51dp and misaligns without tabular figures, which is visible
+    the moment two rows sit above each other.
+
+    ## The toggle is a tap target first and a glyph second
+
+    It shipped as a 15dp square, which is what the circle *looks* like — and
+    since a collection row's clickable regions are whatever
+    `setOnClickFillInIntent` was called on, that 15dp square was also the
+    entire hit area. About 2.4mm. The reported symptom was ticking something
+    off and landing on the row instead, which opens the app: the toggle and
+    the row-opens-the-app fallback share the row, so every near-miss on the
+    toggle is a full-screen context switch.
+
+    So the view is now 30 x 27dp and the *drawable* is 21dp, the difference
+    being `paddingEnd` — which keeps the circle flush with the panel's start
+    padding instead of centring it in a wider box and shunting the whole row
+    right. That padding is 9dp, close to the row's 8dp gap unit, and `row_time` gives up
+    its own 8dp start margin to it: the circle grows 15 -> 20dp, the gap after
+    it is unchanged, and the text columns start 5dp later than before. The
+    5dp is only visible at 2x2, where titles ellipsise anyway.
+
+    27dp is the vertical ceiling, not a preference. The row is `wrap_content`,
+    so the toggle's height *is* the row's height, and the row height is what
+    decides whether the 4x2's three configured rows fit in the list before it
+    starts scrolling. 30 x 27 is 3.6x the old area and about the most that
+    buys without costing a row.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/row"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp">
+
+    <!-- 30x27dp of hit area around a 21dp circle. See the header. -->
+    <ImageView
+        android:id="@+id/row_toggle"
+        android:layout_width="30dp"
+        android:layout_height="27dp"
+        android:paddingEnd="9dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/widget_circle"
+        android:contentDescription="@string/widget_row_toggle" />
+
+    <TextView
+        android:id="@+id/row_time"
+        android:layout_width="51dp"
+        android:layout_height="wrap_content"
+        android:textSize="14.5sp"
+        android:fontFamily="@font/inter_semibold"
+        android:textColor="@color/nocturne_text_caption"
+        android:shadowColor="@color/nocturne_text_shadow"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:fontFeatureSettings="tnum"
+        android:maxLines="1"
+        android:gravity="end" />
+
+    <TextView
+        android:id="@+id/row_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:textSize="15.5sp"
+        android:fontFamily="@font/inter_regular"
+        android:textColor="@color/nocturne_text"
+        android:shadowColor="@color/nocturne_text_shadow"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <LinearLayout
+        android:id="@+id/row_kind_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:layout_marginStart="8dp">
+
+        <TextView
+            android:id="@+id/row_kind"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:fontFamily="@font/inter_regular"
+            android:includeFontPadding="false"
+            android:textColor="@color/nocturne_text_caption"
+            android:shadowColor="@color/nocturne_text_shadow"
+            android:shadowDx="0"
+            android:shadowDy="1"
+            android:shadowRadius="3"
+            android:maxLines="1" />
+
+        <ImageView
+            android:id="@+id/row_icon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="5dp"
+            android:contentDescription="@null" />
+    </LinearLayout>
+</LinearLayout>

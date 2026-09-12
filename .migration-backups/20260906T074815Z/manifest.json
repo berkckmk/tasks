@@ -1,0 +1,1692 @@
+{
+  "createdAt": "20260906T074815Z",
+  "source": "/Users/pix/pix-code/task/steady_progress",
+  "head": "16a30132ab90f49f7cae8102395c7fb73e74da94",
+  "files": [
+    {
+      "path": ".firebaserc",
+      "sha256": "417adea98f082c2a61bd05f05ab2b89acb59a9355889601abb11c3dd3f9518e5",
+      "bytes": 248
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "3087c598da06392aa47ae23cf2495dd99810cbe0def67f15a908724b9190fab0",
+      "bytes": 1075
+    },
+    {
+      "path": ".metadata",
+      "sha256": "64bc5d5c7ec1d377c625c9131790c7a22e1a5142049ca6918c1772c9cd052282",
+      "bytes": 1114
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "af4e6b5e5a17c627891cd6251a8b27899ed573a15a2b3575f83747063bcca5a4",
+      "bytes": 5548
+    },
+    {
+      "path": "README.md",
+      "sha256": "ca550770d9abb5c63d85ce8a3dfc74bfe151bf28b883d35f2d1cc4a496517ff2",
+      "bytes": 4014
+    },
+    {
+      "path": "analysis_options.yaml",
+      "sha256": "d6702eea40def1dc7143adfcf5a3fdf59b8f83ac2ca298857c502775830813a7",
+      "bytes": 1547
+    },
+    {
+      "path": "android/.gitignore",
+      "sha256": "fb53b57d237791a4c5781cba91b233753119ff4b788417ba6024237ff1612e89",
+      "bytes": 554
+    },
+    {
+      "path": "android/app/build.gradle.kts",
+      "sha256": "273da4f92ff68fa6ae14ad12fd3ea70ed8a9e4e7c1cd84adf6450ca2182cd993",
+      "bytes": 4935
+    },
+    {
+      "path": "android/app/proguard-rules.pro",
+      "sha256": "7c57f32feb6ef881693c48bd09035142da7ede56b2a6713ae95970d6878e8fd9",
+      "bytes": 2042
+    },
+    {
+      "path": "android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetLayoutInflationTest.kt",
+      "sha256": "6f10612bb1e2f5a2cc99af08ec1b94e754b0aff9f305437e2c934f42b802c569",
+      "bytes": 6768
+    },
+    {
+      "path": "android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetRenderCaptureTest.kt",
+      "sha256": "036df954b573b0da78a7b1d82c96a5abd00b38f42bf4732acb4c0f8c5f9f204f",
+      "bytes": 10742
+    },
+    {
+      "path": "android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/WidgetTextContrastTest.kt",
+      "sha256": "5b5758c993c91a690dce6990511302abd43935b772567704ab3f3c60f4b86c99",
+      "bytes": 11432
+    },
+    {
+      "path": "android/app/src/androidTest/kotlin/com/steadyprogress/steady_progress/widget/ZzTypeScaleSweepTest.kt",
+      "sha256": "61ed49f2133b234fcc6f0920f32e99af14d6471e94dc7ad644cb4d4b8e6a53e4",
+      "bytes": 5934
+    },
+    {
+      "path": "android/app/src/debug/AndroidManifest.xml",
+      "sha256": "30b0832ed8b92dfbd6ae2abfa939ccf26333d37600056b1572bd4a397a18a74b",
+      "bytes": 378
+    },
+    {
+      "path": "android/app/src/main/AndroidManifest.xml",
+      "sha256": "22105269fcc02e62b76a94bb5d69ce7277c18b5da52d31190d0e56ac76724d64",
+      "bytes": 7604
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/MainActivity.kt",
+      "sha256": "3827d36d6bd56b5e33bbceffd010d0c9af9b0e9ac500bb0163fd05af377cf603",
+      "bytes": 8022
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/reminders/AlarmReceiver.kt",
+      "sha256": "e106f92b3887f4d0ef0c4f8f9e0330eb6a9522a764814c1cee7e93f3e4f42949",
+      "bytes": 3325
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/reminders/AlarmScheduler.kt",
+      "sha256": "ce53f58f51e2409433b7aeb905631e54e6eeb99fa10082c3655182d006d71b56",
+      "bytes": 2888
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/reminders/NotificationChannels.kt",
+      "sha256": "23ed0364172b9881b1800e563c8f76d4bab4a31f45b830699b0851f8d2357fb9",
+      "bytes": 2606
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/SteadyProgressWidgetConfigureActivity.kt",
+      "sha256": "aef1629b2265eb2bf420aa765834b43a67a878ca67e0289a84bf8e5cefda5a71",
+      "bytes": 14427
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/SteadyProgressWidgetProvider.kt",
+      "sha256": "f52d03559d2a8168e198faa0db118ff9461bc8242432fb942d56caedd0951ebf",
+      "bytes": 16149
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetConfigStore.kt",
+      "sha256": "7728766fd708dc33f9d2a3893095a07f9355c69e309b0aa03e19739c7f8451a5",
+      "bytes": 8889
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetDataStore.kt",
+      "sha256": "97d5d2195ea0590e6e95647095d437eeff154cac44edad7b56817294edcb0451",
+      "bytes": 14686
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetItemsService.kt",
+      "sha256": "49e420a427b64084afdce66c0bd769619c2800e788a52bee3532449e454f6b80",
+      "bytes": 8560
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetPalette.kt",
+      "sha256": "f619243ae3518eaeb8e59e476f2279c9d56dc5388f51643fcae04cac7516cd51",
+      "bytes": 4051
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetPendingAdds.kt",
+      "sha256": "29872c84611bbbbbf71428ee6dca3077e4ef537488c8a6e0ccf55f3bbc31d863",
+      "bytes": 5290
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetPendingToggles.kt",
+      "sha256": "8c95ecc68f566e3fb7a730d9cbc02bf70377a59a9bddb0a49b08a9e59031edac",
+      "bytes": 5569
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetQuickAddActivity.kt",
+      "sha256": "74dc4b8a7db0242b1f6330f302e02c3ca14b35f29086b55f90567dc4b4b29c4a",
+      "bytes": 16110
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetScopePickerActivity.kt",
+      "sha256": "f67cefc9f9e713122b3f80fdfe3276729bbafbfea2285d30f42740181086c61a",
+      "bytes": 6192
+    },
+    {
+      "path": "android/app/src/main/kotlin/com/steadyprogress/steady_progress/widget/WidgetToggleWorker.kt",
+      "sha256": "674bbcff1453b0f5f8c65550c3adf53cf7a434520e9c54becd3624dc5d628c68",
+      "bytes": 3246
+    },
+    {
+      "path": "android/app/src/main/res/drawable-v21/launch_background.xml",
+      "sha256": "438be7184ba5f08a7d8a2ee3afb2f6f96dfb232ffe282cb48f54e100c09a646d",
+      "bytes": 848
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_button_primary.xml",
+      "sha256": "9459929bf35402b0c142f65c7a91affe8406c3eefd7f04ce905e21861f7c9399",
+      "bytes": 447
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_button_secondary.xml",
+      "sha256": "ab7c55e2c3a6cd74593838b4a7048e6b52b0faf2f37e2a1462079efdd3b500da",
+      "bytes": 405
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_segment_selected.xml",
+      "sha256": "c3e67e621c4ee65448012d27f6c4343d083dc7ad2f6ca649a1eb39d89a9a9691",
+      "bytes": 654
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_segmented.xml",
+      "sha256": "5b54dfe40165728e679ee9a4d21061c4ad4303f69fde50bf9333aee251d696dc",
+      "bytes": 459
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_swatch.xml",
+      "sha256": "d104277f31eb336eb4d74f9135ec7989b0dccc1d15c5462c82675dbb6872ff76",
+      "bytes": 423
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_swatch_selected.xml",
+      "sha256": "25178a52ca82ffefe9035ff91baafdad8608ebf0cac197fa358eaba1c08c9a4c",
+      "bytes": 366
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_tag.xml",
+      "sha256": "08c84e1e01551ef858b426e4f76b9d23e6ce52e14329720bbbbe7577c736f700",
+      "bytes": 367
+    },
+    {
+      "path": "android/app/src/main/res/drawable/config_tag_selected.xml",
+      "sha256": "62d75b7edb83b6957c8ba127ff85c7d7f593d412da0eb60164cef90c05476ee0",
+      "bytes": 393
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_launcher_background.xml",
+      "sha256": "547a20f9ba4c4b80043bae1eaf5ec1f2c1ecc8499140408828ff2200320a490b",
+      "bytes": 634
+    },
+    {
+      "path": "android/app/src/main/res/drawable/ic_launcher_foreground.xml",
+      "sha256": "cbae34ab08491eaf5ddb57bc7a588c3b869f354385fa47d97e41370b19323a63",
+      "bytes": 3163
+    },
+    {
+      "path": "android/app/src/main/res/drawable/launch_background.xml",
+      "sha256": "438be7184ba5f08a7d8a2ee3afb2f6f96dfb232ffe282cb48f54e100c09a646d",
+      "bytes": 848
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_add_confirm.xml",
+      "sha256": "e00d520a869197d134a0206ea09c94aac55c391d722a0e2029c97bc6e0226c82",
+      "bytes": 468
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_add_field.xml",
+      "sha256": "36fbd705c6b8172841806ee2da57a77376a51fdfe47ff709657e7603b0c53660",
+      "bytes": 545
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_bell_slash.xml",
+      "sha256": "96d98f667cda71f7a5c0c0801473dbbb1ee6503202962490417130c6c2631133",
+      "bytes": 1366
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_calendar.xml",
+      "sha256": "74c4117db13267024aa2d3c210463ee602720056da6c47f768aca42cb524bff3",
+      "bytes": 810
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_check_circle_fill.xml",
+      "sha256": "5f3e91f361dde4be99a193ba116df1d1a3aabd76210d290a76d6cfde889e195c",
+      "bytes": 963
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_chip_selected.xml",
+      "sha256": "605b9f91c3d02ea515c5af8042262af342a9afbe38b65baa2108dccf4e4a415b",
+      "bytes": 475
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_circle.xml",
+      "sha256": "4eecd30b620b337146c66a33556a795c536943af33be09859a9c324182f48b71",
+      "bytes": 1275
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_kind_habit.xml",
+      "sha256": "a7f63c8ffcd60cd8fdadd5a24053e0ddda5acf4257d039299a751c33c300bd47",
+      "bytes": 1151
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_kind_reminder.xml",
+      "sha256": "235c45b4abbee1e3f28d9f9a91c4bb791de3c32c80453fe8b38ff13922e3278f",
+      "bytes": 976
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_kind_task.xml",
+      "sha256": "0edf3baf6f88b65b0a524078dbe92ea874f06f2c67f0480d9f8960b9ccf22e5d",
+      "bytes": 1209
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_outline_pill.xml",
+      "sha256": "f03631830bbd284347d2e9d4c9d7dab8ba1299899b518291642e1ab53b6f1ccb",
+      "bytes": 497
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_panel_edge.xml",
+      "sha256": "166e1c8e5a731e3875f302e73ea1bad4c1b5a8c48a24c337cccec21f35fee496",
+      "bytes": 723
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_panel_fill.xml",
+      "sha256": "592e2356fe32fba894b6f700aa2fce545460bd80af3aeb01f456832b0ebf24a2",
+      "bytes": 1725
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_picker_panel.xml",
+      "sha256": "7eb3c07330aa44b22a19887e4b21e710f0b7e372b5195178544dc0068d9dbed5",
+      "bytes": 601
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_picker_row_selected.xml",
+      "sha256": "6ee9aa754d4efdb48c3bedcf3f9139c3fbad13cd501addaa81919458830a0176",
+      "bytes": 422
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_plus.xml",
+      "sha256": "3fbf9d2690401e5c1ff40d779772b6de566ac9c462cad64032d131f60ea20e48",
+      "bytes": 734
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_progress.xml",
+      "sha256": "2c15f8cbc9055fedfb14cea58e3bbb7fa1a54bb15f918ff80b8dd1768eedb310",
+      "bytes": 965
+    },
+    {
+      "path": "android/app/src/main/res/drawable/widget_scope_chip.xml",
+      "sha256": "6f9d5233bf5657328cd30c83ecb65a9a4df97ed369f3809f0ccebc18a5ff09fd",
+      "bytes": 556
+    },
+    {
+      "path": "android/app/src/main/res/font/inter.xml",
+      "sha256": "5244845f00b9e09fe719ec945902485a658acecdd4bf548228ca11d9ab250447",
+      "bytes": 1069
+    },
+    {
+      "path": "android/app/src/main/res/font/inter_bold.ttf",
+      "sha256": "288316099b1e0a47a4716d159098005eef7c0066921f34e3200393dbdb01947f",
+      "bytes": 420428
+    },
+    {
+      "path": "android/app/src/main/res/font/inter_medium.ttf",
+      "sha256": "97ad806f526e41546d46365bb3a393145f75b7b1568913db74549ad8b8dba872",
+      "bytes": 417300
+    },
+    {
+      "path": "android/app/src/main/res/font/inter_regular.ttf",
+      "sha256": "40d692fce188e4471e2b3cba937be967878f631ad3ebbbdcd587687c7ebe0c82",
+      "bytes": 411640
+    },
+    {
+      "path": "android/app/src/main/res/font/inter_semibold.ttf",
+      "sha256": "78a843fade9d4612a5567302fb595b56976eb5fcebf4fea5a5912d638bafcde3",
+      "bytes": 419744
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_configure.xml",
+      "sha256": "c1516946a585ba58c1083435e862e0d214c9d9b469cf393f4747f92af2f6823e",
+      "bytes": 11595
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_configure_slider.xml",
+      "sha256": "74e105572de3214e6deffb2603568440ecf8e5bc0fac409bb88f0281339b942b",
+      "bytes": 2074
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_quick_add.xml",
+      "sha256": "481a3076a791f9358ecbffc723919434491e5cf7da62a88418d70657537e72df",
+      "bytes": 8406
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_quick_add_kind.xml",
+      "sha256": "a7d350563f63b2cb07f5500ec00336de532f2c0ea1ad3a8dc0d8b61944b427e4",
+      "bytes": 1245
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_row.xml",
+      "sha256": "07bc1eea7adeea51b16d7d57b631dd76325b9b9a7b2787ea48b6a5b815cd1cf9",
+      "bytes": 5030
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_scope_picker.xml",
+      "sha256": "1b5bade259511da5c11b082fcd83df9eb82c3930c36cd9aa068c54220361e83b",
+      "bytes": 1545
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_scope_picker_row.xml",
+      "sha256": "17e0d12d34f6da2561664b07bb6c6be37008e8717e6b75ca9ebdd65c66683fe7",
+      "bytes": 1224
+    },
+    {
+      "path": "android/app/src/main/res/layout/widget_steady_progress.xml",
+      "sha256": "84590f12af8fc20796de26893f2652212fa1f44d63a06f792dab400810f2b542",
+      "bytes": 9926
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+      "sha256": "686ce8f89a41873c0a591330f62ec400596b37c37d6f02f9aa507f79e371b62e",
+      "bytes": 801
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "sha256": "6211ff13828ba201169ed40649f5227779c6959883312a05a9c9ca2abc2b705f",
+      "bytes": 4402
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "sha256": "72ef3885cccf0bd3347dbe5112301953abd8881e095c32a34e44fced18f94f42",
+      "bytes": 2921
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "sha256": "1ded9d4986104bf87224be62b740a8139a980ca46362e831a5c1e2cdda9e6ee7",
+      "bytes": 5921
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "sha256": "240221580f60d37f6dfefe45d6cd65b1077820133e674a7ae6831651057af97e",
+      "bytes": 9546
+    },
+    {
+      "path": "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "sha256": "f8bfa3e24283f65a613b701f8b089df2b67307ba04fee4c84b357b4836ad208f",
+      "bytes": 12940
+    },
+    {
+      "path": "android/app/src/main/res/values-night/colors.xml",
+      "sha256": "7e9d03d55be4b817f906a14655028616c3805d76ae48e07c64e3201d6361f477",
+      "bytes": 1071
+    },
+    {
+      "path": "android/app/src/main/res/values-night/styles.xml",
+      "sha256": "fa7400120fa9e8f3a4b828941a4206350942a33f53cc945908905c254f6abbf9",
+      "bytes": 1552
+    },
+    {
+      "path": "android/app/src/main/res/values/colors.xml",
+      "sha256": "1d44c0d6051b341f38044fce395238b03342e98452f3f5460fb2497480c40fba",
+      "bytes": 5042
+    },
+    {
+      "path": "android/app/src/main/res/values/dimens.xml",
+      "sha256": "497b072cad9b4a65161d551a93bb7d7492ad05023160ccb697630739a13af47a",
+      "bytes": 340
+    },
+    {
+      "path": "android/app/src/main/res/values/strings.xml",
+      "sha256": "0b1a12d7dc3aa8957eee6a1302de983176d839014f6804dbc3cdadb444084db5",
+      "bytes": 4028
+    },
+    {
+      "path": "android/app/src/main/res/values/styles.xml",
+      "sha256": "3f2f2f23d0e73ed1268c5dd19dafef76c4393dcdd530c03882b3f0e3358d85ff",
+      "bytes": 5039
+    },
+    {
+      "path": "android/app/src/main/res/xml/widget_steady_progress_info.xml",
+      "sha256": "42f2ee4e8642a0893eddee058b9465dea6e1db0ee2fabbbca455f3032a867215",
+      "bytes": 2294
+    },
+    {
+      "path": "android/app/src/profile/AndroidManifest.xml",
+      "sha256": "30b0832ed8b92dfbd6ae2abfa939ccf26333d37600056b1572bd4a397a18a74b",
+      "bytes": 378
+    },
+    {
+      "path": "android/build.gradle.kts",
+      "sha256": "6a26dba2cb8dfba1e74f540b0d17a89d96c1301d3c3bfda14348bed257fddcba",
+      "bytes": 537
+    },
+    {
+      "path": "android/gradle.properties",
+      "sha256": "0f82b18017fba6bb5ce3aa4b2d1a00c9382fc8aae7b1d9326e44b18abd66d80b",
+      "bytes": 300
+    },
+    {
+      "path": "android/gradle/wrapper/gradle-wrapper.properties",
+      "sha256": "b690d26223576fe4e63889fad9a00df81945cb870b9476cc5a563152a1a88a74",
+      "bytes": 202
+    },
+    {
+      "path": "android/settings.gradle.kts",
+      "sha256": "59136663863cd3c08796fe8830c90c29c6103ad7c1f79300971f0e281e3b90fc",
+      "bytes": 1142
+    },
+    {
+      "path": "assets/fonts/Inter-Bold.ttf",
+      "sha256": "288316099b1e0a47a4716d159098005eef7c0066921f34e3200393dbdb01947f",
+      "bytes": 420428
+    },
+    {
+      "path": "assets/fonts/Inter-Medium.ttf",
+      "sha256": "97ad806f526e41546d46365bb3a393145f75b7b1568913db74549ad8b8dba872",
+      "bytes": 417300
+    },
+    {
+      "path": "assets/fonts/Inter-Regular.ttf",
+      "sha256": "40d692fce188e4471e2b3cba937be967878f631ad3ebbbdcd587687c7ebe0c82",
+      "bytes": 411640
+    },
+    {
+      "path": "assets/fonts/Inter-SemiBold.ttf",
+      "sha256": "78a843fade9d4612a5567302fb595b56976eb5fcebf4fea5a5912d638bafcde3",
+      "bytes": 419744
+    },
+    {
+      "path": "assets/fonts/PHOSPHOR-LICENSE",
+      "sha256": "81bb1bfd8e3730c19a3895ff4a82839980933504725960c52b1c207b29398f07",
+      "bytes": 1097
+    },
+    {
+      "path": "assets/fonts/Phosphor-Fill.ttf",
+      "sha256": "a53f5d2630cab5e3b7536ecb9d69d71519a2190298c22b1f8d770dd37bc2940a",
+      "bytes": 449252
+    },
+    {
+      "path": "assets/fonts/Phosphor-Regular.ttf",
+      "sha256": "06b91e022b7ee899a63efced879392a74f0bacbda54e4467e9f663220d173a10",
+      "bytes": 488636
+    },
+    {
+      "path": "docs/ANDROID_SECURITY_POSTURE.md",
+      "sha256": "5072d2c8938958a5c75471d2c64d3e648815de123b9ba85bf2c73d0dbc679dc3",
+      "bytes": 4962
+    },
+    {
+      "path": "docs/ANDROID_WIDGET.md",
+      "sha256": "bd6d8a397f157de2657b538b7cf62fcb51f86c6113566f6416d3abd47008bfa7",
+      "bytes": 20879
+    },
+    {
+      "path": "docs/DEPLOYMENT_STATE.md",
+      "sha256": "d348204f385ccc000069aa7314b8706b1ddcfa1b723d068801e2ce11949d4021",
+      "bytes": 4662
+    },
+    {
+      "path": "docs/DEVICE_DEBUGGING.md",
+      "sha256": "166b0ef20757e69295dda0fc1a0e9bf26451d3c2dbb9b03ed96c77ee96700de9",
+      "bytes": 4172
+    },
+    {
+      "path": "docs/FIRESTORE_DATA_MODEL.md",
+      "sha256": "72c1200c95c973fff74ef5b33172e43bdde741507d073e2a58efe4a431c43b80",
+      "bytes": 10494
+    },
+    {
+      "path": "docs/GOOGLE_INTEGRATIONS_AND_PRODUCTION.md",
+      "sha256": "821873c5ef0c363625a8ac346f444c2eec70d122d67ceed2a15070ec8975438f",
+      "bytes": 16382
+    },
+    {
+      "path": "docs/MOBILE_MIGRATION_PLAN.md",
+      "sha256": "de266fbb41f6bd6d230d38cb3f7d899d70f75ba4ef6c36fc097ab94b3710c34a",
+      "bytes": 20018
+    },
+    {
+      "path": "docs/SECURITY_REVIEW.md",
+      "sha256": "a7dd0ce23ce744bcc6f9c5fa635c9b08fac211e7979dce2eb99f4a36eb2d5543",
+      "bytes": 12003
+    },
+    {
+      "path": "docs/SEEDING_TEST_DATA.md",
+      "sha256": "503f55f9ce7ca3bb43909de42aad43b400e5257d6e30efcc7a8d17f37075342d",
+      "bytes": 3603
+    },
+    {
+      "path": "firebase.json",
+      "sha256": "e39a5d4654a68a2de02a613f0a047a2f67a7ad15692a82336efa43588177d2da",
+      "bytes": 2962
+    },
+    {
+      "path": "firestore.indexes.json",
+      "sha256": "c43f88a4602c13ee0018c89a410fa320f188cd3a407d37045173d217b1d73abb",
+      "bytes": 206
+    },
+    {
+      "path": "firestore.rules",
+      "sha256": "31bb8084b91bde64d4530d546fdb9a2238c7fa8ba54c7d99dedb33d5cb817b37",
+      "bytes": 16514
+    },
+    {
+      "path": "functions/.env.example",
+      "sha256": "08e579f52f5f7febae64489259146a82d70749f986813a92897815fe9b3318dc",
+      "bytes": 1911
+    },
+    {
+      "path": "functions/.gitignore",
+      "sha256": "f08f638c48c6d991355ce387ff8bec018ec2a27d0b2c2f804879a61843c57f09",
+      "bytes": 33
+    },
+    {
+      "path": "functions/package-lock.json",
+      "sha256": "7bd85054b62884f9a83d7c926f8228aa30dd026a7a05e4a24f602e878a930a42",
+      "bytes": 106290
+    },
+    {
+      "path": "functions/package.json",
+      "sha256": "74b8a0b8b897f6d09ed44d815583271a9ac7b600fd1451a0616f95764d67bdd2",
+      "bytes": 704
+    },
+    {
+      "path": "functions/src/billing/playBilling.ts",
+      "sha256": "f1f4b66329f11cadd2f257d43ee5d486fb3cb09461b1fd74c6cd223bcecff2ec",
+      "bytes": 4505
+    },
+    {
+      "path": "functions/src/billing/priceMapping.ts",
+      "sha256": "fc895097c496dea7c03e1d76e51cfe080972c7bc5c6bcc022b918a83a485de7c",
+      "bytes": 1689
+    },
+    {
+      "path": "functions/src/billing/stripe.ts",
+      "sha256": "7e679c1835ccebade2fe3d7420834075b8c09681d215a1c8e1b4eae38803bb3c",
+      "bytes": 5061
+    },
+    {
+      "path": "functions/src/billing/webhook.ts",
+      "sha256": "27cfebc93df336c4b8cebe1ab0ba106ffd96234421e2d257009b8a45b58393ed",
+      "bytes": 7245
+    },
+    {
+      "path": "functions/src/google/calendar.ts",
+      "sha256": "9780d0668343574cbee7f04cb60375b42399ca2cbf312f5d65d29c15fe6e0bc0",
+      "bytes": 6828
+    },
+    {
+      "path": "functions/src/google/calendarTriggers.ts",
+      "sha256": "14da73230a17d668539808204408066a6b065a836d11a5a1b6610ad8c9884995",
+      "bytes": 2507
+    },
+    {
+      "path": "functions/src/google/connect.ts",
+      "sha256": "9adfff2afaf8ab40a77bf217e8a825a115c82f2454a92046d59cefeb40d16c52",
+      "bytes": 3450
+    },
+    {
+      "path": "functions/src/google/docs.ts",
+      "sha256": "3863a54e1120896f17e50cea3104aa9aca3a511543a3f67abd3700f4f4637c5e",
+      "bytes": 5815
+    },
+    {
+      "path": "functions/src/google/drive.ts",
+      "sha256": "f4be6d1a69ee2c6dada40b5a7c24cf4db03ef9a125464caca84dce596e96e503",
+      "bytes": 3236
+    },
+    {
+      "path": "functions/src/google/oauth.ts",
+      "sha256": "34354929fdd6eab42592ba2cfe79b155b2df5d7218fe0616e05e9aa964e96788",
+      "bytes": 3300
+    },
+    {
+      "path": "functions/src/google/sheets.ts",
+      "sha256": "b22f763fc51e368b64c756fa83b6d96cadd59aa257c9fbfc4b2fa3a68a7c8b80",
+      "bytes": 5319
+    },
+    {
+      "path": "functions/src/habits/createHabit.ts",
+      "sha256": "be42dc62838ad4c783fcb537506e24f248b738f76e57d9faaf946d4a281888d2",
+      "bytes": 3379
+    },
+    {
+      "path": "functions/src/index.ts",
+      "sha256": "132697ba17cd234b519ff253ee9778a343f7363e9794a152d32f49ca87dca61f",
+      "bytes": 1773
+    },
+    {
+      "path": "functions/src/lib/admin.ts",
+      "sha256": "4a675151ff2373f4ab71effce404e2ae06731b9164dda923022f47d642014047",
+      "bytes": 205
+    },
+    {
+      "path": "functions/src/lib/datetime.ts",
+      "sha256": "00268aee6e432b734b42fef7ed2bb9be321c48fb4fd5bb2c9b3e411022654961",
+      "bytes": 5525
+    },
+    {
+      "path": "functions/src/lib/plan.ts",
+      "sha256": "3df525a3fe45497fb476b7c2ad8d10d7f6666012a8b17fc6aa1a266e5536d4ce",
+      "bytes": 2444
+    },
+    {
+      "path": "functions/src/lib/secrets.ts",
+      "sha256": "c23846b389f8ff560162bdd77614f328da13aeefb34079b5fc66ced4c3d2db4c",
+      "bytes": 1605
+    },
+    {
+      "path": "functions/src/lib/tokens.ts",
+      "sha256": "5f11403328bf6d4d3ced3dd15ebdbe9f4cfaf4735a8b792e80957c0c69d7f1d8",
+      "bytes": 1165
+    },
+    {
+      "path": "functions/src/lib/users.ts",
+      "sha256": "f7fe4417fe335c163dd9fac0580f22df84d620e3c51ed4144dc7141845ae4035",
+      "bytes": 2159
+    },
+    {
+      "path": "functions/src/lib/validate.ts",
+      "sha256": "f7154149dce35dae241fcfaef0d85af382b36ac65c2fb3484b60a41836e37153",
+      "bytes": 2539
+    },
+    {
+      "path": "functions/src/notifications/preferences.ts",
+      "sha256": "1b07f8c06d52f4d71b7abf73397876ca1c4bb0d62709e7946a119691ae1ed7f1",
+      "bytes": 2008
+    },
+    {
+      "path": "functions/src/notifications/reminders.ts",
+      "sha256": "c4a3ccb775df813e69534970608ca9f1fc6b894a10c9f5ce4ef6de4bab0baadf",
+      "bytes": 9470
+    },
+    {
+      "path": "functions/src/scheduled/scheduledSync.ts",
+      "sha256": "4ee6a4eb193b1dd2a2a4d9b04d1e0ea7c6dccc8eec296afe6306e666ce446aee",
+      "bytes": 3379
+    },
+    {
+      "path": "functions/src/tasks/createTask.ts",
+      "sha256": "3ab89b352e738dddb5dd21fc673724524f3331cb5ef3008e07c32e8f032dcb8e",
+      "bytes": 4325
+    },
+    {
+      "path": "functions/tsconfig.json",
+      "sha256": "fbbcd3464490d626e982fcd8dfad7ac503b7bbb09a20599d0b09212324f0f734",
+      "bytes": 382
+    },
+    {
+      "path": "lib/app/app.dart",
+      "sha256": "8a062b07d9656eac41be5e399b7d69d84d2dcee0cd99a619ff5952be00a671f3",
+      "bytes": 3834
+    },
+    {
+      "path": "lib/app/router/app_router.dart",
+      "sha256": "1de28e6a62ffa0851a7c34fd7b5aa161a8016f7b45a2479be49edcba4c048534",
+      "bytes": 15275
+    },
+    {
+      "path": "lib/app/theme/app_colors.dart",
+      "sha256": "51c2897604d3ff2a290fdaceaf3d5ea6e55a02875644202d0f9ce177e3d89502",
+      "bytes": 11050
+    },
+    {
+      "path": "lib/app/theme/app_theme.dart",
+      "sha256": "244f3b06afed20b855425b07b2336ff55049f03f5cb24adb00944c6ada6c3dc8",
+      "bytes": 14617
+    },
+    {
+      "path": "lib/app/theme/app_type.dart",
+      "sha256": "047d33922560cfeee63c79462d621dd0ae7f4802d2092a7dcfdfd118f7e36513",
+      "bytes": 5500
+    },
+    {
+      "path": "lib/core/analytics/analytics_service.dart",
+      "sha256": "d62f34866ac40b836536f3139459c2510a2ece97f7a1e3d208fa32899bd2eca5",
+      "bytes": 1653
+    },
+    {
+      "path": "lib/core/constants/app_icons.dart",
+      "sha256": "32a56cd7dac7bc638a301b56cc75bad2034644a382b1d01214db6ff0fe9e0520",
+      "bytes": 9448
+    },
+    {
+      "path": "lib/core/constants/app_spacing.dart",
+      "sha256": "f73932c322288f112dcd703ac5adc3174f8873898fab02c58f54ba10b5386459",
+      "bytes": 1400
+    },
+    {
+      "path": "lib/core/firebase/callable_service.dart",
+      "sha256": "dfb1f87e637b602f4bfaa3aa4b77f92faea15c374c330fac5da5a0e2a9586e50",
+      "bytes": 1538
+    },
+    {
+      "path": "lib/core/firebase/fcm_config.dart",
+      "sha256": "e4194acc874996a9030380de74dc281407a5cc9ff3a3d1fff950e50991a4feb0",
+      "bytes": 374
+    },
+    {
+      "path": "lib/core/firebase/firebase_providers.dart",
+      "sha256": "a072a7f40bdd4229298baaa88f816ae8207cd3cd20197bf5b54187dc652417f0",
+      "bytes": 812
+    },
+    {
+      "path": "lib/core/firebase/firestore_batch.dart",
+      "sha256": "c34c5506ce6611dbd258d2fc33cdca2114aa55bc70d3836932feb0ebdbf96af3",
+      "bytes": 1326
+    },
+    {
+      "path": "lib/core/firebase/query_limits.dart",
+      "sha256": "e33022f9c322b6447fa3ec0283b018fea78596701fd09786fbd2bca136adf143",
+      "bytes": 504
+    },
+    {
+      "path": "lib/core/google/google_auth_config.dart",
+      "sha256": "82bcf7fa547d6108dc630acf12f8357053ab0deb2fdfae1efd5a44b372ece444",
+      "bytes": 1107
+    },
+    {
+      "path": "lib/core/google/google_scopes.dart",
+      "sha256": "ef75422805db568f8e2f874920de258ebc21cc8c79e3f4007f3ff09e8ba4ab3f",
+      "bytes": 809
+    },
+    {
+      "path": "lib/core/layout/responsive_breakpoints.dart",
+      "sha256": "c4be4c90509be0a0af04b3fe6a5ee9d744707b066d67532673cf5b509711eea7",
+      "bytes": 336
+    },
+    {
+      "path": "lib/core/layout/scroll_insets.dart",
+      "sha256": "26fcfb196030410c2b14a00dbc6ba6dfe644749e2a3bd1aa016096c4b337d788",
+      "bytes": 1249
+    },
+    {
+      "path": "lib/core/time/device_timezone.dart",
+      "sha256": "525b0aee6454f9cc94f6047ba447033f9842583d36c32e8c07d68a6f35e6dab1",
+      "bytes": 1190
+    },
+    {
+      "path": "lib/core/time/device_timezone_io.dart",
+      "sha256": "22dc8ff7df0641f90978d0065bf93252c4e65709a0317247897f61d9e1e286a2",
+      "bytes": 880
+    },
+    {
+      "path": "lib/core/time/device_timezone_web.dart",
+      "sha256": "158e084bfce1c890e8ba8147983c751216b61c3d130417020e4c4f21020b8399",
+      "bytes": 973
+    },
+    {
+      "path": "lib/core/time/iana_timezone.dart",
+      "sha256": "583898c2dfeb8601a51895992cdea6c32568261534f92c436b8952b931b8f198",
+      "bytes": 874
+    },
+    {
+      "path": "lib/core/widgets/app_badge.dart",
+      "sha256": "35ceb703435aca28f6188c28f67e324dd6f6e57dda95c7779864f8542c1de741",
+      "bytes": 2480
+    },
+    {
+      "path": "lib/core/widgets/app_button.dart",
+      "sha256": "01d226976c7a3463ec15681628cfe8de6e48a180e420e25e0c5a57f22beb9374",
+      "bytes": 3467
+    },
+    {
+      "path": "lib/core/widgets/app_card.dart",
+      "sha256": "754c55bb4be43192b920801680a5f481279b3beac85f201b71ffa835d14d9487",
+      "bytes": 2433
+    },
+    {
+      "path": "lib/core/widgets/app_dialogs.dart",
+      "sha256": "4f05d20cd8ad92ec9162178acc24ec9800300fdfda668e0dc9dd52251d62de6f",
+      "bytes": 2311
+    },
+    {
+      "path": "lib/core/widgets/app_fab.dart",
+      "sha256": "a6eea5db38196228c4681209e5f0b0c56703ce33a49e4a140acdab5db5ee4270",
+      "bytes": 1875
+    },
+    {
+      "path": "lib/core/widgets/app_sheet.dart",
+      "sha256": "22672dfee16dc94d914cebc84e8b2d866aec85582a2810cfeecdf4dc01647012",
+      "bytes": 3532
+    },
+    {
+      "path": "lib/core/widgets/app_top_bar.dart",
+      "sha256": "16be483ff7585bee2dc9701d7c6e470f29098309253022792eb87c9a67cebe99",
+      "bytes": 3674
+    },
+    {
+      "path": "lib/core/widgets/app_viewport.dart",
+      "sha256": "943cde7d4757ca2e5aa064b3919d197220872c54c5f0f14d5549e6af0599995b",
+      "bytes": 634
+    },
+    {
+      "path": "lib/core/widgets/brand_lockup.dart",
+      "sha256": "40510d3c060972520e099e0465ca865e0122e7fde0774d0b2cd866750281abe2",
+      "bytes": 3239
+    },
+    {
+      "path": "lib/core/widgets/edit_target.dart",
+      "sha256": "6c253417755b5b967d73ed5295a364aa7d2955b54acff3e892144f68b8fe34fb",
+      "bytes": 4385
+    },
+    {
+      "path": "lib/core/widgets/empty_state.dart",
+      "sha256": "968a32788afad67d310e4c7424afcbe16bdc124aae9e5700312bd65b0de0c791",
+      "bytes": 1896
+    },
+    {
+      "path": "lib/core/widgets/error_state.dart",
+      "sha256": "eaa051a65a09e2d8cc77c6b0603404598c726bfa72906b3e93c2e16b0e2bf5a5",
+      "bytes": 1849
+    },
+    {
+      "path": "lib/core/widgets/item_detail_sheet_components.dart",
+      "sha256": "461153dd9fdff3349ae2f8ed0347c3c2733419da5ac96b7975e9d1adf883614d",
+      "bytes": 20472
+    },
+    {
+      "path": "lib/core/widgets/module_lock_view.dart",
+      "sha256": "470bbd2fb29fab4e5e3748eb92237a2aa7acf97837ec777704ef839a5db637be",
+      "bytes": 2390
+    },
+    {
+      "path": "lib/core/widgets/nocturne.dart",
+      "sha256": "4f5d8600542f855a770b64826d7820237290aaa280752eb3c72147483a27ad5a",
+      "bytes": 10779
+    },
+    {
+      "path": "lib/core/widgets/pricing_card.dart",
+      "sha256": "688b46be3a86edf0b8af96092e34ea94f34078eeb254ca0bcc744a7843609626",
+      "bytes": 2943
+    },
+    {
+      "path": "lib/core/widgets/progress_ring.dart",
+      "sha256": "fa76f74141d54195ea24fbfb5ac52343e6d1ba9008966feb88e817b50d3bc33e",
+      "bytes": 3809
+    },
+    {
+      "path": "lib/core/widgets/responsive_scaffold.dart",
+      "sha256": "55dc2661952d6c4a27b74b023bb85af2e48fcce389559bff0249a747530f78c5",
+      "bytes": 7352
+    },
+    {
+      "path": "lib/core/widgets/sheet_page.dart",
+      "sha256": "06a728d7f599e6db0aab37693f689a83603abf24dab2e0838bd41a0d62ffea2d",
+      "bytes": 4331
+    },
+    {
+      "path": "lib/core/widgets/stat_card.dart",
+      "sha256": "4c7739fd836905e23d93e401677dde7d6845308c54efbd1158483b3c40171746",
+      "bytes": 1772
+    },
+    {
+      "path": "lib/debug/dev_seed_screen.dart",
+      "sha256": "b43214c9060e6abe71aed736799ef09cad8ce1541e6cd0739ac72c519d46e944",
+      "bytes": 1950
+    },
+    {
+      "path": "lib/debug/fcm_check_main.dart",
+      "sha256": "b3b01495fac768842c1996b8bfd8af29ab715e1b2ab6d7452c193656d976b4ee",
+      "bytes": 4233
+    },
+    {
+      "path": "lib/debug/seed_all.dart",
+      "sha256": "ef4d71eb239166d5929da2ac6470af62bf5058c9adab9f569c3c6796cbf7254e",
+      "bytes": 17046
+    },
+    {
+      "path": "lib/debug/seed_dev.dart",
+      "sha256": "88c1a60866cd7f48b0c3ee8aaa0dfb1a68aaff36ec0d6c2749172bf69bd2e048",
+      "bytes": 5894
+    },
+    {
+      "path": "lib/debug/seed_main.dart",
+      "sha256": "a66e10cc429940aeb44261c1d49dda64388dc1cb4974596c4042765821201869",
+      "bytes": 4001
+    },
+    {
+      "path": "lib/features/analytics/application/analytics_providers.dart",
+      "sha256": "abb6e798ce209d167edc61ad581b67b9c9910a8bf71f7041ae593e3eaae4ff8e",
+      "bytes": 1421
+    },
+    {
+      "path": "lib/features/analytics/domain/analytics_summary.dart",
+      "sha256": "e72ea7a286d9b5a5b692a832e79b94b425a96f19aefb98fedb533f61c3681835",
+      "bytes": 5476
+    },
+    {
+      "path": "lib/features/analytics/presentation/analytics_screen.dart",
+      "sha256": "e324e372b16433fe117a557e9419c2a661b557791b71717b76195f76d95c452d",
+      "bytes": 7147
+    },
+    {
+      "path": "lib/features/auth/application/auth_actions.dart",
+      "sha256": "479bcd23d7d2fef67f636535bf7ab68746d55086d2176721b1339c0d690f33cf",
+      "bytes": 8531
+    },
+    {
+      "path": "lib/features/auth/application/auth_providers.dart",
+      "sha256": "d078ee66bb4d2a499f2396174f3dc5c322811c67b1047d51dc0e4f13de6a4916",
+      "bytes": 780
+    },
+    {
+      "path": "lib/features/auth/application/user_scoped_providers.dart",
+      "sha256": "351baaf7ff79e948c682d307f3543588ffd08ab2721fcc4d4cd9388769d8e717",
+      "bytes": 1724
+    },
+    {
+      "path": "lib/features/auth/data/auth_repository.dart",
+      "sha256": "cb839c36e06d89a7713a941564bbb987b9aa5bf8f34db0616484712c9aecf2c0",
+      "bytes": 10434
+    },
+    {
+      "path": "lib/features/auth/presentation/auth_screen.dart",
+      "sha256": "fe053e1b8ebe027a95276c6f205c533942e88f3d0cde8b246d8e863796e8b90a",
+      "bytes": 12989
+    },
+    {
+      "path": "lib/features/auth/presentation/verify_email_screen.dart",
+      "sha256": "cf9465355c9b4d18019c6a371fa3a0736a82203c06b9f3fb5445b886d4a62565",
+      "bytes": 5625
+    },
+    {
+      "path": "lib/features/auth/presentation/widgets/google_web_sign_in_button.dart",
+      "sha256": "b81732ebaf2feef91edd138cbaa9c92531c721edc3c4d8cf65e85faab81419de",
+      "bytes": 113
+    },
+    {
+      "path": "lib/features/auth/presentation/widgets/google_web_sign_in_button_stub.dart",
+      "sha256": "e8f08cb3b5d14240c4d0571ba9f45638a67bebe05b1236e9ac5f08236beb3a14",
+      "bytes": 286
+    },
+    {
+      "path": "lib/features/auth/presentation/widgets/google_web_sign_in_button_web.dart",
+      "sha256": "19966e17725061d1ef2020d600dcbbd8859c1468ac3979de1f057708afcf1cb3",
+      "bytes": 800
+    },
+    {
+      "path": "lib/features/content/application/content_providers.dart",
+      "sha256": "568634c895dca465682eb46182878db735639acd7c60a34cf5e59c474341f3b8",
+      "bytes": 1918
+    },
+    {
+      "path": "lib/features/content/data/firestore_content_repository.dart",
+      "sha256": "e57ef9f917e9b67999c0bd0fc3f77d2e2f820ee64d12f15a1072c8f12e9517d1",
+      "bytes": 1481
+    },
+    {
+      "path": "lib/features/content/domain/content_item.dart",
+      "sha256": "af8220ed45ff299fe3ca5cf8fc9879cfa58ae99caf5184b890ba7b8f2a6164e3",
+      "bytes": 1652
+    },
+    {
+      "path": "lib/features/content/domain/content_repository.dart",
+      "sha256": "364334f5d9bd5249712482ae905b80e66dd2a4736dc87b3fd1e29c81300e9cf4",
+      "bytes": 337
+    },
+    {
+      "path": "lib/features/content/presentation/content_screen.dart",
+      "sha256": "a74240803641d35f953a35b8e560c4424ec6fc449907efe48dd9f43b20986c85",
+      "bytes": 4778
+    },
+    {
+      "path": "lib/features/content/presentation/widgets/add_edit_content_sheet.dart",
+      "sha256": "bbbe29dd1f9df6cbaf0650a477a2505efb139947318b21c7a08a887ad859ceb9",
+      "bytes": 5881
+    },
+    {
+      "path": "lib/features/dashboard/application/today_actions.dart",
+      "sha256": "dab28f4d1921ecb2897350e3f592db02797ba20a56b6099cb2d6ee231f806b4d",
+      "bytes": 4915
+    },
+    {
+      "path": "lib/features/dashboard/application/today_providers.dart",
+      "sha256": "5ba2a0abf898baf1b60fb256c53a2ad74679cbafc3c2282ce3a3240647ee09d1",
+      "bytes": 7781
+    },
+    {
+      "path": "lib/features/dashboard/presentation/dashboard_screen.dart",
+      "sha256": "4c275d6dc53789385f6b175a31548b92a00d6d51d2c62437f4840edb275493d6",
+      "bytes": 7596
+    },
+    {
+      "path": "lib/features/dashboard/presentation/widgets/quick_capture_bar.dart",
+      "sha256": "c5642f583e40d9340a22bfe3b332a8225b005ce1341fbc3c8b01e7544dec8145",
+      "bytes": 8190
+    },
+    {
+      "path": "lib/features/dashboard/presentation/widgets/time_rail.dart",
+      "sha256": "e96eca38ff2f3346d4e23f7622b59851b7ad239aa8c88d9420f87da31f5659d1",
+      "bytes": 13392
+    },
+    {
+      "path": "lib/features/finance/application/finance_providers.dart",
+      "sha256": "e73a82adbe0e3c072713ce8642ba92993f5f3e593d63d34dc7dc9a7c2aca794d",
+      "bytes": 2725
+    },
+    {
+      "path": "lib/features/finance/data/firestore_finance_repository.dart",
+      "sha256": "60573f6fbe903bb736fb78eae07e689b6ea8c27e7f7a0f32411f90282b457d51",
+      "bytes": 2703
+    },
+    {
+      "path": "lib/features/finance/domain/finance_repository.dart",
+      "sha256": "f6a92138eb0fbecae3b5a7148d18d2a8e00de2e040d51ee01102b295940a4362",
+      "bytes": 696
+    },
+    {
+      "path": "lib/features/finance/domain/finance_transaction.dart",
+      "sha256": "af02ebd9a3818b1758d58fd97bef6ae0ecdf898924f23597acd4e83a515f5591",
+      "bytes": 1364
+    },
+    {
+      "path": "lib/features/finance/domain/savings_goal.dart",
+      "sha256": "27e96970a5827f2d96c20c76494d6188ccf257dfc36398f0ab5a781f70fb540b",
+      "bytes": 1080
+    },
+    {
+      "path": "lib/features/finance/presentation/finance_screen.dart",
+      "sha256": "8813d67ba37055cb1ee7e8d545ee1cc2dcbed6f6d708bfc38fe4e624da462df3",
+      "bytes": 11513
+    },
+    {
+      "path": "lib/features/finance/presentation/widgets/add_transaction_sheet.dart",
+      "sha256": "e6c3a4cddd69001712b91650e6b8700dc0ddea1e7a1f81a07935b5c2c443c073",
+      "bytes": 5422
+    },
+    {
+      "path": "lib/features/finance/presentation/widgets/savings_goal_sheet.dart",
+      "sha256": "e4b68693d4425b8b74f7e1c1cec7420a1b0a9aff7ede121f7146496fcfdcb1b0",
+      "bytes": 5110
+    },
+    {
+      "path": "lib/features/goals/application/goal_providers.dart",
+      "sha256": "d4cff714241e25c1547c930bed5ae25b73d41148abd5c855b948ce8653386be6",
+      "bytes": 1912
+    },
+    {
+      "path": "lib/features/goals/data/firestore_goal_repository.dart",
+      "sha256": "8fae80f86649e75c31e9f0cdc78d2ba9ef451960fdc33be5fc64571e40b3b0a7",
+      "bytes": 1687
+    },
+    {
+      "path": "lib/features/goals/domain/goal.dart",
+      "sha256": "cf0d0608401dc31186ceea3841e3e68993d7de6aeb738ea74bc4e95c802abd42",
+      "bytes": 3512
+    },
+    {
+      "path": "lib/features/goals/domain/goal_repository.dart",
+      "sha256": "5c56038310539cc62f58fc73cb198e7d3551a86aba64e534bd81327740a6169f",
+      "bytes": 543
+    },
+    {
+      "path": "lib/features/goals/domain/milestone.dart",
+      "sha256": "fa3840191da2fe68ac1273966c42fd541d671567215eedc4a103d9f3a7e02fd1",
+      "bytes": 654
+    },
+    {
+      "path": "lib/features/goals/presentation/add_edit_goal_screen.dart",
+      "sha256": "9639d4941c1d675cd77b6ca033cd1a5087a3c9b5cdb73e36d362c15a71f5b118",
+      "bytes": 11899
+    },
+    {
+      "path": "lib/features/goals/presentation/goals_screen.dart",
+      "sha256": "c60f065c8cc75e3501d86c9bddfe99b2f968c515e4980cce9fa19b15fa757eac",
+      "bytes": 4202
+    },
+    {
+      "path": "lib/features/goals/presentation/widgets/goal_card.dart",
+      "sha256": "19809baedc53aac8225ed3a73fe181adddaf2c4df385b24e21dd825b8e6a7123",
+      "bytes": 2081
+    },
+    {
+      "path": "lib/features/google_integrations/application/google_integrations_actions.dart",
+      "sha256": "46a1d07c2c1066bb97a5070dd72e235d622e841cb0b8e2431e9df88da638063d",
+      "bytes": 1889
+    },
+    {
+      "path": "lib/features/google_integrations/application/google_integrations_providers.dart",
+      "sha256": "c47c66f5caae5c3429d42cc1236d2eb428740cd4cae4e61db181204531fee469",
+      "bytes": 1966
+    },
+    {
+      "path": "lib/features/google_integrations/data/firestore_google_integrations_repository.dart",
+      "sha256": "8aa853117a4eeac5107d5bc06f754d7e58cf950519b7c72c364b7b88e4f43f90",
+      "bytes": 1401
+    },
+    {
+      "path": "lib/features/google_integrations/data/google_integrations_service.dart",
+      "sha256": "39e4e6ef3a8488c1721d495a27db024313599b70fe3d6186458cd41eec7739f4",
+      "bytes": 2193
+    },
+    {
+      "path": "lib/features/google_integrations/domain/google_calendar_status.dart",
+      "sha256": "ff4059e0ae60edee76134fa009b449c0ca4a79d4c03c86289ec98f5de7fe1cec",
+      "bytes": 956
+    },
+    {
+      "path": "lib/features/google_integrations/domain/google_docs_status.dart",
+      "sha256": "6cdea0ac51c8ad50730ba03fbc5efee11eb0c149cadda500b660599b46419175",
+      "bytes": 1115
+    },
+    {
+      "path": "lib/features/google_integrations/domain/google_drive_status.dart",
+      "sha256": "3ab40cbe8673c056b6bd3842c5295bc27c60f511c73fa336427f41d81e353ef6",
+      "bytes": 1122
+    },
+    {
+      "path": "lib/features/google_integrations/domain/google_integration_id.dart",
+      "sha256": "306224e3eb38d389582dfa3c8f370bb473aacd5a7d5e07981fc94ab1a71bb33c",
+      "bytes": 2109
+    },
+    {
+      "path": "lib/features/google_integrations/domain/google_sheets_status.dart",
+      "sha256": "09c6b43172b35339fb03372591efa08f636245e96c4ac49fcddd02a8072dafbc",
+      "bytes": 1347
+    },
+    {
+      "path": "lib/features/google_integrations/domain/google_sync_status.dart",
+      "sha256": "21a16dd6d3bc0b5d713207f6b174c927acc7bb989afb2bf25ec9c482e30ac4be",
+      "bytes": 555
+    },
+    {
+      "path": "lib/features/google_integrations/presentation/google_integrations_screen.dart",
+      "sha256": "79bd5f015dd30f9a93bc8f5e4b3af3ba9ca74aeb9a1cb69727c12727faf724b4",
+      "bytes": 14595
+    },
+    {
+      "path": "lib/features/google_integrations/presentation/widgets/integration_card.dart",
+      "sha256": "0be06948698a832e938a66c1b060adb9280a83cc63869dc8c349e57fb9e82fd9",
+      "bytes": 4611
+    },
+    {
+      "path": "lib/features/habits/application/habit_providers.dart",
+      "sha256": "b1fc294d37c037c0ba57203b6335fa390c9d11a898e8cc398d5f0de3590ac660",
+      "bytes": 3953
+    },
+    {
+      "path": "lib/features/habits/data/firestore_habit_repository.dart",
+      "sha256": "c3b62047052f430a09469fed036c6b324e3bc88a75d8fe53892f75a18a327f79",
+      "bytes": 4293
+    },
+    {
+      "path": "lib/features/habits/domain/habit.dart",
+      "sha256": "6cc6163d125e5514e101468f486afd113b929703b71b7c914bb1d366fa385ddc",
+      "bytes": 3898
+    },
+    {
+      "path": "lib/features/habits/domain/habit_log.dart",
+      "sha256": "62e36c1dcf4a31721b9e2abd511e260951a1035699a249a8f80b2dba63d09174",
+      "bytes": 1227
+    },
+    {
+      "path": "lib/features/habits/domain/habit_repository.dart",
+      "sha256": "02bf284718149486c3201ef7764c5098a5336bf28b7d1b05cc6b9612c73d5782",
+      "bytes": 991
+    },
+    {
+      "path": "lib/features/habits/domain/habit_schedule.dart",
+      "sha256": "159edb25be4a8da1ee689bbf241ee558bf82c9b62d6de06abe282277aa5127b4",
+      "bytes": 2230
+    },
+    {
+      "path": "lib/features/habits/domain/habit_status.dart",
+      "sha256": "2cce7c13f240e9464e97eed9035c6c2ace0df7013a2fd3167a9ba839310766a7",
+      "bytes": 2608
+    },
+    {
+      "path": "lib/features/habits/presentation/add_edit_habit_screen.dart",
+      "sha256": "1678005fd35fd86f6b92a8047801b00c4b99bd71f675bd4110ba21a67aecbeb7",
+      "bytes": 12337
+    },
+    {
+      "path": "lib/features/habits/presentation/habits_screen.dart",
+      "sha256": "dc82f48623f5cf70efc9d9c32efff8d3307c6e55fc872135a3d1817b9b691731",
+      "bytes": 13353
+    },
+    {
+      "path": "lib/features/habits/presentation/widgets/habit_card.dart",
+      "sha256": "b44a13a3d600689a7d4db95f25849cc26f4eb9adfc4965d2d87979af433cd008",
+      "bytes": 4912
+    },
+    {
+      "path": "lib/features/home_widget/application/home_widget_providers.dart",
+      "sha256": "e9b2463a4ee384820b8a1333ad5f5b624b7f00690f4650317fd18286f1b34568",
+      "bytes": 7954
+    },
+    {
+      "path": "lib/features/home_widget/application/home_widget_service.dart",
+      "sha256": "1e2121192631f257673d03aedda431054b4301ecc81a534a3e0ab086c39d83ca",
+      "bytes": 4480
+    },
+    {
+      "path": "lib/features/home_widget/presentation/home_widget_sync.dart",
+      "sha256": "4a9f0a718ea4e6fb1f4baa353fa9edaa32f8e6ae1fed75682fe9ccb51c531f18",
+      "bytes": 11782
+    },
+    {
+      "path": "lib/features/learning/application/learning_providers.dart",
+      "sha256": "01de438d9b9c984146c0abd34091d1c255c50dfb20d51621edddb701512f3148",
+      "bytes": 2029
+    },
+    {
+      "path": "lib/features/learning/data/firestore_learning_repository.dart",
+      "sha256": "9784454d1cbb0ec4606a23e3b6ac41259aa2362547442b8ae779083c55ad86e4",
+      "bytes": 1601
+    },
+    {
+      "path": "lib/features/learning/domain/learning_item.dart",
+      "sha256": "f30454d3925728b0e369c2884796a049611501ed03820607df2aceb19a8c74a5",
+      "bytes": 1937
+    },
+    {
+      "path": "lib/features/learning/domain/learning_repository.dart",
+      "sha256": "023629fbf660187a51c03a0169cce4b33cf9d0108f1952fcb5fde7c3cc4e08f5",
+      "bytes": 399
+    },
+    {
+      "path": "lib/features/learning/presentation/learning_screen.dart",
+      "sha256": "bbe473dc08d09e7c2124a53e0b7590b8217efb2a1c19cd0d615119346e4e9484",
+      "bytes": 4812
+    },
+    {
+      "path": "lib/features/learning/presentation/widgets/add_edit_learning_sheet.dart",
+      "sha256": "96a44fd0ab8035a095259bf27b96d05550dfebce90b7563820e4a1208028252c",
+      "bytes": 6318
+    },
+    {
+      "path": "lib/features/more/presentation/more_screen.dart",
+      "sha256": "31cba880582e1a2ae5eb49bbed8fa29451d0d9d2354866933f9e0020592dbc1f",
+      "bytes": 8755
+    },
+    {
+      "path": "lib/features/notifications/application/notification_settings_providers.dart",
+      "sha256": "9664f87b9012162d5be1c9d2478ca0573aa2d83b85f59aecdeef76e00765ded6",
+      "bytes": 3831
+    },
+    {
+      "path": "lib/features/notifications/application/push_notifications_providers.dart",
+      "sha256": "6594e2315e3d66425dda27197d0acc6864a83ae34adbb68d349760883301577f",
+      "bytes": 1503
+    },
+    {
+      "path": "lib/features/notifications/data/push_notifications_repository.dart",
+      "sha256": "4304a986c1a7716ad1fd0b8c3c6cc0437afb5d39f6d66a78eaae552fa3a519c5",
+      "bytes": 1867
+    },
+    {
+      "path": "lib/features/notifications/domain/notification_settings.dart",
+      "sha256": "130095c2efb4c20557f787e65bb9a22faaed9617590b57948301fc1d06651b13",
+      "bytes": 4994
+    },
+    {
+      "path": "lib/features/notifications/presentation/notification_settings_screen.dart",
+      "sha256": "8eeb585295fa83b1ff36ee4a4ca29657e29fd62b4f6c3f9c85c946128face9a9",
+      "bytes": 7270
+    },
+    {
+      "path": "lib/features/onboarding/presentation/onboarding_screen.dart",
+      "sha256": "b7570f70a96fc14df6af3bc5c913d825a52dd2a975dab2ffb45c0e5369631e5f",
+      "bytes": 5156
+    },
+    {
+      "path": "lib/features/pricing/application/plan_providers.dart",
+      "sha256": "c0cc1445752ff557c419f420ae9a96b5194c9f578e4a0ae8498cb1eae0c88b7b",
+      "bytes": 336
+    },
+    {
+      "path": "lib/features/pricing/data/plan_catalog.dart",
+      "sha256": "468b8eb0fca38b41509a1e0a9cac193ab64891318b275f32d8e38a5e261831a9",
+      "bytes": 2225
+    },
+    {
+      "path": "lib/features/pricing/domain/plan.dart",
+      "sha256": "af3095428d759cbeecf4334ba535f100935258570a7db829a4e338af9c668cf5",
+      "bytes": 836
+    },
+    {
+      "path": "lib/features/pricing/domain/plan_limits.dart",
+      "sha256": "87e8be67dad547eb6eed80425d2e71504fcc12a949aa8a09475fa1b5aa02f8bc",
+      "bytes": 174
+    },
+    {
+      "path": "lib/features/pricing/domain/plan_module.dart",
+      "sha256": "54b7f25b8bdd1ec9026fb18a49a6c06ad19bfa02f4417667ea1a767e4145a5c7",
+      "bytes": 316
+    },
+    {
+      "path": "lib/features/pricing/presentation/pricing_screen.dart",
+      "sha256": "0399dad617ff2468808d6ba9b17f8a841cd8a24e2eba6d2ecac71d1d3024efea",
+      "bytes": 2295
+    },
+    {
+      "path": "lib/features/profile/application/avatar_actions.dart",
+      "sha256": "ad0d7a712ce6614507caa9f13fba69339bf90095fe88fa6da80dd6e898c203bc",
+      "bytes": 1875
+    },
+    {
+      "path": "lib/features/profile/application/profile_providers.dart",
+      "sha256": "2419e9923e957edeba6a6765dcd36f8908d3b0ca5b66671e16b8ed867b2daba0",
+      "bytes": 3044
+    },
+    {
+      "path": "lib/features/profile/data/avatar_repository.dart",
+      "sha256": "dd094dbb09689a25c062f42fd8a52df267072f4c9da50f9ca746162233c1bc60",
+      "bytes": 1086
+    },
+    {
+      "path": "lib/features/profile/data/user_profile_repository.dart",
+      "sha256": "c9b467070402294337af0031401f426ece43685443c8eac350574d18183694a9",
+      "bytes": 2909
+    },
+    {
+      "path": "lib/features/profile/domain/user_profile.dart",
+      "sha256": "b33107fa8ea4822edb73df04b9cbf967d283eb1ba2b02b556d5a5983db3c3533",
+      "bytes": 2581
+    },
+    {
+      "path": "lib/features/profile/presentation/profile_screen.dart",
+      "sha256": "60db6e6f21143c9b5dd4d38bc28c4e37b7551d82067cdf6a047ff7048d614808",
+      "bytes": 14135
+    },
+    {
+      "path": "lib/features/reminders/application/local_reminder_scheduler.dart",
+      "sha256": "22aa68dd4fdf91685125a364628879015dbbe978e6379016cea9e0a9764ce445",
+      "bytes": 3018
+    },
+    {
+      "path": "lib/features/reminders/application/reminder_providers.dart",
+      "sha256": "1b49059143b8bfb80756fee3275bfea75cd48cad5b01c2121d5e2f6ca36a6ab6",
+      "bytes": 3060
+    },
+    {
+      "path": "lib/features/reminders/data/firestore_reminder_repository.dart",
+      "sha256": "a508934639f3aa7d457cd4b4bbfc640d33ab0aa7fbe9af3d2d003ec9ee4deef7",
+      "bytes": 3848
+    },
+    {
+      "path": "lib/features/reminders/domain/reminder.dart",
+      "sha256": "a31d85a47b986f9e6a9aa1ee136425b07fa9b64c570de287cf7af4405db48b14",
+      "bytes": 5536
+    },
+    {
+      "path": "lib/features/reminders/presentation/add_edit_reminder_screen.dart",
+      "sha256": "c5da1b7929d82851383ff7ec4de3780542a3c34dd5e3dcd03f494246208d3ef7",
+      "bytes": 21973
+    },
+    {
+      "path": "lib/features/reminders/presentation/reminders_screen.dart",
+      "sha256": "d8e423a968adefb251071673965a90cec8d75abee4833aeeb90952070a0f4f56",
+      "bytes": 14618
+    },
+    {
+      "path": "lib/features/reminders/presentation/widgets/reminder_card.dart",
+      "sha256": "a79ad44090d799ececcf82d2c91634115b4b2275e89e7141dee849d66f4a4474",
+      "bytes": 7195
+    },
+    {
+      "path": "lib/features/reports/application/reports_providers.dart",
+      "sha256": "278fba4252b74e9f6c61f6d294a65b08c17c0b37d9f876187666d2b9caf9d1d8",
+      "bytes": 1078
+    },
+    {
+      "path": "lib/features/reports/data/firestore_reports_repository.dart",
+      "sha256": "24aa324ac608e5e57e2f3d2e189faae87708c031cc14067d2c4ca1c305f3205c",
+      "bytes": 791
+    },
+    {
+      "path": "lib/features/reports/domain/report.dart",
+      "sha256": "76c318806db41bd7592cba7dc837f8e1f4b38f1e7649e71be4dcf2df7b9dfd2a",
+      "bytes": 1971
+    },
+    {
+      "path": "lib/features/reports/presentation/reports_screen.dart",
+      "sha256": "20897c08f92e2d1b2075030a9ec368d7fb05991f7f4c2c7459adcf5f039d88b3",
+      "bytes": 4318
+    },
+    {
+      "path": "lib/features/splash/presentation/splash_screen.dart",
+      "sha256": "6f25996b724334178115470a1d399408b7dece6cc9f39b1f62fbf990eb31eb6c",
+      "bytes": 2614
+    },
+    {
+      "path": "lib/features/subscription/application/beta_billing_service.dart",
+      "sha256": "f2478a6c7665e74780b151db8e9676d5a44d44a1b25b665a95a95f143785c2e0",
+      "bytes": 2605
+    },
+    {
+      "path": "lib/features/subscription/application/subscription_providers.dart",
+      "sha256": "25498f5b851a99f9f0054df76c4e2b6e78fa40f81f32822717e14abfac4b0f13",
+      "bytes": 2121
+    },
+    {
+      "path": "lib/features/subscription/data/firestore_subscription_repository.dart",
+      "sha256": "560b26eb4b745163334ea44cc5049bc9c18abe14734a37807751983eb025c0c3",
+      "bytes": 1247
+    },
+    {
+      "path": "lib/features/subscription/data/play_billing_service.dart",
+      "sha256": "f4c01ac40471db8abbcc3db71af6617a7924831c37c15af983b31465ad0a2308",
+      "bytes": 5638
+    },
+    {
+      "path": "lib/features/subscription/data/stripe_checkout_service.dart",
+      "sha256": "fa4f1a9f1d219d7a22a37237bfdc396dff603d2e1cfe1fc659bba21fc0bdc2bc",
+      "bytes": 3004
+    },
+    {
+      "path": "lib/features/subscription/domain/beta_access.dart",
+      "sha256": "ebaee9bc81ae0d68a3716cfe6c452ba6fe4b69f40ba3f4949c0e37612c6d9250",
+      "bytes": 1917
+    },
+    {
+      "path": "lib/features/subscription/domain/billing_product_ids.dart",
+      "sha256": "c354a1fd92f70c91d4cee396057b1dafadc9e15a435803923c8de4ee5707b95d",
+      "bytes": 797
+    },
+    {
+      "path": "lib/features/subscription/domain/billing_service.dart",
+      "sha256": "57a8ba7a9cbb48c35a0347ef14a371da398224852f056d5b7e85b1ff10ca62f2",
+      "bytes": 817
+    },
+    {
+      "path": "lib/features/subscription/domain/plan_enforcement.dart",
+      "sha256": "a1c116d16425f72c42d4e4b92c56b39ba007734612becba5f66dd9ec38fc0e9f",
+      "bytes": 2023
+    },
+    {
+      "path": "lib/features/subscription/domain/purchase_result.dart",
+      "sha256": "107a6db0b98b0c5619f7f56fdd147c005ef50468fabb820fafb75bfa43c4fade",
+      "bytes": 281
+    },
+    {
+      "path": "lib/features/subscription/domain/subscription_repository.dart",
+      "sha256": "0e3c83fe74fab577c09a0f5ab29354708fb845343894a971d3d630eb0211d336",
+      "bytes": 894
+    },
+    {
+      "path": "lib/features/subscription/domain/subscription_status.dart",
+      "sha256": "0c97d39d7f78f412467bfd88dc92eb87da6b2c120bf9975fe4ea7bf489a12b00",
+      "bytes": 3522
+    },
+    {
+      "path": "lib/features/subscription/presentation/guarded_create.dart",
+      "sha256": "dd67e3a7595c65e789a65075aca7fec0feb2d80fa52d5947de8a05d569028910",
+      "bytes": 2914
+    },
+    {
+      "path": "lib/features/subscription/presentation/widgets/plan_limit_dialog.dart",
+      "sha256": "7e9dd2241d38a9217625e63d4b828cc52c9af1082abdd8a708c597983f6ad03b",
+      "bytes": 2140
+    },
+    {
+      "path": "lib/features/subscription/presentation/widgets/requires_module.dart",
+      "sha256": "6af57d986a166850fa22b14c803ded4b87653622731767b6f1b707b775a00bac",
+      "bytes": 1949
+    },
+    {
+      "path": "lib/features/tasks/application/task_providers.dart",
+      "sha256": "37d3aaed9559c1b4525dbd550815a38b9186c4c128142a2e68ce92796e64f11e",
+      "bytes": 2397
+    },
+    {
+      "path": "lib/features/tasks/data/firestore_task_repository.dart",
+      "sha256": "9d57973bfee801b5d7db3b22f9b16d91a72140310f2402bc12ff8c909b28d98c",
+      "bytes": 3640
+    },
+    {
+      "path": "lib/features/tasks/domain/task_item.dart",
+      "sha256": "5f7d07103d5516cc91f33b22cb00da5b3a3c1e0b7b4041d9eaf4e084937c197a",
+      "bytes": 5827
+    },
+    {
+      "path": "lib/features/tasks/domain/task_repository.dart",
+      "sha256": "fa39048d522d89f7509139efdd423a6625733f2e763545df1fcefa38ca96c547",
+      "bytes": 860
+    },
+    {
+      "path": "lib/features/tasks/presentation/add_edit_task_screen.dart",
+      "sha256": "6a6ed92fa4130ca1dd1be824c44c1168601f76923269f124c93c61b7c0485890",
+      "bytes": 22146
+    },
+    {
+      "path": "lib/features/tasks/presentation/tasks_screen.dart",
+      "sha256": "72b1b66714783f96f7b3edcac0931bd89b1a2b6b8f302ef56891ba828723cdc4",
+      "bytes": 11729
+    },
+    {
+      "path": "lib/features/tasks/presentation/widgets/task_card.dart",
+      "sha256": "403ba6185e6c905c6ebdb1d0a0c9601eae198ec033e54d31750ec8edcce96306",
+      "bytes": 6391
+    },
+    {
+      "path": "lib/features/workout/application/workout_providers.dart",
+      "sha256": "44c3de2080f1c759398e97dbe8f9da46b8b7072faae67e7e22e4c7a7c70beabe",
+      "bytes": 2086
+    },
+    {
+      "path": "lib/features/workout/data/firestore_workout_repository.dart",
+      "sha256": "c403cd7a0426362941858fc37a6f45c2332de6b52efcc6580034bb3c9f26afe1",
+      "bytes": 3325
+    },
+    {
+      "path": "lib/features/workout/domain/exercise_log.dart",
+      "sha256": "db27068d5395e9ce51681e9241bbb929d14bc3545e49dc1369423c5a76e20a39",
+      "bytes": 1579
+    },
+    {
+      "path": "lib/features/workout/domain/workout.dart",
+      "sha256": "957798d27583494d7ab0f78f39aee6825e343350ad9d1d616215421eaa0c2158",
+      "bytes": 551
+    },
+    {
+      "path": "lib/features/workout/domain/workout_repository.dart",
+      "sha256": "bebb2bef877012965f16aa3f9de1850bb34bd58db6527cc38de500a222550d96",
+      "bytes": 362
+    },
+    {
+      "path": "lib/features/workout/presentation/widgets/log_workout_sheet.dart",
+      "sha256": "e56700c3e2bead98741835ac0e220793a89bfe4cfb0d4ebd730f5c6897b0f8b1",
+      "bytes": 7163
+    },
+    {
+      "path": "lib/features/workout/presentation/workout_screen.dart",
+      "sha256": "5e2be0907e2d501085960dde41b3f43ba51aec1e85ea18405ab9cd65dea89972",
+      "bytes": 6827
+    },
+    {
+      "path": "lib/firebase_options.dart",
+      "sha256": "d9930747ff301983e718955265414dd5ff3a19665329f559c7779d59656d61c4",
+      "bytes": 1567
+    },
+    {
+      "path": "lib/main.dart",
+      "sha256": "dce890c964aa83f98b98c7dc60b3f2ccbd0dc2e72e7658e0fadaaad1edd76341",
+      "bytes": 3576
+    },
+    {
+      "path": "pubspec.lock",
+      "sha256": "0152c4757b232e3695feeab11f820370a01b722554bef285c4a1414dd2eb80ab",
+      "bytes": 27674
+    },
+    {
+      "path": "pubspec.yaml",
+      "sha256": "3821451fe65b6c818e7cdf4925f8ddde9cbc5592ecf1b38904d540ae0d8c571c",
+      "bytes": 4976
+    },
+    {
+      "path": "storage.rules",
+      "sha256": "a4b2a8768b1b8dded7dd46b62c9ab64b472f71cf63eef1df9866ba5a5f01a033",
+      "bytes": 612
+    },
+    {
+      "path": "test/analytics_summary_test.dart",
+      "sha256": "c9d462275841635a450dfdc221f616d0985742bb57ad8160b93e47269b1fe0e3",
+      "bytes": 4532
+    },
+    {
+      "path": "test/app_flow_test.dart",
+      "sha256": "b84297b69686799bcd214e6f889d7fe2dcab9fa727157a29590d208321a1fb7b",
+      "bytes": 6152
+    },
+    {
+      "path": "test/habit_streak_test.dart",
+      "sha256": "50b186f5c0523100ab249379132801314deaafe332cc8de6200246647102af77",
+      "bytes": 3842
+    },
+    {
+      "path": "test/iana_timezone_test.dart",
+      "sha256": "53b7789fd5ee41a79cceb98ed10faf389ce780ee4e69af8902d0711583b35a25",
+      "bytes": 1737
+    },
+    {
+      "path": "test/notification_settings_test.dart",
+      "sha256": "8b681d1e2c695d978dfdfbd4aeb209877a599f5fa2493c2f28fa77f01c2cb0d2",
+      "bytes": 4767
+    },
+    {
+      "path": "test/reminder_repository_test.dart",
+      "sha256": "2b874e155184042fb362731013b795bd6dc57554b771600765890b137bb9aabc",
+      "bytes": 4973
+    },
+    {
+      "path": "test/subscription_entitlement_test.dart",
+      "sha256": "b3fbf23699848f99b49cf21787668117d8a5f7c478d89929eec2f15e6de63a1e",
+      "bytes": 3921
+    },
+    {
+      "path": "test/support/fakes.dart",
+      "sha256": "d851fd073e28ae443921378d80396c4357a30ee19677f0bfffc939a06b457092",
+      "bytes": 8591
+    },
+    {
+      "path": "test/today_selectors_test.dart",
+      "sha256": "e30f33f4c4f80e4c8f99e786acd0a8d4783eea52c5e235da854c9e2d35ad8d87",
+      "bytes": 5259
+    },
+    {
+      "path": "test/widget_test.dart",
+      "sha256": "100a53366ab7d57f0ff6ee20d1d942214c88b0f9cf1292ad4b49bb55a2184a9d",
+      "bytes": 1380
+    },
+    {
+      "path": "web/favicon.png",
+      "sha256": "46df9d034af63dd11511bc27ea21a4d3ad23afc2bc7c7351bb495dd8008fdc8c",
+      "bytes": 3842
+    },
+    {
+      "path": "web/icons/Icon-192.png",
+      "sha256": "f8bfa3e24283f65a613b701f8b089df2b67307ba04fee4c84b357b4836ad208f",
+      "bytes": 12940
+    },
+    {
+      "path": "web/icons/Icon-512.png",
+      "sha256": "0c9c27ae14d26e8c56d765ed40cfc6ac3e04d77ade4e5bd5d278603e13ec427e",
+      "bytes": 36542
+    },
+    {
+      "path": "web/icons/Icon-maskable-192.png",
+      "sha256": "ff0db7da126ef474952061ef62e19b089acd72db3c7aaf8a1e231157f1cf48f2",
+      "bytes": 7893
+    },
+    {
+      "path": "web/icons/Icon-maskable-512.png",
+      "sha256": "0d07911b9ea908c67236659bd573bb82bfc9531d5ceca6430602d7a3865cce26",
+      "bytes": 22256
+    },
+    {
+      "path": "web/index.html",
+      "sha256": "288e49556f8d9613b24460d1dfd8981795e12c46a1eeea624d858ed58c1db513",
+      "bytes": 1614
+    },
+    {
+      "path": "web/manifest.json",
+      "sha256": "a3853d044aaf689927b89d63d1b11e3e7226286729f7211f4d64ee41d09ef12b",
+      "bytes": 959
+    }
+  ]
+}

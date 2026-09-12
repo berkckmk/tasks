@@ -1,0 +1,129 @@
+/* Planner App — Navbar + Page Header Accent Tokens */
+
+:root {
+  --nav-bg: #212329;
+  --nav-inactive: #A9A4B0;
+
+  --tab-reminders: #9E86FF;
+  --tab-today: #FFB986;
+  --tab-habits: #86E6B0;
+  --tab-tasks: #FF86EC;
+  --tab-more: #86DBFF;
+
+  --page-header-radius: 18px;
+}
+
+/*
+  Figma active-pill direction:
+  linear-gradient(101.53deg, rgba(tabColor, .9) -156.38%, rgba(tabColor, 0) 94.04%)
+
+  Page header uses the same visual language but intentionally much lower intensity.
+*/
+
+.navbar {
+  background: var(--nav-bg);
+}
+
+.nav-item {
+  color: var(--nav-inactive);
+}
+
+/* Reminders */
+.nav-item[data-tab="reminders"][aria-current="page"] {
+  color: var(--tab-reminders);
+  background: linear-gradient(
+    101.53deg,
+    rgba(158, 134, 255, 0.90) -156.38%,
+    rgba(158, 134, 255, 0) 94.04%
+  );
+}
+
+.page-header[data-tab="reminders"] {
+  background: linear-gradient(
+    101.53deg,
+    rgba(158, 134, 255, 0.26) 0%,
+    rgba(158, 134, 255, 0.12) 34%,
+    rgba(158, 134, 255, 0) 78%
+  );
+}
+
+/* Today */
+.nav-item[data-tab="today"][aria-current="page"] {
+  color: var(--tab-today);
+  background: linear-gradient(
+    101.53deg,
+    rgba(255, 185, 134, 0.90) -156.38%,
+    rgba(255, 185, 134, 0) 94.04%
+  );
+}
+
+.page-header[data-tab="today"] {
+  background: linear-gradient(
+    101.53deg,
+    rgba(255, 185, 134, 0.26) 0%,
+    rgba(255, 185, 134, 0.12) 34%,
+    rgba(255, 185, 134, 0) 78%
+  );
+}
+
+/* Habits */
+.nav-item[data-tab="habits"][aria-current="page"] {
+  color: var(--tab-habits);
+  background: linear-gradient(
+    101.53deg,
+    rgba(134, 230, 176, 0.90) -156.38%,
+    rgba(134, 230, 176, 0) 94.04%
+  );
+}
+
+.page-header[data-tab="habits"] {
+  background: linear-gradient(
+    101.53deg,
+    rgba(134, 230, 176, 0.26) 0%,
+    rgba(134, 230, 176, 0.12) 34%,
+    rgba(134, 230, 176, 0) 78%
+  );
+}
+
+/* Tasks */
+.nav-item[data-tab="tasks"][aria-current="page"] {
+  color: var(--tab-tasks);
+  background: linear-gradient(
+    101.53deg,
+    rgba(255, 134, 236, 0.90) -156.38%,
+    rgba(255, 134, 236, 0) 94.04%
+  );
+}
+
+.page-header[data-tab="tasks"] {
+  background: linear-gradient(
+    101.53deg,
+    rgba(255, 134, 236, 0.26) 0%,
+    rgba(255, 134, 236, 0.12) 34%,
+    rgba(255, 134, 236, 0) 78%
+  );
+}
+
+/* More */
+.nav-item[data-tab="more"][aria-current="page"] {
+  color: var(--tab-more);
+  background: linear-gradient(
+    101.53deg,
+    rgba(134, 219, 255, 0.90) -156.38%,
+    rgba(134, 219, 255, 0) 94.04%
+  );
+}
+
+.page-header[data-tab="more"] {
+  background: linear-gradient(
+    101.53deg,
+    rgba(134, 219, 255, 0.26) 0%,
+    rgba(134, 219, 255, 0.12) 34%,
+    rgba(134, 219, 255, 0) 78%
+  );
+}
+
+.page-header {
+  border-radius: var(--page-header-radius);
+  padding: 14px 16px;
+}

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The Steady Progress home-screen widget.
+
+    ## What this replaces
+
+    The whole panel used to be rendered into a `Bitmap` by GlassRenderer and
+    shown in one `ImageView`, because RemoteViews cannot host a custom `View`
+    and the Liquid Glass material needed a shader. That machinery is gone:
+    no Bitmap, no BlurMaskFilter, no bitmap budget to clamp against, and no
+    transaction-limit risk on resize. Everything below is a class RemoteViews
+    actually permits.
+
+    ## The one rule that still bites
+
+    RemoteViews' permitted class list is short — FrameLayout, LinearLayout,
+    RelativeLayout, GridLayout, ImageView, TextView, Button, ProgressBar,
+    TextClock, ViewFlipper, and the collection views — and notably does NOT
+    include a bare `<View>` or `<Space>`. Inflating one throws
+
+        Class not allowed to be inflated android.view.View
+
+    which fails the *whole* layout, not just that element, and the launcher
+    then shows an empty box. Any spacer here is therefore a zero-content
+    TextView or padding, never a View. After touching this file, install and
+    grep logcat for InflateException — the widget failing silently to an
+    empty box is the signature.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+
+    <!-- The configurable ground. Colour-filtered and alpha'd by the provider;
+         see widget_panel_fill.xml for why this is a src and not a background. -->
+    <ImageView
+        android:id="@+id/panel_fill"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_panel_fill"
+        android:visibility="gone"
+        android:contentDescription="@null" />
+
+    <!-- The hairline, above the fill so it never fades with it. -->
+    <ImageView
+        android:id="@+id/panel_edge"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_panel_edge"
+        android:visibility="gone"
+        android:contentDescription="@null" />
+
+    <LinearLayout
+        android:id="@+id/panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="13dp"
+        android:paddingEnd="13dp"
+        android:paddingTop="11dp"
+        android:paddingBottom="9dp">
+
+        <!-- Header: the scope chip, the summary, and a self-ticking clock. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- "TODAY ⌄". Fires a PendingIntent into the scope picker —
+                 RemoteViews has no popup and no Spinner, so a transparent
+                 Activity is the only way to offer a real choice. -->
+            <TextView
+                android:id="@+id/scope_chip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/widget_scope_chip"
+                android:paddingStart="7dp"
+                android:paddingEnd="7dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_semibold"
+                android:letterSpacing="0.08"
+                android:textColor="@color/nocturne_ink_accent"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:maxLines="1"
+                android:text="@string/widget_scope_today" />
+
+            <TextView
+                android:id="@+id/summary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="9dp"
+                android:textSize="14.5sp"
+                android:fontFamily="@font/inter_semibold"
+                android:textColor="@color/nocturne_text_note"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <!-- Quick-add button. Opens the app's add screen for the
+                 current scope: new reminder, new task, or whichever is
+                 the primary pillar of Today. -->
+            <ImageView
+                android:id="@+id/quick_add"
+                android:layout_width="42dp"
+                android:layout_height="42dp"
+                android:layout_marginStart="7dp"
+                android:src="@drawable/widget_plus"
+                android:contentDescription="@string/widget_quick_add"
+                android:scaleType="center" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginTop="9dp"
+            android:max="100"
+            android:progressDrawable="@drawable/widget_progress" />
+
+        <!-- The rows. A RemoteViewsService collection, so it scrolls — the
+             one thing the bitmap panel could never do. -->
+        <ListView
+            android:id="@+id/items"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="6dp"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:scrollbars="none" />
+
+        <!-- Shown by setEmptyView when the collection has no rows. Never
+             zeros dressed up as data. -->
+        <LinearLayout
+            android:id="@+id/empty"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/empty_icon"
+                android:layout_width="33dp"
+                android:layout_height="33dp"
+                android:src="@drawable/widget_bell_slash"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/empty_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:textSize="17sp"
+                android:fontFamily="@font/inter_semibold"
+                android:textColor="@color/nocturne_text"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:text="@string/widget_empty_title" />
+
+            <TextView
+                android:id="@+id/empty_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/nocturne_text_muted"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:text="@string/widget_empty_message" />
+        </LinearLayout>
+
+        <!-- 4x4 only; the provider hides this at the smaller sizes. -->
+        <LinearLayout
+            android:id="@+id/footer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="6dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/footer_note"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/nocturne_text_caption"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <TextView
+                android:id="@+id/footer_action"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/widget_outline_pill"
+                android:paddingStart="11dp"
+                android:paddingEnd="11dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter_semibold"
+                android:textColor="@color/nocturne_ink_accent"
+                android:shadowColor="@color/nocturne_text_shadow"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:text="@string/widget_footer_action" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

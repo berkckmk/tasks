@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Breathing room between the quick-add panel and the software keyboard. -->
+    <dimen name="widget_modal_keyboard_gap">12dp</dimen>
+    <!-- The gap between the quick-add modal's three area chips. In a dimens
+         file rather than the layout because the chips are inflated one at a
+         time from Kotlin, which is where the margin has to be applied. -->
+    <dimen name="widget_chip_gap">8dp</dimen>
+</resources>

@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Steady Progress Preview",
+    "slug": "steady-progress-mobile",
+    "version": "0.1.0",
+    "scheme": "steadyprogresspreview",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/app-icon.png",
+    "ios": {
+      "bundleIdentifier": "com.steadyprogress.steadyprogress.preview",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.steadyprogress.steady_progress",
+      "permissions": []
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#1B1D2B"
+        }
+      ],
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      "@react-native-firebase/messaging",
+      "@react-native-google-signin/google-signin"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

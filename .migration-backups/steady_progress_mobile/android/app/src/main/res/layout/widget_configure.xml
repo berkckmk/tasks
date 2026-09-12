@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The widget setup screen.
+
+    App-styled rather than system-styled: it is an Activity, not RemoteViews,
+    so it can look like the rest of Steady Progress and it should. The old
+    version's Glass and Wallpaper sections are gone with the material they
+    tuned; what is left is what the panel actually has — a ground, an opacity,
+    a row count and an Include set.
+
+    Order matches the handoff: back row, live preview, Background, Opacity,
+    Rows shown, Include, then Cancel / Add widget.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true"
+    android:background="@color/config_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="17dp"
+        android:paddingEnd="17dp"
+        android:paddingTop="11dp"
+        android:paddingBottom="22dp">
+
+        <!-- Back row. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="17dp">
+
+            <TextView
+                android:id="@+id/config_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="9dp"
+                android:textSize="20sp"
+                android:textColor="@color/config_text"
+                android:text="←" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="19sp"
+                android:textColor="@color/config_text"
+                android:text="@string/config_title" />
+        </LinearLayout>
+
+        <!-- Live preview: the real panel over a wallpaper-ish ground, so the
+             opacity slider is judged against something rather than against
+             the setup screen's own background. -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="132dp"
+            android:background="@color/config_preview_backdrop_a">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="17dp">
+
+                <ImageView
+                    android:id="@+id/preview_fill"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/widget_panel_fill"
+                    android:contentDescription="@string/config_preview_description" />
+
+                <ImageView
+                    android:id="@+id/preview_edge"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/widget_panel_edge"
+                    android:contentDescription="@null" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:paddingStart="13dp"
+                    android:paddingEnd="13dp"
+                    android:paddingTop="11dp"
+                    android:paddingBottom="9dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/preview_chip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/widget_scope_chip"
+                            android:paddingStart="7dp"
+                            android:paddingEnd="7dp"
+                            android:paddingTop="2dp"
+                            android:paddingBottom="2dp"
+                            android:textSize="9.5sp"
+                            android:fontFamily="@font/inter_semibold"
+                            android:letterSpacing="0.08"
+                            android:textColor="@color/nocturne_ink_accent"
+                            android:shadowColor="@color/nocturne_text_shadow"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="3"
+                            android:text="@string/widget_scope_today" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="9dp"
+                            android:textSize="11.5sp"
+                            android:fontFamily="@font/inter_semibold"
+                            android:maxLines="1"
+                            android:textColor="@color/nocturne_text_note"
+                            android:shadowColor="@color/nocturne_text_shadow"
+                            android:shadowDx="0"
+                            android:shadowDy="1"
+                            android:shadowRadius="3"
+                            android:text="@string/config_preview_summary" />
+                    </LinearLayout>
+
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:layout_marginTop="9dp"
+                        android:max="100"
+                        android:progress="42"
+                        android:progressDrawable="@drawable/widget_progress" />
+
+                    <LinearLayout
+                        android:id="@+id/preview_rows"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:layout_marginTop="6dp"
+                        android:orientation="vertical" />
+                </LinearLayout>
+            </FrameLayout>
+        </FrameLayout>
+
+        <!-- Background: four 46dp swatches, selected = 2px accent border. -->
+        <TextView
+            style="@style/ConfigSectionLabel"
+            android:text="@string/config_background_label" />
+
+        <LinearLayout
+            android:id="@+id/ground_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+        <TextView
+            style="@style/ConfigSectionDescription"
+            android:text="@string/config_background_description" />
+
+        <!-- Opacity: slider + right-aligned value in inkAccent. -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="22dp"
+            android:baselineAligned="true">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="15sp"
+                android:textColor="@color/config_text"
+                android:text="@string/config_opacity_label" />
+
+            <TextView
+                android:id="@+id/opacity_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:fontFeatureSettings="tnum"
+                android:textColor="@color/config_accent" />
+        </LinearLayout>
+
+        <!-- Tinted explicitly rather than through the theme's colorAccent:
+             Samsung's DeviceDefault applies its own accent to SeekBar and the
+             track came out One UI blue, which read as a stray system control
+             in the middle of the app's own palette. -->
+        <SeekBar
+            android:id="@+id/opacity_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:max="100"
+            android:progressTint="@color/config_accent"
+            android:progressBackgroundTint="@color/config_track"
+            android:thumbTint="@color/config_accent" />
+
+        <TextView
+            style="@style/ConfigSectionDescription"
+            android:text="@string/config_opacity_description" />
+
+        <!-- Rows shown: a segmented control of 1 / 2 / 3 / 5. -->
+        <TextView
+            style="@style/ConfigSectionLabel"
+            android:text="@string/config_rows_label" />
+
+        <LinearLayout
+            android:id="@+id/rows_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/config_segmented" />
+
+        <!-- Include: tag chips. -->
+        <TextView
+            style="@style/ConfigSectionLabel"
+            android:text="@string/config_include_label" />
+
+        <LinearLayout
+            android:id="@+id/include_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+
+        <TextView
+            style="@style/ConfigSectionDescription"
+            android:text="@string/config_include_description" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="28dp">
+
+            <TextView
+                android:id="@+id/config_cancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/config_button_secondary"
+                android:gravity="center"
+                android:paddingTop="13dp"
+                android:paddingBottom="13dp"
+                android:textSize="15sp"
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/config_text_muted"
+                android:text="@string/config_cancel" />
+
+            <TextView
+                android:id="@+id/config_save"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/config_button_primary"
+                android:gravity="center"
+                android:paddingTop="13dp"
+                android:paddingBottom="13dp"
+                android:textSize="15sp"
+                android:fontFamily="@font/inter_semibold"
+                android:textColor="@color/config_on_accent"
+                android:text="@string/config_save" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

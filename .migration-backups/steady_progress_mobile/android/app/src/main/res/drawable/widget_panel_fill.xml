@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The panel's fill. 22dp corners, solid white, no stroke.
+
+    ## Why white, and why this is an ImageView src rather than a background
+
+    The fill is a *setting*: the setup screen writes a ground (Surface / Ink /
+    Accent / None) and an opacity 0-100 into WidgetConfigStore, and the
+    provider composes them onto this shape at build time.
+
+    The obvious way to apply it — `setInt(panel, "setBackgroundColor", argb)` —
+    replaces the view's background outright, which would take the 22dp corners
+    and the 1dp stroke with it and leave a square slab. So instead this shape
+    is the `src` of an ImageView and the provider applies:
+
+        setInt(id, "setColorFilter", groundRgb)   // SRC_ATOP over white
+        setInt(id, "setImageAlpha", 0..255)       // the opacity slider
+
+    Both are @RemotableViewMethod on ImageView and have been since API 16, so
+    this needs no API gate (minSdk is 24). Filtering *white* is what makes the
+    ground come through exactly as specified rather than blended with a base
+    colour, and the transparent corners stay transparent because SRC_ATOP
+    leaves destination alpha alone.
+
+    That is also why the stroke is NOT here: it lives in widget_panel_edge.xml
+    on its own view, so it keeps full opacity while the fill fades. "Only the
+    panel fades — text, the accent bar and the icons keep their own opaque
+    colors" applies to the edge too; a 1px rim that dissolves with the slider
+    is how a panel stops having a shape.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="22dp" />
+    <solid android:color="#FFFFFFFF" />
+</shape>

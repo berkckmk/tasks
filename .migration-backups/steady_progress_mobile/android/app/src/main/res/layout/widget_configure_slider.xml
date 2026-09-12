@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One appearance control: label, live value, description and a slider. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="14dp"
+    android:paddingBottom="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="true">
+
+        <TextView
+            android:id="@+id/slider_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="16sp"
+            android:textColor="@color/config_text" />
+
+        <TextView
+            android:id="@+id/slider_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textColor="@color/config_accent"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/slider_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
+        android:textSize="13sp"
+        android:textColor="@color/config_text_muted" />
+
+    <!-- Tinted explicitly rather than through the theme's colorAccent:
+         Samsung's DeviceDefault applies its own accent to SeekBar and the
+         track came out One UI blue, which read as a stray system control in
+         the middle of the app's green. -->
+    <SeekBar
+        android:id="@+id/slider_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:max="100"
+        android:progressTint="@color/config_accent"
+        android:progressBackgroundTint="@color/config_track"
+        android:thumbTint="@color/config_accent" />
+</LinearLayout>

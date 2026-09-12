@@ -1,0 +1,100 @@
+{
+  "$schema": "planner-design-tokens-v1",
+  "notes": {
+    "theme": "Current app theme remains authoritative where exact source values already exist.",
+    "font": "Use the project's existing primary font family. If none is explicitly configured, use Inter with system sans-serif fallback.",
+    "tabColors": "Tab accent colors are fixed. Do not recolor the entire page."
+  },
+  "color": {
+    "background": "#161827",
+    "surface": "#232532",
+    "surfaceElevated": "#242534",
+    "navBackground": "#212329",
+    "border": "#363846",
+    "textPrimary": "#F2F1F6",
+    "textSecondary": "#92929D",
+    "textDisabled": "#666775",
+    "navInactive": "#A9A4B0",
+    "tabs": {
+      "reminders": "#9E86FF",
+      "today": "#FFB986",
+      "habits": "#86E6B0",
+      "tasks": "#FF86EC",
+      "more": "#86DBFF"
+    }
+  },
+  "typography": {
+    "fontFamily": {
+      "primary": "PROJECT_EXISTING_PRIMARY_FONT",
+      "fallback": "Inter, system-ui, sans-serif"
+    },
+    "display": {
+      "size": 32,
+      "weight": 600
+    },
+    "title": {
+      "size": 24,
+      "weight": 600
+    },
+    "heading": {
+      "size": 18,
+      "weight": 600
+    },
+    "body": {
+      "size": 16,
+      "weight": 400
+    },
+    "bodyMedium": {
+      "size": 16,
+      "weight": 500
+    },
+    "caption": {
+      "size": 14,
+      "weight": 400
+    },
+    "label": {
+      "size": 12,
+      "weight": 600
+    }
+  },
+  "spacing": {
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "xxl": 32,
+    "xxxl": 48
+  },
+  "radius": {
+    "xs": 6,
+    "sm": 8,
+    "md": 14,
+    "lg": 18,
+    "xl": 24,
+    "sheet": 28,
+    "pill": 999
+  },
+  "component": {
+    "screenHorizontalPadding": 16,
+    "sectionGap": 24,
+    "cardPadding": 16,
+    "cardGap": 12,
+    "controlHeight": 52,
+    "icon": {
+      "small": 18,
+      "normal": 22,
+      "navigation": 24
+    },
+    "pageHeaderGradient": {
+      "angleDeg": 101.53,
+      "startAlpha": 0.26,
+      "midAlpha": 0.12,
+      "endAlpha": 0.0,
+      "fadeEndPercent": 78,
+      "radius": 18,
+      "paddingHorizontal": 16,
+      "paddingVertical": 14
+    }
+  }
+}

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One area chip: icon + label, tinted accent when it is the chosen one.
+     Selection is shown by the chip's ground and its tint together, because
+     unlike the scope picker's list these three sit side by side and a tint
+     alone reads as "three slightly different greys". -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="@drawable/widget_outline_pill"
+    android:paddingStart="12dp"
+    android:paddingEnd="14dp"
+    android:paddingTop="9dp"
+    android:paddingBottom="9dp">
+
+    <ImageView
+        android:id="@+id/kind_chip_icon"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/kind_chip_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="7dp"
+        android:textSize="14sp"
+        android:fontFamily="@font/inter_semibold"
+        android:textColor="@color/nocturne_text" />
+</LinearLayout>

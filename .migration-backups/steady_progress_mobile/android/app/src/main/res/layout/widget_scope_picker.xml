@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The scope picker, shown by a transparent no-title Activity.
+
+    RemoteViews has no popup and no Spinner, so the header chip fires a
+    PendingIntent into this Activity instead. It writes the choice for its own
+    appWidgetId and finishes.
+
+    Geometry from the handoff, and the numbers matter: anchored at
+    left 13dp / top 32dp relative to the panel — i.e. directly under the chip
+    it came from — width `max-content` (sized to its labels, deliberately not
+    padded out), radius 16, 1dp accent-40% border. It must not overflow the
+    widget's own bounds, which is why the root is a plain FrameLayout with a
+    start/top-gravity child rather than a centred dialog.
+
+    This replaces the old invisible top-left tap target, whose cycle only
+    moved between single fields and had no path back to the multi-field
+    panel. Three states, all mutually reachable.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/picker_scrim"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent">
+
+    <LinearLayout
+        android:id="@+id/picker_panel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|top"
+        android:orientation="vertical"
+        android:background="@drawable/widget_picker_panel"
+        android:paddingTop="7dp"
+        android:paddingBottom="7dp" />
+</FrameLayout>

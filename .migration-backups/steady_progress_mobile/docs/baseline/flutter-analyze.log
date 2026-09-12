@@ -1,0 +1,15 @@
+Analyzing steady_progress...                                    
+
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/app/router/app_router.dart:78:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/app/router/app_router.dart:84:9 • curly_braces_in_flow_control_structures
+   info • Constructors for public widgets should have a named 'key' parameter. Try adding a named parameter to the constructor • lib/core/widgets/responsive_scaffold.dart:130:9 • use_key_in_widget_constructors
+   info • Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' • lib/debug/seed_dev.dart:85:5 • use_null_aware_elements
+   info • Use the null-aware marker '?' rather than a null check via an 'if'. Try using '?' • lib/debug/seed_dev.dart:86:5 • use_null_aware_elements
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/features/auth/presentation/auth_screen.dart:87:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/features/auth/presentation/auth_screen.dart:123:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/features/auth/presentation/auth_screen.dart:148:9 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/features/auth/presentation/auth_screen.dart:215:27 • curly_braces_in_flow_control_structures
+   info • Statements in an if should be enclosed in a block. Try wrapping the statement in a block • lib/features/auth/presentation/auth_screen.dart:245:27 • curly_braces_in_flow_control_structures
+   info • The import of 'package:flutter/foundation.dart' is unnecessary because all of the used elements are also provided by the import of 'package:flutter/material.dart'. Try removing the import directive • lib/features/home_widget/presentation/home_widget_sync.dart:3:8 • unnecessary_import
+
+11 issues found. (ran in 6.7s)

@@ -1,0 +1,121 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../app/theme/app_colors.dart';
+import '../../../core/constants/app_spacing.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/empty_state.dart';
+import '../../../core/widgets/error_state.dart';
+import '../../pricing/domain/plan_module.dart';
+import '../../subscription/presentation/guarded_create.dart';
+import '../../subscription/presentation/widgets/requires_module.dart';
+import '../application/goal_providers.dart';
+import 'widgets/goal_card.dart';
+import '../../../core/widgets/app_top_bar.dart';
+import '../../../core/widgets/app_fab.dart';
+import '../../../core/constants/app_icons.dart';
+
+class GoalsScreen extends ConsumerWidget {
+  const GoalsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return RequiresModule(
+      title: 'Goals',
+      module: PlanModule.goalPlanner,
+      featureName: 'Goal planner',
+      benefit:
+          'Break big goals into milestones and connect them to your daily '
+          'habits and tasks.',
+      requiredPlanName: 'Growth',
+      icon: AppIcons.flag,
+      builder: (context) => _GoalsBody(),
+    );
+  }
+}
+
+class _GoalsBody extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final goalsAsync = ref.watch(goalsProvider);
+
+    return Scaffold(
+      appBar: AppTopBar(title: const Text('Goals')),
+      floatingActionButton: AppFab(
+        onPressed: () => GuardedCreate.goal(context, ref),
+      ),
+      body: goalsAsync.when(
+        data: (goals) {
+          if (goals.isEmpty) {
+            return EmptyState(
+              icon: AppIcons.flag,
+              title: 'No goals yet',
+              message: 'Set a goal to connect your daily habits and tasks to something bigger.',
+              actionLabel: 'Add goal',
+              onAction: () => GuardedCreate.goal(context, ref),
+            );
+          }
+
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.md,
+              AppSpacing.xxl,
+            ),
+            children: [
+              AppCard(
+                child: Row(
+                  children: [
+                    const Icon(
+                      AppIcons.calendarBlank,
+                      color: AppColors.mutedBlue,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Quarterly breakdown',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Monthly/quarterly goal breakdown is coming soon.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.subtleText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Active goals',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              ...goals.map(
+                (goal) => Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: GoalCard(
+                    goal: goal,
+                    onTap: () => context.push('/goals/${goal.id}/edit'),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+        error: (error, stackTrace) => ErrorState(error: error),
+        loading: () => const Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+}
