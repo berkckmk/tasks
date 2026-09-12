@@ -113,3 +113,11 @@ flutter:
     - family: PhosphorFill
       fonts:
         - asset: assets/fonts/Phosphor-Fill.ttf
+
+# google_sign_in_android 7.2.17 ships a broken AAR — GoogleSignInPlugin.java
+# references a top-level ResultUtilsKt symbol that isn't compiled into that
+# release, so any Android build fails with "cannot find symbol
+# ResultUtilsKt". Pin back to 7.2.16 (known-good, what this repo was
+# actually locked to) until upstream ships a fixed release.
+dependency_overrides:
+  google_sign_in_android: 7.2.16
