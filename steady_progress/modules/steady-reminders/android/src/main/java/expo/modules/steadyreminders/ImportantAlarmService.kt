@@ -24,6 +24,7 @@ class ImportantAlarmService : Service() {
   private var vibrator: Vibrator? = null
   private var wakeLock: PowerManager.WakeLock? = null
   private var currentReminderId: String = ""
+  private var currentReminderTimestampMs: Long? = null
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -32,6 +33,7 @@ class ImportantAlarmService : Service() {
 
     val action = intent.action ?: ACTION_START
     val id = intent.getStringExtra(EXTRA_ID).orEmpty()
+    val timestampMs = intent.getLongExtra(EXTRA_TIMESTAMP_MS, 0L)
     val title = intent.getStringExtra(EXTRA_TITLE) ?: "Önemli Hatırlatıcı"
     val message = intent.getStringExtra(EXTRA_MESSAGE).orEmpty()
 
@@ -39,6 +41,9 @@ class ImportantAlarmService : Service() {
       ACTION_START -> {
         if (id.isNotEmpty()) {
           currentReminderId = id
+          if (timestampMs > 0L) {
+            currentReminderTimestampMs = timestampMs
+          }
           acquireWakeLock()
           val notification = buildOngoingNotification(id, title, message)
           startInForeground(notificationIdFor(id), notification)
@@ -50,8 +55,13 @@ class ImportantAlarmService : Service() {
       ACTION_SNOOZE -> {
         val targetId = if (id.isNotEmpty()) id else currentReminderId
         if (targetId.isNotEmpty()) {
-          val snoozedUntilMs = System.currentTimeMillis() + 10 * 60 * 1000L
-          ReminderScheduler.snooze(applicationContext, targetId, 10L)
+          val baseTimeMs = if (currentReminderTimestampMs != null && currentReminderTimestampMs!! > 0L) {
+            currentReminderTimestampMs!!
+          } else {
+            ReminderScheduler.getScheduledTimestamp(applicationContext, targetId) ?: System.currentTimeMillis()
+          }
+          val snoozedUntilMs = baseTimeMs + 10 * 60 * 1000L
+          ReminderScheduler.snooze(applicationContext, targetId, 10L, baseTimeMs)
           PendingAlarmActionStore.add(applicationContext, "snooze", targetId, System.currentTimeMillis(), snoozedUntilMs)
           SteadyRemindersEvents.sendAlarmAction("snooze", targetId, snoozedUntilMs)
         }
@@ -255,6 +265,7 @@ class ImportantAlarmService : Service() {
     const val ACTION_STOP = "com.steadyprogress.ACTION_STOP"
 
     const val EXTRA_ID = "extra_id"
+    const val EXTRA_TIMESTAMP_MS = "extra_timestamp_ms"
     const val EXTRA_TITLE = "extra_title"
     const val EXTRA_MESSAGE = "extra_message"
 

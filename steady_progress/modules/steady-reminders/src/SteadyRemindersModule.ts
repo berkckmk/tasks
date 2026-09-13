@@ -63,7 +63,7 @@ declare class SteadyRemindersModule extends NativeModule<ReminderEvents> {
   ensureChannels(): Promise<boolean>;
   schedule(id: string, timestampMs: number, title: string, message: string, priority: ReminderPriority): Promise<boolean>;
   cancel(id: string): Promise<boolean>;
-  snooze(id: string, minutes?: number): Promise<{ id: string; snoozedUntilMs: number }>;
+  snooze(id: string, minutes?: number, baseTimeMs?: number): Promise<{ id: string; snoozedUntilMs: number }>;
   complete(id: string): Promise<boolean>;
   stopActiveAlarm(id?: string): Promise<boolean>;
   importantChannelStatus(): Promise<ImportantChannelStatus>;

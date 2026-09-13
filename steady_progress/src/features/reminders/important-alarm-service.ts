@@ -181,12 +181,21 @@ export class ImportantAlarmService {
     currentDueAt?: Date | null,
   ): Promise<{ id: string; snoozedUntilMs: number } | null> {
     const permissions = await this.getPermissionStatus();
-    const baseTime = currentDueAt ? currentDueAt.getTime() : Date.now();
+    let resolvedDueAt = currentDueAt;
+    if (!resolvedDueAt && repository) {
+      try {
+        const item = await repository.getById(id);
+        resolvedDueAt = item?.dueAt ?? null;
+      } catch {
+        // Fallback to null
+      }
+    }
+    const baseTime = resolvedDueAt ? resolvedDueAt.getTime() : Date.now();
     const snoozedUntilMs = baseTime + minutes * 60_000;
 
     let result = { id, snoozedUntilMs };
     if (SteadyReminders) {
-      result = await SteadyReminders.snooze(id, minutes);
+      result = await SteadyReminders.snooze(id, minutes, baseTime);
     }
 
     if (repository) {

@@ -21,7 +21,7 @@ internal object ReminderScheduler {
   ): Boolean {
     if (timestampMs <= System.currentTimeMillis()) return false
     val manager = context.getSystemService(AlarmManager::class.java) ?: return false
-    val pendingIntent = pendingIntent(context, id, title, message, priority, PendingIntent.FLAG_UPDATE_CURRENT)
+    val pendingIntent = pendingIntent(context, id, timestampMs, title, message, priority, PendingIntent.FLAG_UPDATE_CURRENT)
 
     try {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || manager.canScheduleExactAlarms()) {
@@ -68,12 +68,13 @@ internal object ReminderScheduler {
     return true
   }
 
-  fun snooze(context: Context, id: String, minutes: Long = 10L): Long {
+  fun snooze(context: Context, id: String, minutes: Long = 10L, baseTimeMs: Long? = null): Long {
     val existing = ReminderScheduleStore.all(context).find { it.id == id }
     val title = existing?.title ?: "Önemli Hatırlatıcı"
     val message = existing?.message.orEmpty()
     val priority = "important"
-    val targetTimeMs = System.currentTimeMillis() + minutes * 60 * 1000L
+    val base = baseTimeMs ?: existing?.timestampMs ?: System.currentTimeMillis()
+    val targetTimeMs = base + minutes * 60 * 1000L
 
     schedule(context, id, targetTimeMs, title, message, priority)
 
@@ -104,6 +105,7 @@ internal object ReminderScheduler {
   private fun pendingIntent(
     context: Context,
     id: String,
+    timestampMs: Long,
     title: String,
     message: String,
     priority: String,
@@ -114,17 +116,21 @@ internal object ReminderScheduler {
     Intent(context, ReminderAlarmReceiver::class.java).apply {
       action = ReminderAlarmReceiver.ACTION_ALARM
       putExtra(ReminderAlarmReceiver.EXTRA_ID, id)
+      putExtra(ReminderAlarmReceiver.EXTRA_TIMESTAMP_MS, timestampMs)
       putExtra(ReminderAlarmReceiver.EXTRA_TITLE, title)
       putExtra(ReminderAlarmReceiver.EXTRA_MESSAGE, message)
       putExtra(ReminderAlarmReceiver.EXTRA_PRIORITY, priority)
     },
     creationFlag or PendingIntent.FLAG_IMMUTABLE,
   )
+
+  fun getScheduledTimestamp(context: Context, id: String): Long? =
+    ReminderScheduleStore.all(context).find { it.id == id }?.timestampMs
 }
 
-private data class StoredReminder(val id: String, val timestampMs: Long, val title: String, val message: String, val priority: String)
+internal data class StoredReminder(val id: String, val timestampMs: Long, val title: String, val message: String, val priority: String)
 
-private object ReminderScheduleStore {
+internal object ReminderScheduleStore {
   private const val PREFS = "steady_reminder_schedules"
   private const val KEY = "items"
   fun put(context: Context, id: String, timestampMs: Long, title: String, message: String, priority: String) {

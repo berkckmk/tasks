@@ -12,6 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 internal class ReminderAlarmReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
     val id = intent.getStringExtra(EXTRA_ID) ?: return
+    val timestampMs = intent.getLongExtra(EXTRA_TIMESTAMP_MS, 0L)
     val title = intent.getStringExtra(EXTRA_TITLE) ?: "Hatırlatıcı"
     val message = intent.getStringExtra(EXTRA_MESSAGE).orEmpty()
     val priority = intent.getStringExtra(EXTRA_PRIORITY) ?: "normal"
@@ -36,6 +37,7 @@ internal class ReminderAlarmReceiver : BroadcastReceiver() {
       val serviceIntent = Intent(context, ImportantAlarmService::class.java).apply {
         action = ImportantAlarmService.ACTION_START
         putExtra(ImportantAlarmService.EXTRA_ID, id)
+        putExtra(ImportantAlarmService.EXTRA_TIMESTAMP_MS, timestampMs)
         putExtra(ImportantAlarmService.EXTRA_TITLE, title)
         putExtra(ImportantAlarmService.EXTRA_MESSAGE, message)
       }
@@ -100,6 +102,7 @@ internal class ReminderAlarmReceiver : BroadcastReceiver() {
   companion object {
     const val ACTION_ALARM = "com.steadyprogress.ACTION_ALARM"
     const val EXTRA_ID = "extra_id"
+    const val EXTRA_TIMESTAMP_MS = "extra_timestamp_ms"
     const val EXTRA_TITLE = "extra_title"
     const val EXTRA_MESSAGE = "extra_message"
     const val EXTRA_PRIORITY = "extra_priority"

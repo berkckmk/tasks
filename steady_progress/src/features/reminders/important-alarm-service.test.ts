@@ -149,6 +149,32 @@ test('ImportantAlarmService snooze updates dueAt to +10 minutes and marks status
   assert.equal(updatedItem?.priority, 'important');
 });
 
+test('ImportantAlarmService snooze fetches dueAt from repository when currentDueAt is omitted and adds +10 minutes to plan time', async () => {
+  const gateway = new MemoryDataGateway();
+  const repo = new ReminderRepository(gateway, 'user-123');
+
+  const planDate = new Date('2026-09-13T15:00:00.000Z');
+  const id = await repo.save({
+    title: 'Toplantı',
+    message: 'Proje değerlendirmesi',
+    dueAt: planDate,
+    status: 'scheduled',
+    priority: 'important',
+  });
+
+  // Call snooze without passing currentDueAt
+  const snoozeResult = await ImportantAlarmService.snooze(id, 10, repo);
+  assert.ok(snoozeResult);
+
+  const expectedMs = planDate.getTime() + 10 * 60_000;
+  assert.equal(snoozeResult!.snoozedUntilMs, expectedMs);
+
+  const updatedItem = await repo.getById(id);
+  assert.ok(updatedItem);
+  assert.equal(updatedItem?.status, 'snoozed');
+  assert.equal(updatedItem?.dueAt?.getTime(), expectedMs);
+});
+
 test('ImportantAlarmService log storage enforces max capacity', () => {
   ImportantAlarmService.clearLogs();
   for (let i = 0; i < 150; i++) {

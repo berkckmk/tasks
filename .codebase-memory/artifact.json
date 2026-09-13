@@ -1,0 +1,11 @@
+{
+    "schema_version": 2,
+    "commit": "5a179c7503979e907f62f0858574d41174c06045",
+    "indexed_at": "2026-09-13T08:13:19Z",
+    "project": "Users-pix-pix-code-task",
+    "nodes": 20444,
+    "edges": 38600,
+    "original_size": 67502080,
+    "compressed_size": 3802212,
+    "compression_level": 9
+}

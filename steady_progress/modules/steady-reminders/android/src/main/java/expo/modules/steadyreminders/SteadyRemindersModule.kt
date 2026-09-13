@@ -62,9 +62,10 @@ class SteadyRemindersModule : Module() {
       ReminderScheduler.cancel(context(), id)
     }
 
-    AsyncFunction("snooze") { id: String, minutes: Double? ->
+    AsyncFunction("snooze") { id: String, minutes: Double?, baseTimeMs: Double? ->
       val mins = minutes?.toLong() ?: 10L
-      val newTimeMs = ReminderScheduler.snooze(context(), id, mins)
+      val base = baseTimeMs?.toLong()
+      val newTimeMs = ReminderScheduler.snooze(context(), id, mins, base)
       mapOf(
         "id" to id,
         "snoozedUntilMs" to newTimeMs,

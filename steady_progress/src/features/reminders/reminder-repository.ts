@@ -95,6 +95,12 @@ export class ReminderRepository {
     return input.id;
   }
 
+  async getById(id: string): Promise<ReminderItem | null> {
+    const doc = await this.gateway.getDocument(`${userCollection(this.userId, 'reminders')}/${id}`);
+    if (!doc || !doc.data) return null;
+    return reminderFromDocument(doc.id, doc.data);
+  }
+
   delete(id: string) {
     return this.gateway.deleteDocument(`${userCollection(this.userId, 'reminders')}/${id}`);
   }
