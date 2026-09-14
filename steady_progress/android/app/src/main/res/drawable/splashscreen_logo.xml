@@ -1,31 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    The app mark: the progress ring, precisely matching the app icon's foreground.
-    Track circle at 22% alpha, and 72% progress arc with round caps.
--->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <group
-        android:scaleX="0.80"
-        android:scaleY="0.80"
-        android:translateX="14"
-        android:translateY="14">
-        <!-- Track: the full circle at 22% -->
-        <path
-            android:pathData="M16,50 A34,34 0 1 1 84,50 A34,34 0 1 1 16,50 Z"
-            android:strokeColor="#9184D9"
-            android:strokeAlpha="0.22"
-            android:strokeWidth="13"
-            android:fillColor="@android:color/transparent" />
-        <!-- Arc: 72% of the circle, from 12 o'clock, clockwise, round cap -->
-        <path
-            android:pathData="M50,16 A34,34 0 1 1 16.60,56.37"
-            android:strokeColor="#9184D9"
-            android:strokeWidth="13"
-            android:strokeLineCap="round"
-            android:fillColor="@android:color/transparent" />
-    </group>
-</vector>
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:gravity="fill"
+    android:src="@drawable/splash_background" />

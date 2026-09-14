@@ -1,21 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    What the window shows between process start and Flutter's first frame.
-
-    The app ground, `#161826`, and the mark centred on it. It was plain white,
-    which on a dark-first app meant a white flash on every cold start before
-    the UI appeared — the most visible thing in the launch sequence was a
-    colour the app doesn't contain.
-
-    Fixed rather than themed: Flutter pins `themeMode` to dark (see
-    lib/app/app.dart), so following the device theme here would flash light
-    into a dark app on a light-mode phone.
+    Native launch window. Keep this in sync with assets/images/splash-background.png.
 -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/launch_background" />
     <item>
         <bitmap
-            android:gravity="center"
-            android:src="@mipmap/ic_launcher" />
+            android:gravity="fill"
+            android:src="@drawable/splash_background" />
     </item>
 </layer-list>
