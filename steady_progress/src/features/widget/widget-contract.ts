@@ -20,6 +20,7 @@ export type WidgetSnapshot = {
   bestStreak: number;
   /** Nested lists remain JSON text, as expected by WidgetDataStore. */
   items: string;
+  date?: string;
 };
 export type PendingToggle = {
   id: string;

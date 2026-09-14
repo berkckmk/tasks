@@ -49,3 +49,31 @@ test('defaultTime formats times in 24-hour Europe/Istanbul format', () => {
   assert.ok(!items.reminders[0].time.includes('PM'));
   assert.ok(!items.reminders[0].time.includes('AM'));
 });
+
+test('snapshot carries reference date and rolls over habit completion on day change', () => {
+  const day1 = new Date(2026, 8, 13, 20); // Sept 13, 2026, 8:00 PM
+  const day2 = new Date(2026, 8, 14, 8);  // Sept 14, 2026, 8:00 AM (next morning)
+
+  const habit = { ...habitFromDocument('h1', { name: 'Morning run' }), streak: 5 };
+
+  // On day 1 (completed)
+  const snapDay1 = buildWidgetSnapshot({
+    habits: [{ ...habit, isCompletedToday: true }],
+    tasks: [],
+    reminders: [],
+    now: day1,
+  });
+  assert.equal(snapDay1.date, '2026-09-13');
+  assert.equal(snapDay1.habitsDone, 1);
+
+  // On day 2 (next morning, before any logs created for day 2)
+  const snapDay2 = buildWidgetSnapshot({
+    habits: [{ ...habit, isCompletedToday: false }],
+    tasks: [],
+    reminders: [],
+    now: day2,
+  });
+  assert.equal(snapDay2.date, '2026-09-14');
+  assert.equal(snapDay2.habitsDone, 0);
+  assert.equal(snapDay2.bestStreak, 5);
+});

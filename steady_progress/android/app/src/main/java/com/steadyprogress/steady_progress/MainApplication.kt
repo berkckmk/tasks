@@ -48,6 +48,13 @@ class MainApplication : Application(), ReactApplication {
     }
     loadReactNative(this)
     ApplicationLifecycleDispatcher.onApplicationCreate(this)
+
+    try {
+      expo.modules.steadywidget.WidgetMidnightScheduler.scheduleNextMidnight(this)
+      com.steadyprogress.steady_progress.widget.WidgetSyncWorker.enqueue(this)
+    } catch (e: Exception) {
+      android.util.Log.w("MainApplication", "Failed to schedule widget background services: ${e.message}")
+    }
   }
 
   override fun onConfigurationChanged(newConfig: Configuration) {

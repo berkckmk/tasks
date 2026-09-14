@@ -20,6 +20,7 @@ data class WidgetSnapshot(
     val bestStreak: Int = 0,
     val hasData: Boolean = false,
     val items: List<WidgetItem> = emptyList(),
+    val date: String = "",
 ) {
     val progress: Float
         get() = progressForScope(selectedView)
@@ -138,6 +139,8 @@ object WidgetStore {
             ?: prefs(context).getString(KEY_SELECTED_VIEW, existing.selectedView)
             ?: "today"
 
+        val snapshotDate = raw["date"]?.toString()?.takeIf { it.isNotBlank() } ?: getTodayDateString()
+
         val snapshot = WidgetSnapshot(
             selectedView = scope,
             completed = completedCount,
@@ -145,6 +148,7 @@ object WidgetStore {
             bestStreak = streak,
             hasData = true,
             items = itemsList,
+            date = snapshotDate,
         )
 
         val json = serializeSnapshot(snapshot)
@@ -152,6 +156,8 @@ object WidgetStore {
             .putString(KEY_SNAPSHOT, json.toString())
             .putString(KEY_SELECTED_VIEW, scope)
             .apply()
+
+        WidgetMidnightScheduler.scheduleNextMidnight(context)
     }
 
     @Synchronized
@@ -303,6 +309,7 @@ object WidgetStore {
         root.put("total", snapshot.total)
         root.put("bestStreak", snapshot.bestStreak)
         root.put("hasData", snapshot.hasData)
+        root.put("date", snapshot.date)
 
         val arr = JSONArray()
         for (item in snapshot.items) {
@@ -342,6 +349,43 @@ object WidgetStore {
             bestStreak = root.optInt("bestStreak", 0),
             hasData = root.optBoolean("hasData", false),
             items = itemsList,
+            date = root.optString("date", ""),
         )
+    }
+
+    fun getTodayDateString(): String {
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+        return sdf.format(java.util.Date())
+    }
+
+    @Synchronized
+    fun rolloverDayIfNeeded(context: Context): Boolean {
+        val current = getSnapshot(context)
+        if (!current.hasData) return false
+        val today = getTodayDateString()
+        if (current.date.isEmpty() || current.date == today) return false
+
+        // Date has transitioned to a new day!
+        // Reset daily habit completions for the new day
+        val updatedItems = current.items.map { item ->
+            if (item.type.lowercase().startsWith("habit")) {
+                item.copy(completed = false)
+            } else {
+                item
+            }
+        }
+        val newCompleted = updatedItems.count { it.completed }
+
+        val rolledOver = current.copy(
+            date = today,
+            completed = newCompleted,
+            items = updatedItems,
+        )
+        prefs(context).edit()
+            .putString(KEY_SNAPSHOT, serializeSnapshot(rolledOver).toString())
+            .apply()
+
+        android.util.Log.i("SteadyWidgetStore", "Rolled over widget snapshot from ${current.date} to $today")
+        return true
     }
 }

@@ -1,4 +1,4 @@
-import type { Habit } from '../habits/habit.ts';
+import { formatLogDate, type Habit } from '../habits/habit.ts';
 import type { ReminderItem } from '../reminders/reminder.ts';
 import type { TaskItem } from '../tasks/task-item.ts';
 import type { WidgetItems, WidgetRow, WidgetSnapshot } from './widget-contract.ts';
@@ -87,5 +87,6 @@ export function buildWidgetSnapshot({
     tasksTotal: tasks.length,
     bestStreak: habits.reduce((best, habit) => Math.max(best, habit.streak), 0),
     items: JSON.stringify(items),
+    date: formatLogDate(now),
   };
 }

@@ -45,7 +45,17 @@ export function WidgetDataSync() {
       repositories.tasks.watch((value) => { tasks = value; push(); }, onError),
       repositories.reminders.watch((value) => { reminders = value; push(); }, onError),
     ];
-    return () => stops.forEach((stop) => stop());
+    const now = new Date();
+    const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+    const msUntilMidnight = Math.max(1000, nextMidnight.getTime() - now.getTime());
+    const midnightTimer = setTimeout(() => {
+      push();
+    }, msUntilMidnight);
+
+    return () => {
+      clearTimeout(midnightTimer);
+      stops.forEach((stop) => stop());
+    };
   }, [repositories, synthetic]);
   return null;
 }

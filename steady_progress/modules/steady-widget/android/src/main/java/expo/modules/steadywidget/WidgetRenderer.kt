@@ -27,9 +27,11 @@ object WidgetRenderer {
     }
 
     fun renderAll(context: Context) {
+        val rolled = WidgetStore.rolloverDayIfNeeded(context)
         val manager = AppWidgetManager.getInstance(context)
         val provider = ComponentName(context, SteadyWidgetProvider::class.java)
         val ids = manager.getAppWidgetIds(provider)
+        android.util.Log.d("SteadyWidget", "renderAll: widgets=${ids?.toList() ?: emptyList()}, rollover=$rolled at ${System.currentTimeMillis()}")
         if (ids != null && ids.isNotEmpty()) {
             for (id in ids) {
                 render(context, manager, id)
@@ -38,6 +40,7 @@ object WidgetRenderer {
     }
 
     fun render(context: Context, manager: AppWidgetManager, widgetId: Int) {
+        WidgetStore.rolloverDayIfNeeded(context)
         val snapshot = WidgetStore.getSnapshot(context)
         val layoutId = resId(context, "widget_steady_progress", "layout")
         if (layoutId == 0) return
