@@ -76,7 +76,7 @@
 
     <!-- The launch window's ground: the app's own `bg`. See
          drawable/launch_background.xml. -->
-    <color name="launch_background">#161826</color>
+    <color name="launch_background">#F5E0CC</color>
 
     <!-- ===== Warm Stone Theme (Matches React Native App Palette) ===== -->
     <color name="stone_bg">#E8E4DC</color>

@@ -19,9 +19,18 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 160,
-          "backgroundColor": "#1B1D2B"
+          "image": "./assets/images/splash-background.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#F5E0CC"
+        }
+      ],
+      [
+        "expo-dev-client",
+        {
+          "launchMode": "most-recent",
+          "embeddedBundle": true,
+          "skipOnboarding": true,
+          "showMenuAtLaunch": false
         }
       ],
       "@react-native-firebase/app",
