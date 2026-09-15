@@ -11,6 +11,7 @@ import {
   requestWebNotificationPermission,
   sendWebNotification,
 } from './web-notification-service';
+import { countTodayPendingItems } from './web-today-filter';
 import { updateDockBadge } from './web-dock-badge-service';
 
 export function WebNotificationsHost() {
@@ -57,13 +58,18 @@ export function WebNotificationsHost() {
     };
   }, [repositories, synthetic]);
 
-  // 4. Update macOS Dock Badge counter (Incomplete tasks + incomplete reminders)
+  // 4. Update macOS Dock Badge counter (Incomplete tasks + reminders dated today only)
   useEffect(() => {
-    const dueRemindersCount = reminders.filter((r) => r.status !== 'completed').length;
-    const incompleteTasksCount = tasks.filter((t) => t.status !== 'done').length;
-    const totalPending = dueRemindersCount + incompleteTasksCount;
+    const syncBadge = () => {
+      const totalTodayPending = countTodayPendingItems({ reminders, tasks });
+      void updateDockBadge(totalTodayPending);
+    };
 
-    void updateDockBadge(totalPending);
+    syncBadge();
+
+    // Re-check periodically (every 60s) so midnight roll-over updates badge automatically
+    const timer = setInterval(syncBadge, 60_000);
+    return () => clearInterval(timer);
   }, [reminders, tasks]);
 
   // 5. Schedule in-memory notifications for due reminders
