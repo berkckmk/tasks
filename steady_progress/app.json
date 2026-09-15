@@ -40,6 +40,10 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "web": {
+      "favicon": "./assets/app-icon.png",
+      "bundler": "metro"
     }
   }
 }

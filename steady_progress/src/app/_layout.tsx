@@ -12,6 +12,7 @@ import { ImportantAlarmSync } from '@/features/reminders/important-alarm-sync';
 import { WidgetDataSync } from '@/features/widget/widget-data-sync';
 import { WidgetMutationDrain } from '@/features/widget/widget-mutation-drain';
 import { ProductionDataHost } from '@/features/auth/production-data-host';
+import { WebNotificationsHost } from '@/features/notifications/web-notifications-host';
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -74,5 +75,6 @@ function AppNavigator() {
           <WidgetMutationDrain />
           <WidgetDataSync />
           <ImportantAlarmSync />
+          <WebNotificationsHost />
         </>;
 }
