@@ -1,4 +1,4 @@
-import { getAuth, updateEmail, updateProfile } from '@react-native-firebase/auth';
+import { getCurrentAuthUser, updateAuthIdentity } from '@/features/auth/auth-service';
 import { signOutApp } from '@/features/auth/production-data-host';
 import { useEffect, useMemo, useState } from 'react';
 import { router } from 'expo-router';
@@ -28,7 +28,7 @@ import { colors, controlSize, radius, spacing } from '@/theme';
 
 export function ProfileScreen() {
   const { gateway, userId, userEmail, synthetic } = useAppData();
-  const authUser = !synthetic ? getAuth().currentUser : null;
+  const authUser = !synthetic ? getCurrentAuthUser() : null;
   const repositories = useMemo(() => ({
     profile: new ProfileRepository(gateway, userId),
     tasks: new TaskRepository(gateway, userId),
@@ -72,10 +72,7 @@ export function ProfileScreen() {
     setSaving(true);
     try {
       if (!synthetic) {
-        const current = getAuth().currentUser;
-        if (!current) throw new Error('Oturum bulunamadı.');
-        if (current.displayName !== name.trim()) await updateProfile(current, { displayName: name.trim() });
-        if (email.trim() && current.email !== email.trim()) await updateEmail(current, email.trim());
+        await updateAuthIdentity(name.trim(), email.trim());
       }
       await repositories.profile.saveIdentity({ displayName: name.trim(), email: email.trim() });
       setOpen(false);

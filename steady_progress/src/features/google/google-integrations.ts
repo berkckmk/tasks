@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import type { DataGateway, Unsubscribe } from '../../core/data/data-gateway.ts';
 import { dateFromFirestore } from '../../core/data/firestore-values.ts';
@@ -42,6 +43,9 @@ export class GoogleIntegrationsRepository {
     }, onError);
   }
   async connect(id: GoogleIntegrationId) {
+    if (Platform.OS === 'web') {
+      throw new Error('Google servis entegrasyonu web sürümünde yakında aktif olacaktır. Lütfen mobil uygulamayı kullanın.');
+    }
     const scope = definitions[id].scope;
     GoogleSignin.configure({ webClientId, offlineAccess: true, forceCodeForRefreshToken: true, scopes: [scope] });
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
