@@ -1,11 +1,13 @@
 const CACHE_NAME = 'steady-progress-v1';
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    self.registration.unregister().then(() => self.clients.claim())
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {

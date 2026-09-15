@@ -2,6 +2,7 @@ import { getApps, initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getFunctions, type Functions } from 'firebase/functions';
+import { getMessaging, type Messaging } from 'firebase/messaging';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 export const firebaseWebConfig = {
@@ -37,4 +38,14 @@ export function getFirebaseWebFunctions(): Functions {
 
 export function getFirebaseWebStorage(): FirebaseStorage {
   return getStorage(getFirebaseWebApp());
+}
+
+/**
+ * VAPID key for Firebase Cloud Messaging web push.
+ * Generate from: Firebase Console → Project Settings → Cloud Messaging → Web Push certificates → Generate key pair
+ */
+export const FCM_VAPID_KEY = 'VAPID_KEY_PLACEHOLDER';
+
+export function getFirebaseWebMessaging(): Messaging {
+  return getMessaging(getFirebaseWebApp());
 }

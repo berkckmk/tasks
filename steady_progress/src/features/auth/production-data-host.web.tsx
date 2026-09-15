@@ -17,6 +17,7 @@ import { AppButton, AppCard, AppIcon, AppScreen, AppText, AppTextField, Kicker }
 import { AppDataProvider } from '@/core/data/app-data';
 import { FirebaseDataGateway } from '@/core/data/firebase-data-gateway.web';
 import { getFirebaseWebAuth } from '@/core/firebase/firebase-web-config';
+import { registerPushToken, unregisterPushToken } from '@/features/notifications/push-token-registration';
 import { ProfileRepository } from '@/features/profile/profile-repository';
 import { SubscriptionRepository } from '@/features/subscription/subscription-repository';
 import { OnboardingScreen } from '@/screens/onboarding-screen';
@@ -39,11 +40,26 @@ export function ProductionDataHost({ children }: PropsWithChildren) {
   useEffect(() => {
     const auth = getFirebaseWebAuth();
     return onAuthStateChanged(auth, (next) => {
+      const previous = tokenOwner.current;
+      // Unregister push token from previous user
+      if (previous && previous !== next?.uid) {
+        void unregisterPushToken(gateway, previous);
+      }
       tokenOwner.current = next?.uid ?? null;
       setUser(next);
       setLoading(false);
     });
   }, [gateway]);
+
+  // Register FCM push token for the authenticated user
+  useEffect(() => {
+    if (!user?.emailVerified) return;
+    let stop: (() => void) | undefined;
+    void registerPushToken(gateway, user.uid).then((unsubscribe) => {
+      stop = unsubscribe;
+    });
+    return () => stop?.();
+  }, [gateway, user]);
 
   useEffect(() => {
     setProfileReady(false);

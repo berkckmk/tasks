@@ -29,11 +29,11 @@ export function WebNotificationsHost() {
     [gateway, userId],
   );
 
-  // 1. Register Service Worker for PWA & Notification click routing
+  // 1. Register Firebase Messaging Service Worker for PWA, background push & notification click routing
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
     navigator.serviceWorker
-      .register('/sw.js')
+      .register('/firebase-messaging-sw.js')
       .catch((err) => console.warn('[SW_REGISTRATION_FAILED]', err));
   }, []);
 
