@@ -44,7 +44,8 @@ export function getFirebaseWebStorage(): FirebaseStorage {
  * VAPID key for Firebase Cloud Messaging web push.
  * Generate from: Firebase Console → Project Settings → Cloud Messaging → Web Push certificates → Generate key pair
  */
-export const FCM_VAPID_KEY = 'VAPID_KEY_PLACEHOLDER';
+export const FCM_VAPID_KEY: string =
+  'BGeU8aHx2H35razksLFVsc1MDmn2XIHAVtdnXAir3BRbIXsJ056KWFWhxAY3d9s8oISZCp82mVJqQxw6d1YrNPU';
 
 export function getFirebaseWebMessaging(): Messaging {
   return getMessaging(getFirebaseWebApp());
