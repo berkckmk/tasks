@@ -187,6 +187,9 @@ test('ImportantAlarmService log storage enforces max capacity', () => {
         notifications: true,
         exactAlarm: true,
         fullScreenAlarm: true,
+        dndAccess: true,
+        alarmVolume: true,
+        batteryOptimizationIgnored: true,
       },
     });
   }

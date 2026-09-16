@@ -39,4 +39,10 @@ export {
   sendDueReminders,
   sendHabitReminders,
 } from "./notifications/reminders";
+export { syncReminderScheduleToDevices } from "./notifications/reminderSync";
+export {
+  syncWidgetOnHabitLogWrite,
+  syncWidgetOnHabitWrite,
+  syncWidgetOnTaskWrite,
+} from "./notifications/widgetSync";
 export { scheduledCalendarSync } from "./scheduled/scheduledSync";

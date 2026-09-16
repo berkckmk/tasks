@@ -2,9 +2,12 @@ package expo.modules.steadyreminders
 
 import android.app.AlarmManager
 import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.NotificationManagerCompat
 import expo.modules.kotlin.modules.Module
@@ -44,6 +47,7 @@ class SteadyRemindersModule : Module() {
 
     AsyncFunction("ensureChannels") {
       ReminderChannels.ensureCreated(context())
+      ReminderScheduler.rescheduleAll(context())
       true
     }
 
@@ -114,11 +118,21 @@ class SteadyRemindersModule : Module() {
       } else {
         true
       }
+      val notificationManager = context().getSystemService(NotificationManager::class.java)
+      val dndAccess = Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+        notificationManager?.isNotificationPolicyAccessGranted == true
+      val audioManager = context().getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+      val alarmVolume = (audioManager?.getStreamVolume(AudioManager.STREAM_ALARM) ?: 1) > 0
+      val powerManager = context().getSystemService(PowerManager::class.java)
+      val batteryOptimizationIgnored = powerManager?.isIgnoringBatteryOptimizations(context().packageName) == true
 
       mapOf(
         "notifications" to notifications,
         "exactAlarm" to exactAlarm,
         "fullScreenAlarm" to fullScreenAlarm,
+        "dndAccess" to dndAccess,
+        "alarmVolume" to alarmVolume,
+        "batteryOptimizationIgnored" to batteryOptimizationIgnored,
       )
     }
 
@@ -184,6 +198,13 @@ class SteadyRemindersModule : Module() {
           flags = Intent.FLAG_ACTIVITY_NEW_TASK
         })
       }
+      true
+    }
+
+    AsyncFunction("openDndSettings") {
+      context().startActivity(Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+      })
       true
     }
 

@@ -17,8 +17,6 @@ internal class ReminderAlarmReceiver : BroadcastReceiver() {
     val message = intent.getStringExtra(EXTRA_MESSAGE).orEmpty()
     val priority = intent.getStringExtra(EXTRA_PRIORITY) ?: "normal"
     android.util.Log.i("ReminderAlarmReceiver", "Triggering alarm notification for id=$id, title=$title, priority=$priority")
-    ReminderScheduler.markFired(context, id)
-
     if (priority == "important") {
       // 1. Acquire temporary screen wake lock to ensure the screen turns on
       try {
@@ -48,6 +46,7 @@ internal class ReminderAlarmReceiver : BroadcastReceiver() {
         } else {
           context.startService(serviceIntent)
         }
+        ReminderScheduler.markFired(context, id)
       } catch (e: Exception) {
         android.util.Log.e("ReminderAlarmReceiver", "Failed to start ImportantAlarmService: $e")
       }
@@ -93,6 +92,7 @@ internal class ReminderAlarmReceiver : BroadcastReceiver() {
 
     try {
       NotificationManagerCompat.from(context).notify(id.hashCode(), builder.build())
+      ReminderScheduler.markFired(context, id)
       android.util.Log.i("ReminderAlarmReceiver", "Notification posted successfully for normal reminder id=$id")
     } catch (e: SecurityException) {
       android.util.Log.w("ReminderAlarmReceiver", "Failed to post notification: $e")

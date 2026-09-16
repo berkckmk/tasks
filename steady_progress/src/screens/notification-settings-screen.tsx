@@ -1,7 +1,7 @@
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { Linking, Pressable, Switch, View } from 'react-native';
+import { AppState, Linking, Pressable, Switch, View } from 'react-native';
 import { AppButton, AppCard, AppIcon, AppScreen, AppText, Kicker, PageHeaderGradient } from '@/components/ui';
 import { useAppData } from '@/core/data/app-data';
 import { defaultNotificationSettings, notificationChannels, withNotificationChannel, type NotificationSettings } from '@/features/notifications/notification-settings';
@@ -25,17 +25,28 @@ export function NotificationSettingsScreen() {
     notifications: true,
     exactAlarm: true,
     fullScreenAlarm: true,
+    dndAccess: true,
+    alarmVolume: true,
+    batteryOptimizationIgnored: true,
   });
 
   useEffect(() => {
-    void ImportantAlarmService.getPermissionStatus().then(setPermissionStatus);
-    return repository.watch(
+    const refreshPermissions = () => void ImportantAlarmService.getPermissionStatus().then(setPermissionStatus);
+    refreshPermissions();
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refreshPermissions();
+    });
+    const stopRepository = repository.watch(
       (next) => {
         setSettings(next);
         setError(null);
       },
       (reason) => setError(String(reason)),
     );
+    return () => {
+      appStateSubscription.remove();
+      stopRepository();
+    };
   }, [repository]);
 
   async function commit(next: NotificationSettings) {
@@ -157,6 +168,28 @@ export function NotificationSettingsScreen() {
             onPress={() => void ImportantAlarmService.openFullScreenAlarmSettings()}
           />
         ) : null}
+
+        <View style={{ height: spacing.xs }} />
+
+        <AppText variant="title">Rahatsız Etmeyin erişimi · {permissionStatus.dndAccess ? 'Hazır' : 'İzin gerekli'}</AppText>
+        <AppText tone="muted">Önemli alarmın Rahatsız Etmeyin modunu aşabilmesi için sistem erişimi gerekir.</AppText>
+        {!permissionStatus.dndAccess ? (
+          <AppButton
+            label="Rahatsız Etmeyin erişimini aç"
+            variant="secondary"
+            onPress={() => void ImportantAlarmService.openDndSettings()}
+          />
+        ) : null}
+
+        <View style={{ height: spacing.xs }} />
+
+        <AppText variant="title">Alarm ses düzeyi · {permissionStatus.alarmVolume ? 'Hazır' : 'Ses kapalı'}</AppText>
+        <AppText tone={permissionStatus.alarmVolume ? 'muted' : 'error'}>Telefon sessizde olsa bile alarm ses düzeyi sıfırsa ses çalınamaz.</AppText>
+
+        <View style={{ height: spacing.xs }} />
+
+        <AppText variant="title">Pil optimizasyonu · {permissionStatus.batteryOptimizationIgnored ? 'Kısıtlanmıyor' : 'Kontrol gerekli'}</AppText>
+        <AppText tone="muted">Samsung arka plan kısıtlamaları alarm ve veri yenilemeyi geciktirebilir.</AppText>
 
         <View style={{ height: spacing.xs }} />
         <AppButton

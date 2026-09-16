@@ -22,6 +22,9 @@ export type PermissionStatus = {
   notifications: boolean;
   exactAlarm: boolean;
   fullScreenAlarm: boolean;
+  dndAccess: boolean;
+  alarmVolume: boolean;
+  batteryOptimizationIgnored: boolean;
 };
 
 export type Capabilities = {
@@ -73,6 +76,7 @@ declare class SteadyRemindersModule extends NativeModule<ReminderEvents> {
   openExactAlarmSettings(): Promise<boolean>;
   openFullScreenAlarmSettings(): Promise<boolean>;
   openNotificationSettings(): Promise<boolean>;
+  openDndSettings(): Promise<boolean>;
   openBatterySettings(): Promise<boolean>;
   getPendingActions(): Promise<PendingAlarmAction[]>;
   clearPendingActions(): Promise<boolean>;

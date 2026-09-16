@@ -67,6 +67,9 @@ export class ImportantAlarmService {
         notifications: true,
         exactAlarm: true,
         fullScreenAlarm: true,
+        dndAccess: true,
+        alarmVolume: true,
+        batteryOptimizationIgnored: true,
       };
     }
     return SteadyReminders.getPermissionStatus();
@@ -273,6 +276,10 @@ export class ImportantAlarmService {
     return SteadyReminders?.openNotificationSettings() ?? false;
   }
 
+  static async openDndSettings(): Promise<boolean> {
+    return SteadyReminders?.openDndSettings() ?? false;
+  }
+
   static async openBatteryOptimizationSettings(): Promise<boolean> {
     return SteadyReminders?.openBatterySettings() ?? false;
   }
@@ -348,6 +355,9 @@ export class ImportantAlarmService {
           notifications: true,
           exactAlarm: true,
           fullScreenAlarm: true,
+          dndAccess: true,
+          alarmVolume: true,
+          batteryOptimizationIgnored: true,
         },
       });
       listener(event);

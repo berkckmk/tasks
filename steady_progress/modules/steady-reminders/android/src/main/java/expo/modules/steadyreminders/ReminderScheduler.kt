@@ -11,6 +11,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 internal object ReminderScheduler {
+  private const val RECOVERY_GRACE_MS = 15 * 60 * 1000L
+
   fun schedule(
     context: Context,
     id: String,
@@ -23,18 +25,18 @@ internal object ReminderScheduler {
     val manager = context.getSystemService(AlarmManager::class.java) ?: return false
     val pendingIntent = pendingIntent(context, id, timestampMs, title, message, priority, PendingIntent.FLAG_UPDATE_CURRENT)
 
+    // Persist before asking AlarmManager. If scheduling is rejected or the
+    // process dies, app start/boot recovery still has enough information.
+    ReminderScheduleStore.put(context, id, timestampMs, title, message, priority)
     try {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || manager.canScheduleExactAlarms()) {
         AlarmManagerCompat.setExactAndAllowWhileIdle(manager, AlarmManager.RTC_WAKEUP, timestampMs, pendingIntent)
-        ReminderScheduleStore.put(context, id, timestampMs, title, message, priority)
         return true
       }
       manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timestampMs, pendingIntent)
-      ReminderScheduleStore.put(context, id, timestampMs, title, message, priority)
       return false
     } catch (_: SecurityException) {
       manager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timestampMs, pendingIntent)
-      ReminderScheduleStore.put(context, id, timestampMs, title, message, priority)
       return false
     }
   }
@@ -94,8 +96,10 @@ internal object ReminderScheduler {
   fun rescheduleAll(context: Context) {
     val now = System.currentTimeMillis()
     for (item in ReminderScheduleStore.all(context)) {
-      if (item.timestampMs <= now) {
+      if (item.timestampMs < now - RECOVERY_GRACE_MS) {
         ReminderScheduleStore.remove(context, item.id)
+      } else if (item.timestampMs <= now) {
+        schedule(context, item.id, now + 2_000L, item.title, item.message, item.priority)
       } else {
         schedule(context, item.id, item.timestampMs, item.title, item.message, item.priority)
       }
@@ -149,6 +153,6 @@ internal object ReminderScheduleStore {
   private fun write(context: Context, items: List<StoredReminder>) {
     val array = JSONArray()
     items.forEach { item -> array.put(JSONObject().put("id", item.id).put("timestampMs", item.timestampMs).put("title", item.title).put("message", item.message).put("priority", item.priority)) }
-    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, array.toString()).apply()
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, array.toString()).commit()
   }
 }

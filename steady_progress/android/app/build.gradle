@@ -121,7 +121,7 @@ android {
     productFlavors {
         preview {
             dimension "environment"
-            applicationId 'com.steadyprogress.steady_progress'
+            applicationId 'com.steadyprogress.steady_progress.preview'
             versionName "0.1.0"
             signingConfig signingConfigs.debug
             manifestPlaceholders = [appScheme: "steadyprogresspreview"]
