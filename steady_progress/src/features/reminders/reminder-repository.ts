@@ -20,6 +20,19 @@ export type SetDoneResult = {
   title?: string;
 };
 
+export type AlarmActionResult = SetDoneResult & {
+  /** True when this alarm action was already applied and was skipped. */
+  alreadyApplied: boolean;
+};
+
+/**
+ * An alarm action is delivered twice on Android: once as a live event and once
+ * through the pending-action store drained when the app becomes active. The
+ * native timestamps of the two copies differ slightly, so treat any completion
+ * recorded shortly before the action (or after it) as the same action.
+ */
+const ALARM_ACTION_DEDUPE_WINDOW_MS = 60_000;
+
 export type SaveReminderInput = {
   id?: string;
   title: string;
@@ -160,6 +173,39 @@ export class ReminderRepository {
     return { wasRepeated: false };
   }
 
+
+  /**
+   * Applies a "complete" tapped on the native alarm screen or notification.
+   * Idempotent per action: if the reminder was already completed at or after
+   * the moment the action was taken, nothing changes. Without this a repeating
+   * reminder was advanced twice (e.g. a daily one skipped a whole day).
+   */
+  async completeFromAlarm(id: string, actionAt: Date, now: Date = new Date()): Promise<AlarmActionResult> {
+    if (await this.completedSince(id, actionAt)) {
+      return { wasRepeated: false, alreadyApplied: true };
+    }
+    const result = await this.setDone(id, true, now);
+    return { ...result, alreadyApplied: false };
+  }
+
+  /**
+   * Applies a "snooze" tapped on the native alarm screen or notification.
+   * Skipped when the reminder was completed after the snooze, so a stale
+   * snooze replayed from the pending queue cannot pull an already advanced
+   * repeating reminder back to the snoozed time.
+   */
+  async snoozeFromAlarm(id: string, newDueAt: Date, actionAt: Date): Promise<boolean> {
+    if (await this.completedSince(id, actionAt)) return false;
+    await this.snoozeTo(id, newDueAt);
+    return true;
+  }
+
+  private async completedSince(id: string, actionAt: Date): Promise<boolean> {
+    const doc = await this.gateway.getDocument(`${userCollection(this.userId, 'reminders')}/${id}`);
+    const lastCompletedAt = dateFromFirestore(doc?.data?.lastCompletedAt);
+    if (!lastCompletedAt) return false;
+    return lastCompletedAt.getTime() >= actionAt.getTime() - ALARM_ACTION_DEDUPE_WINDOW_MS;
+  }
 
   /**
    * Snooze-specific update: only patches dueAt and status.

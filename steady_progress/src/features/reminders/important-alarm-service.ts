@@ -32,6 +32,7 @@ export type AlarmLogEntry = {
 };
 
 const MAX_LOGS = 100;
+let alarmActionQueue: Promise<void> = Promise.resolve();
 const inMemoryLogs: AlarmLogEntry[] = [];
 
 function isAndroidPlatform(): boolean {
@@ -285,6 +286,38 @@ export class ImportantAlarmService {
   }
 
   /**
+   * Applies one alarm action (from the live event or the pending store) to the
+   * repository. Both copies of the same action reach here, so the repository
+   * calls are idempotent and all actions run one at a time.
+   */
+  static applyAlarmAction(
+    repository: ReminderRepository,
+    action: Pick<AlarmActionEvent, 'action' | 'reminderId' | 'timestampMs' | 'snoozedUntilMs'>,
+  ): Promise<void> {
+    const run = async () => {
+      const actionAt = new Date(action.timestampMs || Date.now());
+      if (action.action === 'complete') {
+        const res = await repository.completeFromAlarm(action.reminderId, actionAt);
+        if (res.wasRepeated && res.nextDueAt) {
+          await this.schedule({
+            id: action.reminderId,
+            timestampMs: res.nextDueAt.getTime(),
+            title: res.title || 'Hatırlatıcı',
+            message: '',
+            priority: 'important',
+          });
+        }
+      } else if (action.action === 'snooze') {
+        const snoozedMs = action.snoozedUntilMs ?? (actionAt.getTime() + 10 * 60_000);
+        await repository.snoozeFromAlarm(action.reminderId, new Date(snoozedMs), actionAt);
+      }
+    };
+    const next = alarmActionQueue.then(run, run);
+    alarmActionQueue = next.catch(() => {});
+    return next;
+  }
+
+  /**
    * Drain any pending alarm actions recorded while app was closed or backgrounded.
    */
   static async syncPendingActions(repository: ReminderRepository): Promise<number> {
@@ -298,27 +331,14 @@ export class ImportantAlarmService {
 
     if (!pending || pending.length === 0) return 0;
 
+    // Oldest first, so a snooze followed by a complete ends up completed.
+    pending.sort((a, b) => a.timestampMs - b.timestampMs);
+
     let processedCount = 0;
     for (const item of pending) {
       try {
-        if (item.action === 'complete') {
-          const res = await repository.setDone(item.reminderId, true);
-          if (res.wasRepeated && res.nextDueAt) {
-            await this.schedule({
-              id: item.reminderId,
-              timestampMs: res.nextDueAt.getTime(),
-              title: res.title || 'Hatırlatıcı',
-              message: '',
-              priority: 'important',
-            });
-          }
-          processedCount++;
-        } else if (item.action === 'snooze') {
-
-          const snoozedMs = item.snoozedUntilMs ?? (Date.now() + 10 * 60_000);
-          await repository.snoozeTo(item.reminderId, new Date(snoozedMs));
-          processedCount++;
-        }
+        await this.applyAlarmAction(repository, item);
+        processedCount++;
         await SteadyReminders.removePendingAction(item.reminderId);
       } catch (err) {
         androidLog(`Failed to process pending alarm action: ${err}`);

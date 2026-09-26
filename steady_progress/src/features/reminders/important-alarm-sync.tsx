@@ -14,25 +14,8 @@ export function ImportantAlarmSync() {
 
     // 2. Listen for real-time actions from native UI (lockscreen activity or notification buttons)
     const unsubscribe = ImportantAlarmService.subscribeToActions((event) => {
-      if (event.action === 'complete') {
-        void (async () => {
-          const res = await repository.setDone(event.reminderId, true);
-          if (res.wasRepeated && res.nextDueAt) {
-            await ImportantAlarmService.schedule({
-              id: event.reminderId,
-              timestampMs: res.nextDueAt.getTime(),
-              title: res.title || 'Hatırlatıcı',
-              message: '',
-              priority: 'important',
-            });
-          }
-        })();
-      } else if (event.action === 'snooze') {
-        const snoozedMs = event.snoozedUntilMs ?? (Date.now() + 10 * 60_000);
-        void repository.snoozeTo(event.reminderId, new Date(snoozedMs));
-      }
+      void ImportantAlarmService.applyAlarmAction(repository, event).catch(() => {});
     });
-
 
     // 3. Drain pending actions whenever the app returns to active/foreground state
     const handleAppStateChange = (state: AppStateStatus) => {
