@@ -2,7 +2,7 @@ import { getAuth } from '@react-native-firebase/auth';
 import SteadyWidget from '../../../modules/steady-widget';
 import { FirebaseDataGateway } from '../../core/data/firebase-data-gateway';
 import { userCollection } from '../../core/data/data-gateway';
-import { formatLogDate, habitFromDocument, habitLogFromDocument, mergeHabitsWithLogs } from '../habits/habit';
+import { addCalendarDays, formatLogDate, HABIT_STREAK_LOG_DAYS, habitFromDocument, habitLogFromDocument, mergeHabitsWithLogs } from '../habits/habit';
 import { reminderFromDocument } from '../reminders/reminder';
 import { taskFromDocument } from '../tasks/task-item';
 import { buildWidgetSnapshot } from './widget-snapshot';
@@ -26,7 +26,8 @@ export async function refreshWidgetInBackground(): Promise<boolean> {
   const userId = await authenticatedUserId();
   if (!userId) return false;
   const gateway = new FirebaseDataGateway();
-  const cutoff = formatLogDate(new Date());
+  // Streaks need history; only today's logs made the widget streak 0 or 1.
+  const cutoff = formatLogDate(addCalendarDays(new Date(), -HABIT_STREAK_LOG_DAYS));
 
   const [habitRows, logRows, taskRows, reminderRows] = await Promise.all([
     gateway.getCollection(userCollection(userId, 'habits'), { orderBy: { field: 'createdAt' }, limit: 200 }),

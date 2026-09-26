@@ -8,6 +8,7 @@ import { ImportantAlarmService } from '@/features/reminders/important-alarm-serv
 import { cancelReminder, scheduleReminder } from '@/features/reminders/reminder-scheduler';
 import { effectiveReminderPriority, getRecurrenceDayBadge, isMedicineReminder, reminderPriorities, type ReminderItem, type ReminderPriority } from '@/features/reminders/reminder';
 import { isCompletedToday } from '@/core/data/firestore-values';
+import { isRepeating } from '@/features/reminders/recurrence';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const priorityLabels: Record<ReminderPriority, string> = { low: 'Sessiz', normal: 'Normal', important: 'Önemli' };
@@ -335,7 +336,11 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
       }
 
       const dueTime = item.dueAt.getTime();
-      if (dueTime < startOfToday) {
+      if (dueTime < startOfToday && isRepeating(item.repeatRule)) {
+        // Missed repeating reminder: still due today, not history. Storage
+        // is rolled forward by ImportantAlarmSync.
+        todayList.push(item);
+      } else if (dueTime < startOfToday) {
         if (!wasCompletedToday) pastList.push(item);
       } else if (dueTime <= endOfToday) {
         todayList.push(item);

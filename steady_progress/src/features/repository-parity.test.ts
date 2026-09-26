@@ -177,6 +177,10 @@ test('tasks support edit and delete while preserving the complete document shape
         priority: 'high',
         status: 'inProgress',
         relatedGoalId: 'goal-1',
+        // An edit starts a new schedule, so a later undo must not restore
+        // the occurrence from before the edit.
+        previousDueDate: gateway.deleted,
+        previousStartDate: gateway.deleted,
         updatedAt: gateway.timestamp,
       },
       merge: true,
@@ -483,7 +487,7 @@ test('ReminderRepository.setDone advances dueAt to next occurrence for repeating
   stop();
 });
 
-test('ReminderRepository.completeFromAlarm advances a repeating reminder only once per alarm action', async () => {
+test('ReminderRepository.completeAction advances a repeating reminder only once per alarm action', async () => {
   const gateway = new MemoryDataGateway('user-alarm');
   const repository = new ReminderRepository(gateway, 'user-alarm');
 
@@ -502,19 +506,19 @@ test('ReminderRepository.completeFromAlarm advances a repeating reminder only on
   const pendingActionAt = new Date(2026, 8, 23, 9, 21, 0, 0);
   const eventActionAt = new Date(2026, 8, 23, 9, 21, 0, 5);
 
-  const live = await repository.completeFromAlarm(id, eventActionAt, new Date(2026, 8, 23, 9, 21, 1));
+  const live = await repository.completeAction(id, eventActionAt, new Date(2026, 8, 23, 9, 21, 1));
   assert.equal(live.alreadyApplied, false);
   assert.equal(live.nextDueAt?.getDate(), 24);
 
   // The same action replayed from the pending store must not advance again.
-  const replay = await repository.completeFromAlarm(id, pendingActionAt, new Date(2026, 8, 23, 9, 30, 0));
+  const replay = await repository.completeAction(id, pendingActionAt, new Date(2026, 8, 23, 9, 30, 0));
   assert.equal(replay.alreadyApplied, true);
   assert.equal(reminders[0].dueAt?.getDate(), 24);
   assert.equal(reminders[0].dueAt?.getHours(), 9);
   assert.equal(reminders[0].dueAt?.getMinutes(), 20);
 
   // Next day's alarm is a new action and advances normally.
-  const nextDay = await repository.completeFromAlarm(id, new Date(2026, 8, 24, 9, 21), new Date(2026, 8, 24, 9, 21, 1));
+  const nextDay = await repository.completeAction(id, new Date(2026, 8, 24, 9, 21), new Date(2026, 8, 24, 9, 21, 1));
   assert.equal(nextDay.alreadyApplied, false);
   assert.equal(reminders[0].dueAt?.getDate(), 25);
 
@@ -538,7 +542,7 @@ test('ReminderRepository.snoozeFromAlarm ignores a stale snooze replayed after c
 
   const snoozeAt = new Date(2026, 8, 23, 13, 1);
   assert.equal(await repository.snoozeFromAlarm(id, new Date(2026, 8, 23, 13, 10), snoozeAt), true);
-  await repository.completeFromAlarm(id, new Date(2026, 8, 23, 13, 11), new Date(2026, 8, 23, 13, 11, 1));
+  await repository.completeAction(id, new Date(2026, 8, 23, 13, 11), new Date(2026, 8, 23, 13, 11, 1));
   assert.equal(reminders[0].dueAt?.getDate(), 24);
 
   // Pending-store replay of the earlier snooze must not pull the reminder back to today.
@@ -606,7 +610,7 @@ test('TaskRepository.setDone advances dueDate to next occurrence for repeating t
   assert.equal(tasks.length, 1);
   assert.equal(tasks[0].dueDate?.getDate(), 11);
 
-  const res = await repository.setDone(id, true);
+  const res = await repository.setDone(id, true, new Date(2026, 8, 11, 15, 0, 0));
   assert.equal(res.wasRepeated, true);
   assert.ok(res.nextDueDate);
   assert.equal(res.nextDueDate.getDate(), 18);

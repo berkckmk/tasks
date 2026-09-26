@@ -20,10 +20,17 @@ async function sendToUserTokens(
   title: string,
   body: string,
   channelId: string = "channel_normal",
-  data: Record<string, string> = {}
+  data: Record<string, string> = {},
+  options: { skipAndroid?: boolean } = {}
 ): Promise<void> {
-  const tokensSnapshot = await db.collection("users").doc(uid).collection("fcmTokens").get();
-  if (tokensSnapshot.empty) return;
+  const allTokens = await db.collection("users").doc(uid).collection("fcmTokens").get();
+  // The Android app rings its own exact alarm for every reminder, so a push
+  // for the same reminder arrived as a duplicate notification.
+  const tokenDocs = options.skipAndroid
+    ? allTokens.docs.filter((doc) => doc.get("platform") !== "android")
+    : allTokens.docs;
+  if (tokenDocs.length === 0) return;
+  const tokensSnapshot = { docs: tokenDocs };
 
   const tokens = tokensSnapshot.docs.map((doc) => doc.id);
   const response = await getMessaging().sendEachForMulticast({
@@ -247,7 +254,8 @@ export const sendDueReminders = onSchedule(
             reminderId: reminderDoc.id,
             priority: priorityStr,
             type: "reminder",
-          }
+          },
+          { skipAndroid: true }
         );
         await reminderDoc.ref.update({ notifiedAt: now });
       }

@@ -79,21 +79,33 @@ export function mergeHabitsWithLogs(habits: Habit[], logs: HabitLog[], today = n
     return {
       ...habit,
       isCompletedToday: dates.has(formatLogDate(today)),
-      streak: calculateStreak(dates, today),
+      streak: calculateStreak(dates, today, habit),
     };
   });
 }
 
-function calculateStreak(completedDates: Set<string>, today: Date) {
+function calculateStreak(completedDates: Set<string>, today: Date, habit?: Habit) {
+  // Days the habit is not scheduled on (weekends for a weekdays habit) neither
+  // count nor break the streak.
+  const scheduled = (date: Date) => !habit || habitIsScheduledOn(habit, date);
   let streak = 0;
   let cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  // Today not done yet does not break the streak.
   if (!completedDates.has(formatLogDate(cursor))) cursor = addCalendarDays(cursor, -1);
-  while (completedDates.has(formatLogDate(cursor))) {
+  for (let guard = 0; guard < 3660; guard += 1) {
+    if (!scheduled(cursor)) {
+      cursor = addCalendarDays(cursor, -1);
+      continue;
+    }
+    if (!completedDates.has(formatLogDate(cursor))) break;
     streak += 1;
     cursor = addCalendarDays(cursor, -1);
   }
   return streak;
 }
+
+/** Days of habit logs needed for streaks to be right (widget, dashboard). */
+export const HABIT_STREAK_LOG_DAYS = 60;
 
 export function isWeekdaysFrequency(frequencyLabel: string) {
   const f = frequencyLabel.trim().toLowerCase();

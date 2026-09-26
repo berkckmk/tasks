@@ -37,14 +37,6 @@ export function isCompletedToday(date: Date | null | undefined, now: Date = new 
   ) {
     return true;
   }
-  // Tolerant to server timestamp year divergence if month and day match
-  if (
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate() &&
-    Math.abs(date.getFullYear() - now.getFullYear()) <= 1
-  ) {
-    return true;
-  }
   return false;
 }
 

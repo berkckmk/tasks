@@ -14,7 +14,10 @@ test('live widget snapshot matches Flutter date scope, ordering and counters', (
   const tasks = [
     taskFromDocument('all-day', { title: 'All day', status: 'todo', allDay: true }),
     taskFromDocument('timed', { title: 'Timed', status: 'todo', allDay: false, dueDate: new Date(2026, 8, 9, 9) }),
-    taskFromDocument('done-task', { title: 'Done', status: 'done' }),
+    taskFromDocument('done-task', { title: 'Done', status: 'done', lastCompletedAt: new Date(2026, 8, 9, 10) }),
+    // Finished on an earlier day or due later: not part of today's widget.
+    taskFromDocument('old-done', { title: 'Old done', status: 'done', dueDate: new Date(2026, 7, 1, 9), lastCompletedAt: new Date(2026, 7, 1, 10) }),
+    taskFromDocument('next-month', { title: 'Next month', status: 'todo', dueDate: new Date(2026, 9, 20, 9) }),
   ];
   const reminders = [
     reminderFromDocument('overdue', { title: 'Overdue', dueAt: new Date(2026, 8, 8, 10), status: 'scheduled' }),

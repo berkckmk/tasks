@@ -19,6 +19,10 @@ export type ReminderItem = {
   category: string;
   checklist: string[];
   lastCompletedAt?: Date | null;
+  /** Day of month a monthly/yearly series is anchored on. */
+  repeatAnchorDay?: number | null;
+  /** Original time of an occurrence that is currently snoozed. */
+  snoozedFromDueAt?: Date | null;
 };
 
 export {
@@ -69,6 +73,8 @@ export function reminderFromDocument(id: string, data: Record<string, unknown>):
     category: typeof data.category === 'string' ? data.category : 'Hatırlatıcılarım',
     checklist: stringList(data.checklist),
     lastCompletedAt: dateFromFirestore(data.lastCompletedAt),
+    repeatAnchorDay: typeof data.repeatAnchorDay === 'number' ? data.repeatAnchorDay : null,
+    snoozedFromDueAt: dateFromFirestore(data.snoozedFromDueAt),
   };
 }
 

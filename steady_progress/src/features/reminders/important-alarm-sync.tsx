@@ -3,6 +3,8 @@ import { AppState, type AppStateStatus } from 'react-native';
 import { useAppData } from '@/core/data/app-data';
 import { ReminderRepository } from './reminder-repository';
 import { ImportantAlarmService } from './important-alarm-service';
+import { alarmsToCancel, planAlarms } from './alarm-plan';
+import type { ReminderItem } from './reminder';
 
 export function ImportantAlarmSync() {
   const { gateway, userId } = useAppData();
@@ -32,22 +34,39 @@ export function ImportantAlarmSync() {
   }, [repository]);
 
   useEffect(() => {
-    const unsubscribe = repository.watch((reminders) => {
-      const nowMs = Date.now();
-      for (const item of reminders) {
-        if (item.status === 'scheduled' && item.dueAt && item.dueAt.getTime() > nowMs) {
-          void ImportantAlarmService.schedule({
-            id: item.id,
-            timestampMs: item.dueAt.getTime(),
-            title: item.title,
-            message: item.message,
-            priority: item.priority,
-          });
-        }
-      }
-    }, () => {});
+    // Alarms this session has asked the native side to hold, by reminder id.
+    const planned = new Map<string, number>();
+    let latest: ReminderItem[] = [];
 
-    return () => unsubscribe();
+    const reconcile = (reminders: ReminderItem[]) => {
+      latest = reminders;
+      const now = new Date();
+      // Missed repeating reminders come back to today (fire and forget; the
+      // write re-enters here through the watch).
+      void repository.rollForwardMissed(reminders, now).catch(() => {});
+
+      for (const id of alarmsToCancel(planned.keys(), reminders)) {
+        planned.delete(id);
+        void ImportantAlarmService.cancel(id).catch(() => {});
+      }
+      for (const alarm of planAlarms(reminders, now).values()) {
+        if (planned.get(alarm.id) === alarm.timestampMs) continue;
+        planned.set(alarm.id, alarm.timestampMs);
+        void ImportantAlarmService.schedule(alarm).catch(() => {});
+      }
+    };
+
+    const unsubscribe = repository.watch(reconcile, () => {});
+    // The watch only fires on data changes; a new day must also roll missed
+    // reminders forward, so re-check whenever the app comes back.
+    const appStateSub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') reconcile(latest);
+    });
+
+    return () => {
+      unsubscribe();
+      appStateSub.remove();
+    };
   }, [repository]);
 
   return null;

@@ -1,4 +1,5 @@
 import { habitIsScheduledOn, parseHabitTime, type Habit } from '../habits/habit.ts';
+import { isRepeating } from '../reminders/recurrence.ts';
 import type { ReminderItem } from '../reminders/reminder.ts';
 import type { TaskItem } from '../tasks/task-item.ts';
 
@@ -11,6 +12,10 @@ export type TodayEntry = {
   time: Date | null;
   done: boolean;
 };
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
 
 function sameLocalDay(left: Date, right: Date) {
   return left.getFullYear() === right.getFullYear()
@@ -39,7 +44,12 @@ export function buildTodayEntries({
 }) {
   const entries: TodayEntry[] = [];
   for (const reminder of reminders) {
-    const isDueToday = reminder.dueAt && sameLocalDay(reminder.dueAt, now);
+    // A repeating reminder missed on an earlier day is still today's to do;
+    // it is rolled forward in storage by ImportantAlarmSync, this covers the
+    // moment before that write lands.
+    const isMissedRepeating = reminder.dueAt && reminder.dueAt < startOfDay(now)
+      && reminder.status !== 'completed' && isRepeating(reminder.repeatRule);
+    const isDueToday = (reminder.dueAt && sameLocalDay(reminder.dueAt, now)) || isMissedRepeating;
     const wasCompletedToday = reminder.lastCompletedAt && sameLocalDay(reminder.lastCompletedAt, now);
     if (isDueToday) {
       entries.push({ id: reminder.id, kind: 'reminder', title: reminder.title, note: reminder.message, time: reminder.dueAt, done: reminder.status === 'completed' });

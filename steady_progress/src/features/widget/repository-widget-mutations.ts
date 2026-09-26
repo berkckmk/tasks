@@ -101,15 +101,23 @@ export class RepositoryWidgetMutations implements WidgetMutationPort {
 
   async setDoneFromWidget(userId: string, entry: PendingToggle, resolvedItemId?: string): Promise<void> {
     const id = resolvedItemId ?? entry.id;
+    // The queue is acknowledged only after it is applied, so the same tap can
+    // be replayed (failed ack, app killed mid-drain). Completions are
+    // therefore applied once per tap; habit logs and un-ticks are idempotent.
+    const actionAt = entry.at > 0 ? new Date(entry.at) : this.now();
     if (entry.kind === 'task') {
-      await new TaskRepository(this.gateway, userId).setDone(id, entry.done);
+      const repository = new TaskRepository(this.gateway, userId);
+      if (entry.done) await repository.completeAction(id, actionAt, this.now());
+      else await repository.setDone(id, false, this.now());
       return;
     }
     if (entry.kind === 'habit') {
       await new HabitRepository(this.gateway, userId).setCompletionToday(id, entry.done);
       return;
     }
-    await new ReminderRepository(this.gateway, userId).setDone(id, entry.done);
+    const repository = new ReminderRepository(this.gateway, userId);
+    if (entry.done) await repository.completeAction(id, actionAt, this.now());
+    else await repository.setDone(id, false, this.now());
   }
 }
 

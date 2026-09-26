@@ -297,7 +297,7 @@ export class ImportantAlarmService {
     const run = async () => {
       const actionAt = new Date(action.timestampMs || Date.now());
       if (action.action === 'complete') {
-        const res = await repository.completeFromAlarm(action.reminderId, actionAt);
+        const res = await repository.completeAction(action.reminderId, actionAt);
         if (res.wasRepeated && res.nextDueAt) {
           await this.schedule({
             id: action.reminderId,

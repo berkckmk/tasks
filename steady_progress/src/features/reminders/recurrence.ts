@@ -26,7 +26,11 @@ export function normalizeRepeatRule(rule: string | null | undefined): RepeatRule
   return (repeatRules as readonly string[]).includes(rule) ? (rule as RepeatRule) : null;
 }
 
-function stepForward(d: Date, rule: RepeatRule) {
+/**
+ * `anchorDay` is the day of month the series was created on. Without it a
+ * monthly series that once clamps (31 Jan -> 28 Feb) would stay on the 28th.
+ */
+function stepForward(d: Date, rule: RepeatRule, anchorDay?: number | null) {
   if (rule === 'Her gün') {
     d.setDate(d.getDate() + 1);
   } else if (rule === 'Hafta içi (Pzt-Cum)') {
@@ -36,13 +40,13 @@ function stepForward(d: Date, rule: RepeatRule) {
   } else if (rule === 'Her hafta') {
     d.setDate(d.getDate() + 7);
   } else if (rule === 'Her ay') {
-    const targetDay = d.getDate();
+    const targetDay = anchorDay ?? d.getDate();
     d.setDate(1);
     d.setMonth(d.getMonth() + 1);
     const maxDays = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
     d.setDate(Math.min(targetDay, maxDays));
   } else if (rule === 'Her yıl') {
-    const targetDay = d.getDate();
+    const targetDay = anchorDay ?? d.getDate();
     const targetMonth = d.getMonth();
     d.setDate(1);
     d.setFullYear(d.getFullYear() + 1);
@@ -52,7 +56,7 @@ function stepForward(d: Date, rule: RepeatRule) {
   }
 }
 
-function stepBackward(d: Date, rule: RepeatRule) {
+function stepBackward(d: Date, rule: RepeatRule, anchorDay?: number | null) {
   if (rule === 'Her gün') {
     d.setDate(d.getDate() - 1);
   } else if (rule === 'Hafta içi (Pzt-Cum)') {
@@ -62,13 +66,13 @@ function stepBackward(d: Date, rule: RepeatRule) {
   } else if (rule === 'Her hafta') {
     d.setDate(d.getDate() - 7);
   } else if (rule === 'Her ay') {
-    const targetDay = d.getDate();
+    const targetDay = anchorDay ?? d.getDate();
     d.setDate(1);
     d.setMonth(d.getMonth() - 1);
     const maxDays = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
     d.setDate(Math.min(targetDay, maxDays));
   } else if (rule === 'Her yıl') {
-    const targetDay = d.getDate();
+    const targetDay = anchorDay ?? d.getDate();
     const targetMonth = d.getMonth();
     d.setDate(1);
     d.setFullYear(d.getFullYear() - 1);
@@ -87,6 +91,7 @@ export function calculateNextDueDate(
   currentDueAt: Date | null | undefined,
   repeatRule: string | null | undefined,
   fromDate: Date = new Date(),
+  anchorDay?: number | null,
 ): Date | null {
   if (!currentDueAt) return null;
   const normalized = normalizeRepeatRule(repeatRule);
@@ -94,12 +99,12 @@ export function calculateNextDueDate(
 
   const next = new Date(currentDueAt.getTime());
   // Step at least once to the next scheduled slot
-  stepForward(next, normalized);
+  stepForward(next, normalized, anchorDay);
 
   // If the next slot is still in the past or right now, advance until it is in the future
   let iterations = 0;
   while (next.getTime() <= fromDate.getTime() && iterations < 500) {
-    stepForward(next, normalized);
+    stepForward(next, normalized, anchorDay);
     iterations += 1;
   }
   return next;
@@ -112,14 +117,48 @@ export function calculateNextDueDate(
 export function calculatePreviousDueDate(
   currentDueAt: Date | null | undefined,
   repeatRule: string | null | undefined,
+  anchorDay?: number | null,
 ): Date | null {
   if (!currentDueAt) return null;
   const normalized = normalizeRepeatRule(repeatRule);
   if (!normalized) return null;
 
   const prev = new Date(currentDueAt.getTime());
-  stepBackward(prev, normalized);
+  stepBackward(prev, normalized, anchorDay);
   return prev;
+}
+
+/**
+ * First occurrence of the series on or after `startOfDay`. Used to bring a
+ * missed repeating item back to today instead of leaving it stuck in the past.
+ * Returns the input unchanged when it is already on/after `startOfDay`.
+ */
+export function rollForwardToDay(
+  dueAt: Date,
+  repeatRule: string | null | undefined,
+  startOfDay: Date,
+  anchorDay?: number | null,
+): Date | null {
+  const normalized = normalizeRepeatRule(repeatRule);
+  if (!normalized) return null;
+  const next = new Date(dueAt.getTime());
+  let iterations = 0;
+  while (next.getTime() < startOfDay.getTime() && iterations < 2000) {
+    stepForward(next, normalized, anchorDay);
+    iterations += 1;
+  }
+  return next;
+}
+
+/** Day of month to anchor monthly/yearly series on; null for other rules. */
+export function repeatAnchorDayFor(dueAt: Date | null | undefined, repeatRule: string | null | undefined): number | null {
+  const normalized = normalizeRepeatRule(repeatRule);
+  if (!dueAt || (normalized !== 'Her ay' && normalized !== 'Her yıl')) return null;
+  return dueAt.getDate();
+}
+
+export function isRepeating(repeatRule: string | null | undefined): boolean {
+  return normalizeRepeatRule(repeatRule) !== null;
 }
 
 export function formatDayOfWeekShort(date: Date | null | undefined): string | null {
