@@ -11,6 +11,7 @@ import { TaskRepository } from './tasks/task-repository.ts';
 import type { TaskItem } from './tasks/task-item.ts';
 import { addCalendarDays, formatLogDate, HABIT_STREAK_LOG_DAYS, mergeHabitsWithLogs, type Habit, type HabitLog } from './habits/habit.ts';
 import { alarmsToCancel, planAlarms } from './reminders/alarm-plan.ts';
+import { groupReminders } from './reminders/reminder-sections.ts';
 import { buildTodayEntries } from './dashboard/today.ts';
 import { buildWidgetSnapshot } from './widget/widget-snapshot.ts';
 import { WidgetSyncCoordinator, type WidgetBridgePort } from './widget/widget-sync.ts';
@@ -243,4 +244,32 @@ test('6f Yıl sonu: 31 Aralık günlük ilaç 1 Ocak a geçer', () => {
   const next = calculateNextDueDate(d(2026, 12, 31, 9), 'Her gün', d(2026, 12, 31, 10))!;
   assert.equal(next.getFullYear(), 2027);
   assert.equal(next.getDate(), 1);
+});
+
+// ───────────── 7. Hatırlatıcı ekranı bölümleri ─────────────
+
+test('7a Bugün tamamlanan günlük ilaç Geçmişte VE yarınki tekrarı Yaklaşanda görünür', () => {
+  const now = d(2026, 9, 26, 16);
+  const sections = groupReminders([
+    reminder({ id: 'duxet', dueAt: d(2026, 9, 27, 9, 20), repeatRule: 'Her gün', lastCompletedAt: d(2026, 9, 26, 9, 25) }),
+  ], now);
+  assert.deepEqual(sections.pastItems.map((r) => r.id), ['duxet']);
+  assert.equal(sections.pastItems[0].status, 'completed');
+  assert.deepEqual(sections.upcomingItems.map((r) => r.id), ['duxet']);
+  assert.equal(sections.upcomingItems[0].dueAt?.getDate(), 27);
+});
+
+test('7b Tek seferlik tamamlanan hatırlatıcı sadece Geçmişte', () => {
+  const sections = groupReminders([
+    reminder({ id: 'fatura', dueAt: d(2026, 9, 26, 12), status: 'completed', lastCompletedAt: d(2026, 9, 26, 12, 5) }),
+  ], d(2026, 9, 26, 16));
+  assert.equal(sections.pastItems.length, 1);
+  assert.equal(sections.todayItems.length + sections.upcomingItems.length, 0);
+});
+
+test('7c Kaçırılan günlük ilaç Bugün bölümünde', () => {
+  const sections = groupReminders([
+    reminder({ id: 'aubagio', dueAt: d(2026, 9, 25, 13), repeatRule: 'Her gün' }),
+  ], d(2026, 9, 26, 8));
+  assert.deepEqual(sections.todayItems.map((r) => r.id), ['aubagio']);
 });
