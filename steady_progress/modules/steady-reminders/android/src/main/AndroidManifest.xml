@@ -51,5 +51,20 @@
         <action android:name="android.intent.action.TIMEZONE_CHANGED" />
       </intent-filter>
     </receiver>
+
+    <!--
+      Coexists with io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
+      (Firebase delivers each incoming message to every declared
+      FirebaseMessagingService). This one keeps the alarm registry and widget
+      reminder row in sync purely natively, so it also runs when the RN JS
+      headless task cannot start.
+    -->
+    <service
+      android:name="expo.modules.steadyreminders.SteadyReminderFirebaseMessagingService"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
   </application>
 </manifest>

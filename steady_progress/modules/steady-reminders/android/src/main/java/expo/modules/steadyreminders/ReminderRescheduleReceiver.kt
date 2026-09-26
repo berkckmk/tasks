@@ -6,7 +6,14 @@ import android.content.Intent
 
 internal class ReminderRescheduleReceiver : BroadcastReceiver() {
   override fun onReceive(context: Context, intent: Intent) {
-    if (intent.action in supportedActions) ReminderScheduler.rescheduleAll(context.applicationContext)
+    if (intent.action in supportedActions) {
+      val appContext = context.applicationContext
+      ReminderScheduler.rescheduleAll(appContext)
+      // Safety net: re-queue any "complete" action still sitting in the
+      // durable local store in case its WorkManager job never ran (e.g. boot
+      // happened before WorkManager's own DB was restored).
+      ReminderCompletionWorker.enqueuePendingFromStore(appContext)
+    }
   }
 
   companion object {

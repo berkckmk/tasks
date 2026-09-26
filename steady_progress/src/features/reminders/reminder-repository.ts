@@ -18,6 +18,8 @@ export type SetDoneResult = {
   wasRepeated: boolean;
   nextDueAt?: Date;
   title?: string;
+  message?: string;
+  priority?: ReminderPriority;
 };
 
 export type SaveReminderInput = {
@@ -118,6 +120,11 @@ export class ReminderRepository {
         const nextDueAt = calculateNextDueDate(dueAt, repeatRule, now);
         if (nextDueAt) {
           const completedAt = now;
+          const title = typeof data?.title === 'string' ? data.title : undefined;
+          const message = typeof data?.message === 'string' ? data.message : undefined;
+          const priority = data?.priority === 'low' || data?.priority === 'normal' || data?.priority === 'important'
+            ? data.priority
+            : undefined;
           await this.gateway.updateDocument(docPath, {
             dueAt: nextDueAt,
             status: 'scheduled',
@@ -125,7 +132,7 @@ export class ReminderRepository {
             lastCompletedAt: completedAt,
             updatedAt: this.gateway.serverTimestamp(),
           });
-          return { wasRepeated: true, nextDueAt, title: typeof data?.title === 'string' ? data.title : undefined };
+          return { wasRepeated: true, nextDueAt, title, message, priority };
         }
       }
     } else {

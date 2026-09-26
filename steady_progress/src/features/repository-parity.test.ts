@@ -459,10 +459,11 @@ test('ReminderRepository.setDone advances dueAt to next occurrence for repeating
   const stop = repository.watch((r) => { reminders = r; }, () => {});
 
   const id = await repository.save({
-    title: 'Daily Vitamin',
-    message: '',
+    title: 'Daily stretch',
+    message: 'Keep it quiet',
     dueAt: initialDue,
     status: 'scheduled',
+    priority: 'low',
     repeatRule: 'Her gün',
   });
 
@@ -475,9 +476,12 @@ test('ReminderRepository.setDone advances dueAt to next occurrence for repeating
   assert.ok(res.nextDueAt);
   assert.equal(res.nextDueAt.getDate(), 12);
   assert.equal(res.nextDueAt.getHours(), 9);
+  assert.equal(res.message, 'Keep it quiet');
+  assert.equal(res.priority, 'low');
 
   assert.equal(reminders[0].dueAt?.getDate(), 12);
   assert.equal(reminders[0].status, 'scheduled');
+  assert.equal(reminders[0].priority, 'low');
   assert.ok(reminders[0].lastCompletedAt);
 
   stop();
@@ -515,5 +519,4 @@ test('TaskRepository.setDone advances dueDate to next occurrence for repeating t
 
   stop();
 });
-
 

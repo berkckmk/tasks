@@ -246,6 +246,20 @@ object WidgetStore {
             .apply()
     }
 
+    /**
+     * Persists a fully-formed snapshot as-is (no toggle/pending-action
+     * bookkeeping). Used by callers that already computed correct
+     * items/total/completed themselves, so they don't go through [addItem]'s
+     * unconditional `total + 1` (which double counts when replacing an
+     * existing id).
+     */
+    @Synchronized
+    fun replaceSnapshot(context: Context, snapshot: WidgetSnapshot) {
+        prefs(context).edit()
+            .putString(KEY_SNAPSHOT, serializeSnapshot(snapshot).toString())
+            .apply()
+    }
+
     @Synchronized
     fun clear(context: Context) {
         prefs(context).edit().clear().apply()

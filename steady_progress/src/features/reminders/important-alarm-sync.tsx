@@ -22,8 +22,8 @@ export function ImportantAlarmSync() {
               id: event.reminderId,
               timestampMs: res.nextDueAt.getTime(),
               title: res.title || 'Hatırlatıcı',
-              message: '',
-              priority: 'important',
+              message: res.message || '',
+              priority: res.priority || 'normal',
             });
           }
         })();

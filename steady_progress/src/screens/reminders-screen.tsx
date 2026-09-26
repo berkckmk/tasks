@@ -326,7 +326,7 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
           status: 'completed',
           dueAt: item.lastCompletedAt ?? item.dueAt,
         });
-        continue;
+        if (!item.dueAt || item.dueAt.getTime() <= endOfToday) continue;
       }
 
       if (!item.dueAt) {
@@ -720,4 +720,3 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
   </>;
 }
 function ChoiceGroup({ label, children }: { label: string; children: ReactNode }) { return <View style={{ gap: spacing.sm }}><Kicker>{label}</Kicker><View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>{children}</View></View>; }
-
