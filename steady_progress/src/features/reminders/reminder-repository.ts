@@ -104,6 +104,8 @@ export class ReminderRepository {
     await this.gateway.setDocument(`${collection}/${input.id}`, {
       ...data,
       notifiedAt: this.gateway.deleteField(),
+      // An edited dueAt is the new schedule; forget any snoozed occurrence.
+      snoozedFromDueAt: this.gateway.deleteField(),
     }, { merge: true });
     return input.id;
   }
@@ -126,15 +128,19 @@ export class ReminderRepository {
       const repeatRule = typeof data?.repeatRule === 'string' ? data.repeatRule : null;
       const rawDue = data?.dueAt;
       const dueAt = dateFromFirestore(rawDue);
+      // A snoozed occurrence keeps its original time, so the series does not
+      // drift by the snooze length every time it is snoozed then completed.
+      const occurrenceDueAt = dateFromFirestore(data?.snoozedFromDueAt) ?? dueAt;
 
-      if (repeatRule && repeatRule !== 'Tekrarlama' && dueAt) {
-        const nextDueAt = calculateNextDueDate(dueAt, repeatRule, now);
+      if (repeatRule && repeatRule !== 'Tekrarlama' && occurrenceDueAt) {
+        const nextDueAt = calculateNextDueDate(occurrenceDueAt, repeatRule, now);
         if (nextDueAt) {
           const completedAt = now;
           await this.gateway.updateDocument(docPath, {
             dueAt: nextDueAt,
             status: 'scheduled',
             notifiedAt: this.gateway.deleteField(),
+            snoozedFromDueAt: this.gateway.deleteField(),
             lastCompletedAt: completedAt,
             updatedAt: this.gateway.serverTimestamp(),
           });
@@ -166,6 +172,7 @@ export class ReminderRepository {
 
     await this.gateway.updateDocument(docPath, {
       status: done ? 'completed' : 'scheduled',
+      ...(done ? { snoozedFromDueAt: this.gateway.deleteField() } : {}),
       ...(done ? { lastCompletedAt: now } : { lastCompletedAt: this.gateway.deleteField() }),
       notifiedAt: this.gateway.deleteField(),
       updatedAt: this.gateway.serverTimestamp(),
@@ -210,11 +217,23 @@ export class ReminderRepository {
   /**
    * Snooze-specific update: only patches dueAt and status.
    * Does NOT touch title, message, priority, starred, category, checklist, etc.
+   * For a repeating reminder the occurrence's original time is kept in
+   * `snoozedFromDueAt` (only on the first snooze), so completing it later
+   * schedules the next occurrence at the original time, not the snoozed one.
    */
-  snoozeTo(id: string, newDueAt: Date) {
-    return this.gateway.updateDocument(`${userCollection(this.userId, 'reminders')}/${id}`, {
+  async snoozeTo(id: string, newDueAt: Date) {
+    const docPath = `${userCollection(this.userId, 'reminders')}/${id}`;
+    const doc = await this.gateway.getDocument(docPath);
+    const data = doc?.data;
+    const repeatRule = typeof data?.repeatRule === 'string' ? data.repeatRule : null;
+    const currentDueAt = dateFromFirestore(data?.dueAt);
+    const alreadySnoozedFrom = dateFromFirestore(data?.snoozedFromDueAt);
+    const keepOriginal = repeatRule && repeatRule !== 'Tekrarlama' && currentDueAt && !alreadySnoozedFrom;
+
+    return this.gateway.updateDocument(docPath, {
       dueAt: newDueAt,
       status: 'snoozed',
+      ...(keepOriginal ? { snoozedFromDueAt: currentDueAt } : {}),
       notifiedAt: this.gateway.deleteField(),
       updatedAt: this.gateway.serverTimestamp(),
     });

@@ -549,6 +549,40 @@ test('ReminderRepository.snoozeFromAlarm ignores a stale snooze replayed after c
   stop();
 });
 
+test('ReminderRepository keeps the original time when a snoozed repeating reminder is completed', async () => {
+  const gateway = new MemoryDataGateway('user-drift');
+  const repository = new ReminderRepository(gateway, 'user-drift');
+
+  let reminders: ReminderItem[] = [];
+  const stop = repository.watch((r) => { reminders = r; }, () => {});
+
+  const id = await repository.save({
+    title: 'duxet 30mg',
+    message: '',
+    dueAt: new Date(2026, 8, 23, 9, 0, 0),
+    status: 'scheduled',
+    repeatRule: 'Her gün',
+  });
+
+  // Snoozed twice: 09:00 -> 09:10 -> 09:20.
+  await repository.snoozeTo(id, new Date(2026, 8, 23, 9, 10));
+  await repository.snoozeTo(id, new Date(2026, 8, 23, 9, 20));
+  assert.equal(reminders[0].dueAt?.getMinutes(), 20);
+
+  const res = await repository.setDone(id, true, new Date(2026, 8, 23, 9, 21));
+  assert.equal(res.nextDueAt?.getDate(), 24);
+  assert.equal(res.nextDueAt?.getHours(), 9);
+  assert.equal(res.nextDueAt?.getMinutes(), 0);
+  assert.equal(reminders[0].dueAt?.getMinutes(), 0);
+
+  // The next occurrence is not affected by the earlier snooze any more.
+  const following = await repository.setDone(id, true, new Date(2026, 8, 24, 9, 1));
+  assert.equal(following.nextDueAt?.getDate(), 25);
+  assert.equal(following.nextDueAt?.getMinutes(), 0);
+
+  stop();
+});
+
 test('TaskRepository.setDone advances dueDate to next occurrence for repeating task', async () => {
   const gateway = new MemoryDataGateway('user-task-rep');
   const repository = new TaskRepository(gateway, 'user-task-rep');
