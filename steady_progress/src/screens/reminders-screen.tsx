@@ -8,6 +8,7 @@ import { ImportantAlarmService } from '@/features/reminders/important-alarm-serv
 import { cancelReminder, scheduleReminder } from '@/features/reminders/reminder-scheduler';
 import { effectiveReminderPriority, getRecurrenceDayBadge, isMedicineReminder, reminderPriorities, type ReminderItem, type ReminderPriority } from '@/features/reminders/reminder';
 import { isCompletedToday } from '@/core/data/firestore-values';
+import { groupReminders } from '@/features/reminders/reminder-sections';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const priorityLabels: Record<ReminderPriority, string> = { low: 'Sessiz', normal: 'Normal', important: 'Önemli' };
@@ -300,56 +301,7 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  const { todayItems, upcomingItems, pastItems } = useMemo(() => {
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
-
-    const todayList: ReminderItem[] = [];
-    const upcomingList: ReminderItem[] = [];
-    const pastList: ReminderItem[] = [];
-
-    for (const item of items) {
-      const wasCompletedToday = isReminderCompletedToday(item);
-      const isExplicitlyCompleted = item.status === 'completed';
-
-      // Any explicitly completed item goes to Geçmiş
-      if (isExplicitlyCompleted) {
-        pastList.push(item);
-        continue;
-      }
-
-      // Any repeating item ticked today MUST fall into Geçmiş
-      if (wasCompletedToday) {
-        pastList.push({
-          ...item,
-          status: 'completed',
-          dueAt: item.lastCompletedAt ?? item.dueAt,
-        });
-        continue;
-      }
-
-      if (!item.dueAt) {
-        if (!wasCompletedToday) todayList.push(item);
-        continue;
-      }
-
-      const dueTime = item.dueAt.getTime();
-      if (dueTime < startOfToday) {
-        if (!wasCompletedToday) pastList.push(item);
-      } else if (dueTime <= endOfToday) {
-        todayList.push(item);
-      } else {
-        upcomingList.push(item);
-      }
-    }
-
-    return {
-      todayItems: todayList,
-      upcomingItems: upcomingList,
-      pastItems: pastList,
-    };
-  }, [items]);
+  const { todayItems, upcomingItems, pastItems } = useMemo(() => groupReminders(items), [items]);
 
   function startSelection(id: string) {
     setIsSelectionMode(true);

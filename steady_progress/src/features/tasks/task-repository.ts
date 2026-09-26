@@ -1,7 +1,7 @@
 import type { DataGateway, Unsubscribe } from '../../core/data/data-gateway.ts';
 import { userCollection } from '../../core/data/data-gateway.ts';
 import { dateFromFirestore } from '../../core/data/firestore-values.ts';
-import { calculateNextDueDate, calculatePreviousDueDate } from '../reminders/recurrence.ts';
+import { calculateNextDueDate, calculatePreviousDueDate, isRepeating, repeatAnchorDayFor } from '../reminders/recurrence.ts';
 import {
   taskFromDocument,
   type TaskItem,
@@ -68,7 +68,7 @@ export class TaskRepository {
         startDate: input.startDate,
         dueDate: input.dueDate,
         allDay: input.allDay,
-        ...(input.repeatRule !== undefined ? { repeatRule: input.repeatRule } : {}),
+        ...(input.repeatRule !== undefined ? { repeatRule: input.repeatRule, repeatAnchorDay: repeatAnchorDayFor(input.dueDate, input.repeatRule) } : {}),
         ...(input.status && input.status !== 'todo' ? { status: input.status } : {}),
         updatedAt: this.gateway.serverTimestamp(),
       }, { merge: true });
@@ -83,7 +83,9 @@ export class TaskRepository {
       priority: input.priority,
       status: input.status,
       relatedGoalId: input.relatedGoalId,
-      ...(input.repeatRule !== undefined ? { repeatRule: input.repeatRule } : {}),
+      ...(input.repeatRule !== undefined ? { repeatRule: input.repeatRule, repeatAnchorDay: repeatAnchorDayFor(input.dueDate, input.repeatRule) } : {}),
+      previousDueDate: this.gateway.deleteField(),
+      previousStartDate: this.gateway.deleteField(),
       updatedAt: this.gateway.serverTimestamp(),
     }, { merge: true });
     return input.id;
@@ -93,76 +95,77 @@ export class TaskRepository {
     return this.gateway.deleteDocument(`${userCollection(this.userId, 'tasks')}/${id}`);
   }
 
-  async setDone(id: string, done: boolean): Promise<{ wasRepeated: boolean; nextDueDate?: Date }> {
+  async setDone(id: string, done: boolean, now: Date = new Date()): Promise<{ wasRepeated: boolean; nextDueDate?: Date }> {
     const docPath = `${userCollection(this.userId, 'tasks')}/${id}`;
-    if (done) {
-      const doc = await this.gateway.getDocument(docPath);
-      const data = doc?.data;
-      const repeatRule = typeof data?.repeatRule === 'string' ? data.repeatRule : null;
-      const rawDue = data?.dueDate;
-      const dueDate = dateFromFirestore(rawDue);
+    const doc = await this.gateway.getDocument(docPath);
+    const data = doc?.data;
+    const repeatRule = typeof data?.repeatRule === 'string' ? data.repeatRule : null;
+    const dueDate = dateFromFirestore(data?.dueDate);
+    const startDate = dateFromFirestore(data?.startDate);
+    const anchorDay = typeof data?.repeatAnchorDay === 'number' ? data.repeatAnchorDay : null;
 
-      if (repeatRule && repeatRule !== 'Tekrarlama' && dueDate) {
-        const nextDueDate = calculateNextDueDate(dueDate, repeatRule);
-        if (nextDueDate) {
-          let nextStartDate: Date | null = null;
-          const rawStart = data?.startDate;
-          const startDate = dateFromFirestore(rawStart);
-          if (startDate) {
-            const diffMs = dueDate.getTime() - startDate.getTime();
-            nextStartDate = new Date(nextDueDate.getTime() - diffMs);
-          }
-          const completedAt = new Date();
-          await this.gateway.updateDocument(docPath, {
-            dueDate: nextDueDate,
-            ...(nextStartDate ? { startDate: nextStartDate } : {}),
-            status: 'todo',
-            lastCompletedAt: completedAt,
-            updatedAt: this.gateway.serverTimestamp(),
-          });
-          return { wasRepeated: true, nextDueDate };
-        }
-      }
-    } else {
-      const doc = await this.gateway.getDocument(docPath);
-      const data = doc?.data;
-      const repeatRule = typeof data?.repeatRule === 'string' ? data.repeatRule : null;
-      const rawDue = data?.dueDate;
-      const dueDate = dateFromFirestore(rawDue);
-      const hasCompletedToday = data?.lastCompletedAt != null;
-
-      if (repeatRule && repeatRule !== 'Tekrarlama' && dueDate && hasCompletedToday) {
-        const prevDueDate = calculatePreviousDueDate(dueDate, repeatRule);
-        if (prevDueDate) {
-          let prevStartDate: Date | null = null;
-          const rawStart = data?.startDate;
-          const startDate = dateFromFirestore(rawStart);
-          if (startDate) {
-            const diffMs = dueDate.getTime() - startDate.getTime();
-            prevStartDate = new Date(prevDueDate.getTime() - diffMs);
-          }
-          await this.gateway.updateDocument(docPath, {
-            dueDate: prevDueDate,
-            ...(prevStartDate ? { startDate: prevStartDate } : {}),
-            status: 'todo',
-            lastCompletedAt: this.gateway.deleteField(),
-            updatedAt: this.gateway.serverTimestamp(),
-          });
-          return { wasRepeated: false };
-        }
+    if (done && isRepeating(repeatRule) && dueDate) {
+      const nextDueDate = calculateNextDueDate(dueDate, repeatRule, now, anchorDay);
+      if (nextDueDate) {
+        const nextStartDate = startDate
+          ? new Date(nextDueDate.getTime() - (dueDate.getTime() - startDate.getTime()))
+          : null;
+        await this.gateway.updateDocument(docPath, {
+          dueDate: nextDueDate,
+          ...(nextStartDate ? { startDate: nextStartDate } : {}),
+          // Remembered so an undo returns to exactly this occurrence.
+          previousDueDate: dueDate,
+          ...(startDate ? { previousStartDate: startDate } : {}),
+          status: 'todo',
+          lastCompletedAt: now,
+          updatedAt: this.gateway.serverTimestamp(),
+        });
+        return { wasRepeated: true, nextDueDate };
       }
     }
 
-    const completedAt = new Date();
+    if (!done && isRepeating(repeatRule) && dueDate && data?.lastCompletedAt != null) {
+      const storedPrevDue = dateFromFirestore(data?.previousDueDate);
+      const prevDueDate = storedPrevDue ?? calculatePreviousDueDate(dueDate, repeatRule, anchorDay);
+      if (prevDueDate) {
+        const prevStartDate = storedPrevDue
+          ? dateFromFirestore(data?.previousStartDate)
+          : startDate
+            ? new Date(prevDueDate.getTime() - (dueDate.getTime() - startDate.getTime()))
+            : null;
+        await this.gateway.updateDocument(docPath, {
+          dueDate: prevDueDate,
+          ...(prevStartDate ? { startDate: prevStartDate } : {}),
+          status: 'todo',
+          lastCompletedAt: this.gateway.deleteField(),
+          previousDueDate: this.gateway.deleteField(),
+          previousStartDate: this.gateway.deleteField(),
+          updatedAt: this.gateway.serverTimestamp(),
+        });
+        return { wasRepeated: false };
+      }
+    }
+
     await this.gateway.updateDocument(docPath, {
       status: done ? 'done' : 'todo',
-      ...(done ? { lastCompletedAt: completedAt } : { lastCompletedAt: this.gateway.deleteField() }),
+      ...(done ? { lastCompletedAt: now } : { lastCompletedAt: this.gateway.deleteField() }),
       updatedAt: this.gateway.serverTimestamp(),
     });
     return { wasRepeated: false };
   }
 
-
+  /**
+   * Completes a task for one user action (e.g. a queued widget tap) at most
+   * once: a replay of the same action must not advance a repeating task twice.
+   */
+  async completeAction(id: string, actionAt: Date, now: Date = new Date()) {
+    const doc = await this.gateway.getDocument(`${userCollection(this.userId, 'tasks')}/${id}`);
+    const lastCompletedAt = dateFromFirestore(doc?.data?.lastCompletedAt);
+    if (lastCompletedAt && lastCompletedAt.getTime() >= actionAt.getTime() - 60_000) {
+      return { wasRepeated: false, alreadyApplied: true };
+    }
+    return { ...(await this.setDone(id, true, now)), alreadyApplied: false };
+  }
 
   setSyncEnabled(id: string, enabled: boolean) {
     return this.gateway.updateDocument(`${userCollection(this.userId, 'tasks')}/${id}`, {

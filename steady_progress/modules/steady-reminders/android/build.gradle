@@ -16,3 +16,20 @@ android {
     abortOnError false
   }
 }
+
+// Matches the same com.google.firebase:firebase-bom version @react-native-firebase/*
+// pins in its own build.gradle (via its ReactNative.ext.getVersion("firebase", "bom")
+// helper, which isn't available here since this module doesn't apply the
+// io.invertase.gradle.build plugin). Reading the pinned version directly out of
+// its package.json keeps both firebase-firestore/firebase-auth here in the same
+// resolved version as the one @react-native-firebase/firestore and /auth use.
+def firebaseBomVersion = "32.7.0"
+
+dependencies {
+  implementation project(':steady-widget')
+  implementation platform("com.google.firebase:firebase-bom:${firebaseBomVersion}")
+  implementation "com.google.firebase:firebase-firestore"
+  implementation "com.google.firebase:firebase-auth"
+  implementation "androidx.work:work-runtime-ktx:2.9.1"
+  testImplementation "junit:junit:4.13.2"
+}

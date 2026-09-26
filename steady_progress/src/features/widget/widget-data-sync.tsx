@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import SteadyWidget from '../../../modules/steady-widget';
 import { useAppData } from '../../core/data/app-data.tsx';
 import { HabitRepository } from '../habits/habit-repository.ts';
-import { formatLogDate, mergeHabitsWithLogs, type Habit, type HabitLog } from '../habits/habit.ts';
+import { addCalendarDays, formatLogDate, HABIT_STREAK_LOG_DAYS, mergeHabitsWithLogs, type Habit, type HabitLog } from '../habits/habit.ts';
 import { ReminderRepository } from '../reminders/reminder-repository.ts';
 import type { ReminderItem } from '../reminders/reminder.ts';
 import { TaskRepository } from '../tasks/task-repository.ts';
@@ -38,7 +38,8 @@ export function WidgetDataSync() {
       });
     };
     const onError = () => undefined;
-    const cutoff = formatLogDate(new Date());
+    // Streaks need history; only today's logs made the widget streak 0 or 1.
+    const cutoff = formatLogDate(addCalendarDays(new Date(), -HABIT_STREAK_LOG_DAYS));
     const stops = [
       repositories.habits.watch((value) => { rawHabits = value; push(); }, onError),
       repositories.habits.watchRecentLogs((value) => { habitLogs = value; push(); }, onError, cutoff),

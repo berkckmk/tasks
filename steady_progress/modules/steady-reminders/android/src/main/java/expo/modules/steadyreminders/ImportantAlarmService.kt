@@ -69,10 +69,25 @@ class ImportantAlarmService : Service() {
       }
       ACTION_COMPLETE -> {
         val targetId = if (id.isNotEmpty()) id else currentReminderId
+        android.util.Log.i("ImportantAlarmService", "ACTION_COMPLETE received for id=$targetId")
         if (targetId.isNotEmpty()) {
+          val occurrenceMs = if (currentReminderTimestampMs != null && currentReminderTimestampMs!! > 0L) {
+            currentReminderTimestampMs!!
+          } else {
+            ReminderScheduler.getScheduledTimestamp(applicationContext, targetId) ?: 0L
+          }
+          // 1. Cancel the alarm/notification immediately (already scheduled work is stale now).
           ReminderScheduler.cancel(applicationContext, targetId)
-          PendingAlarmActionStore.add(applicationContext, "complete", targetId, System.currentTimeMillis())
+          // 2. Record locally first so the completion survives a process death
+          // before the durable job below gets a chance to run.
+          PendingAlarmActionStore.add(applicationContext, "complete", targetId, System.currentTimeMillis(), occurrenceMs = occurrenceMs)
+          // 3. Reflect the completion in the widget straight away, from local
+          // data only — this must not wait on Firestore or the app opening.
+          ReminderCompletionWorker.refreshWidgetLocally(applicationContext, targetId)
+          // 4. Durable retrying write to Firestore; safe to run with the app fully closed.
+          ReminderCompletionWorker.enqueue(applicationContext, targetId, occurrenceMs)
           SteadyRemindersEvents.sendAlarmAction("complete", targetId)
+          android.util.Log.i("ImportantAlarmService", "Completion work enqueued for id=$targetId occurrenceMs=$occurrenceMs")
         }
         stopForegroundService()
       }

@@ -1,4 +1,5 @@
 import { formatLogDate, type Habit } from '../habits/habit.ts';
+import { isRepeating } from '../reminders/recurrence.ts';
 import type { ReminderItem } from '../reminders/reminder.ts';
 import type { TaskItem } from '../tasks/task-item.ts';
 import type { WidgetItems, WidgetRow, WidgetSnapshot } from './widget-contract.ts';
@@ -28,6 +29,25 @@ function sameLocalDay(left: Date, right: Date) {
     && left.getDate() === right.getDate();
 }
 
+function isTaskDoneToday(task: TaskItem, now: Date) {
+  if (task.status === 'done') return true;
+  // A completed repeating task is reset to todo with its next dueDate.
+  return isRepeating(task.repeatRule) && Boolean(task.lastCompletedAt && sameLocalDay(task.lastCompletedAt, now));
+}
+
+/**
+ * Tasks that belong on a "today" widget: due today, overdue and still open,
+ * undated and still open, or finished today. Older finished tasks and future
+ * ones would otherwise inflate the progress count (it used to be every task).
+ */
+function isTaskForToday(task: TaskItem, now: Date) {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (task.lastCompletedAt && sameLocalDay(task.lastCompletedAt, now)) return true;
+  if (!task.dueDate) return task.status !== 'done';
+  if (sameLocalDay(task.dueDate, now)) return true;
+  return task.dueDate < startOfToday && task.status !== 'done';
+}
+
 function byDoneThenTime(left: WidgetRow, right: WidgetRow) {
   if (Boolean(left.done) !== Boolean(right.done)) return left.done ? 1 : -1;
   const leftTime = left.time ?? '';
@@ -53,25 +73,40 @@ export function buildWidgetSnapshot({
     ...(habit.isCompletedToday ? { done: true } : {}),
     ...(habit.reminderTimeLabel ? { time: habit.reminderTimeLabel } : {}),
   }));
-  const taskRows: WidgetRow[] = tasks.map((task) => ({
+  const todayTasks = tasks.filter((task) => isTaskForToday(task, now));
+  const taskRows: WidgetRow[] = todayTasks.map((task) => ({
     id: task.id,
     kind: 'task',
     label: task.title,
-    ...(task.status === 'done' ? { done: true } : {}),
+    ...(isTaskDoneToday(task, now) ? { done: true } : {}),
     ...(!task.allDay && task.dueDate ? { time: formatTime(task.dueDate) } : {}),
   }));
-  const reminderRows: WidgetRow[] = reminders
-    .filter((reminder) => reminder.dueAt && (
-      sameLocalDay(reminder.dueAt, now)
-      || (reminder.dueAt < now && reminder.status !== 'completed')
-    ))
-    .map((reminder) => ({
-      id: reminder.id,
-      kind: 'reminder',
-      label: reminder.title,
-      ...(reminder.status === 'completed' ? { done: true } : {}),
-      time: formatTime(reminder.dueAt!),
-    }));
+  const reminderRows: WidgetRow[] = [];
+  for (const reminder of reminders) {
+    if (!reminder.dueAt) continue;
+    const completedRepeatingToday = isRepeating(reminder.repeatRule)
+      && Boolean(reminder.lastCompletedAt && sameLocalDay(reminder.lastCompletedAt, now));
+    if (completedRepeatingToday) {
+      // Completing moved dueAt to the next occurrence; today's one is done.
+      reminderRows.push({
+        id: reminder.id,
+        kind: 'reminder',
+        label: reminder.title,
+        done: true,
+        time: formatTime(reminder.lastCompletedAt!),
+      });
+      continue;
+    }
+    if (sameLocalDay(reminder.dueAt, now) || (reminder.dueAt < now && reminder.status !== 'completed')) {
+      reminderRows.push({
+        id: reminder.id,
+        kind: 'reminder',
+        label: reminder.title,
+        ...(reminder.status === 'completed' ? { done: true } : {}),
+        time: formatTime(reminder.dueAt),
+      });
+    }
+  }
   habitRows.sort(byDoneThenTime);
   taskRows.sort(byDoneThenTime);
   reminderRows.sort(byDoneThenTime);
@@ -83,8 +118,8 @@ export function buildWidgetSnapshot({
   return {
     habitsDone: habits.filter((habit) => habit.isCompletedToday).length,
     habitsTotal: habits.length,
-    tasksDone: tasks.filter((task) => task.status === 'done').length,
-    tasksTotal: tasks.length,
+    tasksDone: todayTasks.filter((task) => isTaskDoneToday(task, now)).length,
+    tasksTotal: todayTasks.length,
     bestStreak: habits.reduce((best, habit) => Math.max(best, habit.streak), 0),
     items: JSON.stringify(items),
     date: formatLogDate(now),

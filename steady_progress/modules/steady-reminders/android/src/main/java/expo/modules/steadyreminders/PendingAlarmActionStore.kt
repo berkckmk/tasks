@@ -9,6 +9,7 @@ internal data class PendingAlarmAction(
   val reminderId: String,
   val timestampMs: Long,
   val snoozedUntilMs: Long? = null,
+  val occurrenceMs: Long? = null,
 )
 
 internal object PendingAlarmActionStore {
@@ -21,10 +22,11 @@ internal object PendingAlarmActionStore {
     reminderId: String,
     timestampMs: Long = System.currentTimeMillis(),
     snoozedUntilMs: Long? = null,
+    occurrenceMs: Long? = null,
   ) {
     val current = all(context).toMutableList()
     current.removeAll { it.reminderId == reminderId && it.action == action }
-    current.add(PendingAlarmAction(action, reminderId, timestampMs, snoozedUntilMs))
+    current.add(PendingAlarmAction(action, reminderId, timestampMs, snoozedUntilMs, occurrenceMs))
     write(context, current)
   }
 
@@ -38,6 +40,7 @@ internal object PendingAlarmActionStore {
         reminderId = obj.getString("reminderId"),
         timestampMs = obj.getLong("timestampMs"),
         snoozedUntilMs = if (obj.has("snoozedUntilMs")) obj.getLong("snoozedUntilMs") else null,
+        occurrenceMs = if (obj.has("occurrenceMs")) obj.getLong("occurrenceMs") else null,
       )
     }
   } catch (_: Exception) {
@@ -62,6 +65,9 @@ internal object PendingAlarmActionStore {
         .put("timestampMs", item.timestampMs)
       if (item.snoozedUntilMs != null) {
         obj.put("snoozedUntilMs", item.snoozedUntilMs)
+      }
+      if (item.occurrenceMs != null) {
+        obj.put("occurrenceMs", item.occurrenceMs)
       }
       array.put(obj)
     }
