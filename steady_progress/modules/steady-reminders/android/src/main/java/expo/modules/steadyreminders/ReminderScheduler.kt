@@ -74,7 +74,7 @@ internal object ReminderScheduler {
     val existing = ReminderScheduleStore.all(context).find { it.id == id }
     val title = existing?.title ?: "Önemli Hatırlatıcı"
     val message = existing?.message.orEmpty()
-    val priority = "important"
+    val priority = existing?.priority ?: "important"
     val base = baseTimeMs ?: existing?.timestampMs ?: System.currentTimeMillis()
     val targetTimeMs = base + minutes * 60 * 1000L
 

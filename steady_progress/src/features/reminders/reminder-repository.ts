@@ -23,6 +23,8 @@ export type SetDoneResult = {
   wasRepeated: boolean;
   nextDueAt?: Date;
   title?: string;
+  message?: string;
+  priority?: ReminderPriority;
 };
 
 export type AlarmActionResult = SetDoneResult & {
@@ -152,7 +154,17 @@ export class ReminderRepository {
           lastCompletedAt: now,
           updatedAt: this.gateway.serverTimestamp(),
         });
-        return { wasRepeated: true, nextDueAt, title: typeof data?.title === 'string' ? data.title : undefined };
+        // Returned so the next native alarm keeps the reminder's own text and
+        // priority instead of a generic "important" alarm.
+        return {
+          wasRepeated: true,
+          nextDueAt,
+          title: typeof data?.title === 'string' ? data.title : undefined,
+          message: typeof data?.message === 'string' ? data.message : undefined,
+          priority: data?.priority === 'low' || data?.priority === 'normal' || data?.priority === 'important'
+            ? data.priority
+            : undefined,
+        };
       }
     }
 

@@ -234,9 +234,9 @@ export class ImportantAlarmService {
         await this.schedule({
           id,
           timestampMs: res.nextDueAt.getTime(),
-          title: 'Hatırlatıcı',
-          message: '',
-          priority: 'important',
+          title: res.title || 'Hatırlatıcı',
+          message: res.message || '',
+          priority: res.priority || 'normal',
         });
       }
     }
@@ -303,8 +303,8 @@ export class ImportantAlarmService {
             id: action.reminderId,
             timestampMs: res.nextDueAt.getTime(),
             title: res.title || 'Hatırlatıcı',
-            message: '',
-            priority: 'important',
+            message: res.message || '',
+            priority: res.priority || 'normal',
           });
         }
       } else if (action.action === 'snooze') {
