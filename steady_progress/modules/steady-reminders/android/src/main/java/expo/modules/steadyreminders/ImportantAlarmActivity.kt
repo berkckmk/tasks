@@ -1,7 +1,6 @@
 package expo.modules.steadyreminders
 
 import android.app.Activity
-import android.app.KeyguardManager
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -63,13 +62,10 @@ class ImportantAlarmActivity : Activity() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
       setShowWhenLocked(true)
       setTurnScreenOn(true)
-      val keyguardManager = getSystemService(KeyguardManager::class.java)
-      keyguardManager?.requestDismissKeyguard(this, null)
     } else {
       @Suppress("DEPRECATION")
       window.addFlags(
         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
         WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
       )
@@ -421,7 +417,7 @@ class ImportantAlarmActivity : Activity() {
       putExtra(ImportantAlarmService.EXTRA_ID, reminderId)
     }
     startService(serviceIntent)
-    finish()
+    closeAlarmScreen()
   }
 
   private fun handleComplete() {
@@ -430,7 +426,14 @@ class ImportantAlarmActivity : Activity() {
       putExtra(ImportantAlarmService.EXTRA_ID, reminderId)
     }
     startService(serviceIntent)
-    finish()
+    closeAlarmScreen()
+  }
+
+  // The alarm screen lives in its own task, so removing that task returns the
+  // user to wherever they were (lock screen, launcher, another app) instead of
+  // bringing the app's main task to the front.
+  private fun closeAlarmScreen() {
+    finishAndRemoveTask()
   }
 
   private fun dpToPx(dp: Int): Int {
