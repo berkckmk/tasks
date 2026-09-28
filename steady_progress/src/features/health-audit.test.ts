@@ -12,6 +12,7 @@ import type { TaskItem } from './tasks/task-item.ts';
 import { addCalendarDays, formatLogDate, HABIT_STREAK_LOG_DAYS, mergeHabitsWithLogs, type Habit, type HabitLog } from './habits/habit.ts';
 import { alarmsToCancel, planAlarms } from './reminders/alarm-plan.ts';
 import { groupReminders } from './reminders/reminder-sections.ts';
+import { ImportantAlarmService } from './reminders/important-alarm-service.ts';
 import { buildTodayEntries } from './dashboard/today.ts';
 import { buildWidgetSnapshot } from './widget/widget-snapshot.ts';
 import { WidgetSyncCoordinator, type WidgetBridgePort } from './widget/widget-sync.ts';
@@ -272,4 +273,108 @@ test('7c Kaçırılan günlük ilaç Bugün bölümünde', () => {
     reminder({ id: 'aubagio', dueAt: d(2026, 9, 25, 13), repeatRule: 'Her gün' }),
   ], d(2026, 9, 26, 8));
   assert.deepEqual(sections.todayItems.map((r) => r.id), ['aubagio']);
+});
+
+// ───────────── 8. Erteleme ve peş peşe tamamlama ─────────────
+
+async function dailyDuxet() {
+  const gw = new MemoryDataGateway('u');
+  const repo = new ReminderRepository(gw, 'u');
+  const id = await repo.save({ title: 'duxet', message: '', dueAt: d(2026, 9, 28, 9, 0), status: 'scheduled', repeatRule: 'Her gün', priority: 'important' });
+  return { repo, id };
+}
+
+test('8a +10dk ertelenen ilaç tamamlanınca ertesi gün asıl saatte (09:00)', async () => {
+  const { repo, id } = await dailyDuxet();
+  await ImportantAlarmService.snooze(id, 10, repo, (await repo.getById(id))!.dueAt);
+  assert.equal((await repo.getById(id))!.dueAt?.getMinutes(), 10);
+  await repo.setDone(id, true, d(2026, 9, 28, 9, 11));
+  const next = (await repo.getById(id))!.dueAt!;
+  assert.equal(next.getDate(), 29);
+  assert.equal(next.getHours(), 9);
+  assert.equal(next.getMinutes(), 0);
+});
+
+test('8b Alarm ekranından ertele + tamamla: ertesi gün asıl saatte', async () => {
+  const { repo, id } = await dailyDuxet();
+  await ImportantAlarmService.applyAlarmAction(repo, { action: 'snooze', reminderId: id, timestampMs: d(2026, 9, 28, 9, 1).getTime(), snoozedUntilMs: d(2026, 9, 28, 9, 10).getTime() });
+  await ImportantAlarmService.applyAlarmAction(repo, { action: 'complete', reminderId: id, timestampMs: Date.now() });
+  const next = (await repo.getById(id))!.dueAt!;
+  assert.equal(next.getHours(), 9);
+  assert.equal(next.getMinutes(), 0);
+});
+
+test('8c Ertelendikten sonra not düzenlenip kaydedilirse saat 09:10 a kaymaz', async () => {
+  const { repo, id } = await dailyDuxet();
+  await ImportantAlarmService.snooze(id, 10, repo, (await repo.getById(id))!.dueAt);
+  const item = (await repo.getById(id))!;
+  // Editor saved without touching the time -> keepSnooze.
+  await repo.save({ id, title: item.title, message: 'not', dueAt: item.dueAt, status: 'snoozed', repeatRule: item.repeatRule, priority: item.priority, keepSnooze: true });
+  assert.equal((await repo.getById(id))!.status, 'snoozed');
+  await repo.setDone(id, true, d(2026, 9, 28, 9, 11));
+  assert.equal((await repo.getById(id))!.dueAt?.getMinutes(), 0);
+});
+
+test('8d Saati bilerek değiştirilen düzenleme yeni saati kalıcı yapar', async () => {
+  const { repo, id } = await dailyDuxet();
+  await ImportantAlarmService.snooze(id, 10, repo, (await repo.getById(id))!.dueAt);
+  const item = (await repo.getById(id))!;
+  await repo.save({ id, title: item.title, message: '', dueAt: d(2026, 9, 28, 8, 30), status: 'scheduled', repeatRule: item.repeatRule, priority: item.priority });
+  await repo.setDone(id, true, d(2026, 9, 28, 8, 31));
+  const next = (await repo.getById(id))!.dueAt!;
+  assert.equal(next.getHours(), 8);
+  assert.equal(next.getMinutes(), 30);
+});
+
+test('8e Peş peşe 28-29-30-1 tamamlanınca Geçmiş te 4 ayrı satır olur', async () => {
+  const { repo, id } = await dailyDuxet();
+  for (let i = 0; i < 4; i += 1) await repo.setDone(id, true, d(2026, 9, 28, 10, i));
+  const item = (await repo.getById(id))!;
+  assert.equal(item.dueAt?.getDate(), 2); // 2 Ekim
+  const sections = groupReminders([item], d(2026, 9, 28, 12));
+  assert.deepEqual(sections.pastItems.map((r) => r.historyOccurrence?.getDate()), [1, 30, 29, 28]);
+  assert.deepEqual(sections.upcomingItems.map((r) => r.dueAt?.getDate()), [2]);
+});
+
+test('8f Ortadaki günün (29) tiki kaldırılınca sadece 29 geri gelir, diğerleri Geçmiş te kalır', async () => {
+  const { repo, id } = await dailyDuxet();
+  for (let i = 0; i < 4; i += 1) await repo.setDone(id, true, d(2026, 9, 28, 10, i));
+  const res = await repo.setDone(id, false, d(2026, 9, 28, 11), { occurrence: d(2026, 9, 29, 9, 0) });
+  assert.equal(res.restoredDueAt?.getDate(), 29);
+  const item = (await repo.getById(id))!;
+  assert.equal(item.dueAt?.getDate(), 29);
+  const sections = groupReminders([item], d(2026, 9, 28, 12));
+  assert.deepEqual(sections.pastItems.map((r) => r.historyOccurrence?.getDate()), [1, 30, 28]);
+  // 29 tekrar tamamlanınca zaten tamamlanmış 30 ve 1 atlanır.
+  await repo.setDone(id, true, d(2026, 9, 28, 13));
+  assert.equal((await repo.getById(id))!.dueAt?.getDate(), 2);
+});
+
+test('8g Tüm günlerin tiki tek tek kaldırılınca seri ilk güne (28) döner', async () => {
+  const { repo, id } = await dailyDuxet();
+  for (let i = 0; i < 4; i += 1) await repo.setDone(id, true, d(2026, 9, 28, 10, i));
+  for (const day of [[10, 1], [9, 30], [9, 29], [9, 28]]) {
+    await repo.setDone(id, false, d(2026, 9, 28, 11), { occurrence: d(2026, day[0], day[1], 9, 0) });
+  }
+  const item = (await repo.getById(id))!;
+  assert.equal(item.dueAt?.getDate(), 28);
+  assert.equal(item.lastCompletedAt, null);
+  assert.equal(groupReminders([item], d(2026, 9, 28, 12)).pastItems.length, 0);
+});
+
+test('8h Hangi gün belirtilmeden tik kaldırılırsa en son tamamlanan geri alınır', async () => {
+  const { repo, id } = await dailyDuxet();
+  await repo.setDone(id, true, d(2026, 9, 28, 10));
+  await repo.setDone(id, true, d(2026, 9, 28, 10, 1));
+  await repo.setDone(id, false, d(2026, 9, 28, 11));
+  const item = (await repo.getById(id))!;
+  assert.equal(item.dueAt?.getDate(), 29);
+  assert.equal(groupReminders([item], d(2026, 9, 28, 12)).pastItems.length, 1);
+});
+
+test('8i Önceden tamamlanan gün için alarm kurulmaz', () => {
+  const plan = planAlarms([
+    reminder({ id: 'r', dueAt: d(2026, 9, 28, 9), repeatRule: 'Her gün', completions: [{ occurrence: d(2026, 9, 29, 9), completedAt: d(2026, 9, 28, 8) }] }),
+  ], d(2026, 9, 28, 10));
+  assert.equal(new Date(plan.get('r')!.timestampMs).getDate(), 30);
 });

@@ -1,4 +1,4 @@
-import { calculateNextDueDate, isRepeating } from './recurrence.ts';
+import { calculateNextDueDate, isRepeating, skipCompletedOccurrences } from './recurrence.ts';
 import type { ReminderItem, ReminderPriority } from './reminder.ts';
 
 export type PlannedAlarm = {
@@ -23,9 +23,16 @@ export function planAlarms(items: ReminderItem[], now: Date = new Date()): Map<s
     if (item.status === 'completed' || item.status === 'missed' || !item.dueAt) continue;
     let at: Date | null = item.dueAt;
     if (at.getTime() <= now.getTime()) {
-      at = isRepeating(item.repeatRule)
+      const next = isRepeating(item.repeatRule)
         ? calculateNextDueDate(item.snoozedFromDueAt ?? item.dueAt, item.repeatRule, now, item.repeatAnchorDay)
         : null;
+      // Days already ticked off ahead of time get no alarm.
+      at = next && skipCompletedOccurrences(
+        next,
+        item.repeatRule,
+        new Set((item.completions ?? []).map((entry) => entry.occurrence.getTime())),
+        item.repeatAnchorDay,
+      );
     }
     if (!at) continue;
     plan.set(item.id, {

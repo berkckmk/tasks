@@ -23,11 +23,26 @@ export function groupReminders(items: ReminderItem[], now: Date = new Date()): R
       continue;
     }
 
-    if (isCompletedToday(item.lastCompletedAt, now)) {
-      // Today's occurrence is done: show it in Geçmiş...
+    const completedToday = (item.completions ?? []).filter((entry) => isCompletedToday(entry.completedAt, now));
+    if (completedToday.length > 0) {
+      // One Geçmiş row per occurrence ticked today (e.g. 28, 29, 30 ticked
+      // ahead), each untickable on its own, newest occurrence first.
+      for (const entry of [...completedToday].sort((a, b) => b.occurrence.getTime() - a.occurrence.getTime())) {
+        pastItems.push({
+          ...item,
+          status: 'completed',
+          dueAt: entry.occurrence,
+          lastCompletedAt: entry.completedAt,
+          historyOccurrence: entry.occurrence,
+        });
+      }
+    } else if (isCompletedToday(item.lastCompletedAt, now)) {
+      // Completed before occurrences were recorded: a single Geçmiş row.
       pastItems.push({ ...item, status: 'completed', dueAt: item.lastCompletedAt ?? item.dueAt });
-      // ...and a repeating series still has its next occurrence to show
-      // (it used to disappear from Yaklaşan until the next day).
+    }
+    if (completedToday.length > 0 || isCompletedToday(item.lastCompletedAt, now)) {
+      // A repeating series still has its next occurrence to show (it used to
+      // disappear from Yaklaşan until the next day).
       if (!isRepeating(item.repeatRule)) continue;
     }
 

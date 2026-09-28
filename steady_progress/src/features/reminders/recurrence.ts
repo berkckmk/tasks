@@ -179,3 +179,25 @@ export function getRecurrenceDayBadge(
   if (!normalized || normalized === 'Her gün') return null;
   return formatDayOfWeekShort(date);
 }
+
+/**
+ * Moves `date` forward one period at a time while it lands on an occurrence
+ * that is already completed (e.g. days ticked off ahead of time), so the
+ * series never schedules a day the user has already done.
+ */
+export function skipCompletedOccurrences(
+  date: Date,
+  repeatRule: string | null | undefined,
+  completedOccurrenceMs: ReadonlySet<number>,
+  anchorDay?: number | null,
+): Date {
+  let next = date;
+  let guard = 0;
+  while (completedOccurrenceMs.has(next.getTime()) && guard < 500) {
+    const stepped = calculateNextDueDate(next, repeatRule, next, anchorDay);
+    if (!stepped) break;
+    next = stepped;
+    guard += 1;
+  }
+  return next;
+}

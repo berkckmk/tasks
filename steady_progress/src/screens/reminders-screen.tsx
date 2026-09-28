@@ -56,6 +56,8 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
   const isSavingRef = useRef(false);
   const userChangedPriorityRef = useRef(false);
   const clientMutationIdRef = useRef<string>('');
+  // dueAt of a snoozed reminder when its editor opened (null otherwise).
+  const loadedSnoozeRef = useRef<number | null>(null);
   const initialSnapshotRef = useRef<{ title: string; message: string; location: string; checklistText: string } | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -86,6 +88,7 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
 
   function resetForm() {
     setEditingId(null);
+    loadedSnoozeRef.current = null;
     setTitle('');
     setTitleError(null);
     setMessage('');
@@ -113,6 +116,9 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
 
   function openEdit(item: ReminderItem) {
     setEditingId(item.id);
+    loadedSnoozeRef.current = item.status === 'snoozed' && item.snoozedFromDueAt && item.dueAt
+      ? item.dueAt.getTime()
+      : null;
     setTitle(item.title);
     setTitleError(null);
     setMessage(item.message);
@@ -207,7 +213,11 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
           console.warn('Alarm cancel error:', alarmError);
         }
       }
-      const data = payload();
+      // Saving a snoozed reminder without touching its time keeps it snoozed,
+      // so the series keeps its real time instead of the snoozed one.
+      const keepSnooze = Boolean(editingId) && loadedSnoozeRef.current !== null
+        && dueAt.getTime() === loadedSnoozeRef.current;
+      const data = { ...payload(keepSnooze ? 'snoozed' : 'scheduled'), keepSnooze };
       const id = await repository.save(data);
       if (dueAt && dueAt.getTime() > Date.now()) {
         try {
@@ -269,7 +279,8 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
   async function toggleDone(item: ReminderItem, currentIsDone?: boolean) {
     const isDone = currentIsDone !== undefined ? currentIsDone : isReminderDone(item);
     const done = !isDone;
-    const result = await repository.setDone(item.id, done);
+    // A Geçmiş row names the occurrence to untick; other rows undo the latest.
+    const result = await repository.setDone(item.id, done, new Date(), { occurrence: item.historyOccurrence });
     if (result.wasRepeated && result.nextDueAt) {
       await ImportantAlarmService.schedule({
         id: item.id,
@@ -280,10 +291,10 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
       });
     } else if (done) {
       await ImportantAlarmService.complete(item.id);
-    } else if (item.dueAt && item.dueAt > new Date()) {
+    } else if (result.restoredDueAt && result.restoredDueAt > new Date()) {
       await ImportantAlarmService.schedule({
         id: item.id,
-        timestampMs: item.dueAt.getTime(),
+        timestampMs: result.restoredDueAt.getTime(),
         title: item.title,
         message: item.message,
         priority: item.priority,
@@ -363,7 +374,9 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
   function renderReminderRow(item: ReminderItem, inHistorySection = false) {
     const isSelected = selectedIds.has(item.id);
     const isDone = inHistorySection ? (item.status === 'completed' || isReminderCompletedToday(item)) : false;
-    const displayDate = isDone && item.lastCompletedAt ? item.lastCompletedAt : item.dueAt;
+    // A Geçmiş row of a repeating reminder stands for one occurrence: show
+    // that day, not the moment it was ticked.
+    const displayDate = item.historyOccurrence ?? (isDone && item.lastCompletedAt ? item.lastCompletedAt : item.dueAt);
     const recurrenceDayBadge = getRecurrenceDayBadge(item.repeatRule, displayDate);
     const metaParts = [
       item.category,
@@ -377,7 +390,7 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
 
     return (
       <ListItemRow
-        key={inHistorySection ? `${item.id}_history` : item.id}
+        key={inHistorySection ? `${item.id}_history_${item.historyOccurrence?.getTime() ?? ''}` : item.id}
         title={item.title}
         subtitle={metaParts}
         note={item.message || null}

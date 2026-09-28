@@ -126,4 +126,18 @@ class ReminderRecurrenceTest {
     assertEquals(2, next.get(Calendar.MONTH))
     assertEquals(31, next.get(Calendar.DAY_OF_MONTH))
   }
+
+  @Test
+  fun `completedOccurrenceMs reads occurrences and ignores malformed entries`() {
+    val day28 = cal(2026, 8, 28, 9, 0).time
+    val day29 = cal(2026, 8, 29, 9, 0).time
+    val raw = listOf(
+      mapOf("occurrence" to day28, "completedAt" to day28),
+      mapOf("occurrence" to day29),
+      "not a map",
+      mapOf("completedAt" to day29),
+    )
+    assertEquals(setOf(day28.time, day29.time), ReminderCompletionWorker.completedOccurrenceMs(raw))
+    assertEquals(emptySet<Long>(), ReminderCompletionWorker.completedOccurrenceMs(null))
+  }
 }

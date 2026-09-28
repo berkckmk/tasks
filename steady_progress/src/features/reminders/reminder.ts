@@ -23,7 +23,28 @@ export type ReminderItem = {
   repeatAnchorDay?: number | null;
   /** Original time of an occurrence that is currently snoozed. */
   snoozedFromDueAt?: Date | null;
+  /** Completed occurrences of a repeating reminder, oldest first. */
+  completions?: ReminderCompletion[];
+  /** Set on a Geçmiş row: the one occurrence that row stands for. */
+  historyOccurrence?: Date | null;
 };
+
+export type ReminderCompletion = {
+  occurrence: Date;
+  completedAt: Date;
+};
+
+export function completionsFromFirestore(value: unknown): ReminderCompletion[] {
+  if (!Array.isArray(value)) return [];
+  const result: ReminderCompletion[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') continue;
+    const occurrence = dateFromFirestore((entry as Record<string, unknown>).occurrence);
+    const completedAt = dateFromFirestore((entry as Record<string, unknown>).completedAt);
+    if (occurrence && completedAt) result.push({ occurrence, completedAt });
+  }
+  return result.sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime());
+}
 
 export {
   repeatRules,
@@ -75,6 +96,7 @@ export function reminderFromDocument(id: string, data: Record<string, unknown>):
     lastCompletedAt: dateFromFirestore(data.lastCompletedAt),
     repeatAnchorDay: typeof data.repeatAnchorDay === 'number' ? data.repeatAnchorDay : null,
     snoozedFromDueAt: dateFromFirestore(data.snoozedFromDueAt),
+    completions: completionsFromFirestore(data.completions),
   };
 }
 

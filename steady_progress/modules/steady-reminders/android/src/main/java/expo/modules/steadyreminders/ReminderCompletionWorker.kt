@@ -103,11 +103,20 @@ internal class ReminderCompletionWorker(appContext: Context, params: WorkerParam
     val normalizedRule = ReminderRecurrence.normalize(repeatRule)
     // Same fields as ReminderRepository.setDone(): a snoozed occurrence
     // advances from its original time, monthly/yearly series keep their
-    // anchor day, and previousDueAt lets an undo restore this occurrence.
+    // anchor day, each completed occurrence is appended to `completions`
+    // (Geçmiş rows and per-day undo), and days already ticked ahead are skipped.
     val occurrenceDueMs = snapshot.getTimestamp("snoozedFromDueAt")?.toDate()?.time ?: dueAtMs
     val anchorDay = snapshot.getLong("repeatAnchorDay")?.toInt()
+    val completedOccurrences = completedOccurrenceMs(snapshot.get("completions")).toMutableSet()
+    if (occurrenceDueMs != null) completedOccurrences.add(occurrenceDueMs)
     val nextDueMs = if (normalizedRule != null && occurrenceDueMs != null) {
-      ReminderRecurrence.nextDueDate(occurrenceDueMs, repeatRule, now, anchorDay)
+      var next = ReminderRecurrence.nextDueDate(occurrenceDueMs, repeatRule, now, anchorDay)
+      var guard = 0
+      while (next != null && next in completedOccurrences && guard < 500) {
+        next = ReminderRecurrence.nextDueDate(next, repeatRule, next, anchorDay)
+        guard += 1
+      }
+      next
     } else {
       null
     }
@@ -115,7 +124,13 @@ internal class ReminderCompletionWorker(appContext: Context, params: WorkerParam
     val updates: Map<String, Any> = if (nextDueMs != null && occurrenceDueMs != null) {
       mapOf(
         "dueAt" to Timestamp(Date(nextDueMs)),
-        "previousDueAt" to Timestamp(Date(occurrenceDueMs)),
+        "completions" to FieldValue.arrayUnion(
+          mapOf(
+            "occurrence" to Timestamp(Date(occurrenceDueMs)),
+            "completedAt" to Timestamp(Date(now)),
+          )
+        ),
+        "previousDueAt" to FieldValue.delete(),
         "status" to "scheduled",
         "lastCompletedAt" to Timestamp(Date(now)),
         "snoozedFromDueAt" to FieldValue.delete(),
@@ -160,6 +175,18 @@ internal class ReminderCompletionWorker(appContext: Context, params: WorkerParam
 
   companion object {
     private const val TAG = "ReminderCompletionWork"
+
+    /** Occurrence times (ms) from the Firestore `completions` array. */
+    internal fun completedOccurrenceMs(raw: Any?): Set<Long> {
+      val list = raw as? List<*> ?: return emptySet()
+      return list.mapNotNull { entry ->
+        when (val occurrence = (entry as? Map<*, *>)?.get("occurrence")) {
+          is Timestamp -> occurrence.toDate().time
+          is Date -> occurrence.time
+          else -> null
+        }
+      }.toSet()
+    }
     private const val KEY_REMINDER_ID = "reminder_id"
     private const val KEY_OCCURRENCE_MS = "occurrence_ms"
     private const val MAX_AUTH_WAIT_ATTEMPTS = 15

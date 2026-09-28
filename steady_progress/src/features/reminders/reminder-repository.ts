@@ -8,10 +8,12 @@ import {
   isRepeating,
   repeatAnchorDayFor,
   rollForwardToDay,
+  skipCompletedOccurrences,
 } from './recurrence.ts';
 import {
   calculateNextDueDate,
   calculatePreviousDueDate,
+  completionsFromFirestore,
   effectiveReminderPriority,
   reminderFromDocument,
   type ReminderItem,
@@ -25,7 +27,12 @@ export type SetDoneResult = {
   title?: string;
   message?: string;
   priority?: ReminderPriority;
+  /** After an undo: the occurrence the series is due at again. */
+  restoredDueAt?: Date;
 };
+
+/** Completed occurrences kept per reminder (for Geçmiş and undo). */
+const MAX_COMPLETIONS = 100;
 
 export type AlarmActionResult = SetDoneResult & {
   /** True when this alarm action was already applied and was skipped. */
@@ -55,6 +62,12 @@ export type SaveReminderInput = {
   checklist?: string[];
   clientMutationId?: string;
   lastCompletedAt?: Date | null;
+  /**
+   * The edit kept the snoozed time as is (only text or options changed):
+   * stay snoozed and keep the original occurrence time, so saving a note on
+   * a snoozed reminder does not turn 09:10 into the series' new time.
+   */
+  keepSnooze?: boolean;
 };
 
 
@@ -111,9 +124,10 @@ export class ReminderRepository {
     }
     await this.gateway.setDocument(`${collection}/${input.id}`, {
       ...data,
+      ...(input.keepSnooze ? { status: 'snoozed' } : {}),
       notifiedAt: this.gateway.deleteField(),
       // An edited dueAt is the new schedule; forget any snoozed occurrence.
-      snoozedFromDueAt: this.gateway.deleteField(),
+      ...(input.keepSnooze ? {} : { snoozedFromDueAt: this.gateway.deleteField() }),
       previousDueAt: this.gateway.deleteField(),
     }, { merge: true });
     return input.id;
@@ -129,25 +143,45 @@ export class ReminderRepository {
     return this.gateway.deleteDocument(`${userCollection(this.userId, 'reminders')}/${id}`);
   }
 
-  async setDone(id: string, done: boolean, now: Date = new Date()): Promise<SetDoneResult> {
+  /**
+   * Ticks or unticks a reminder. For a repeating reminder every tick records
+   * the occurrence it completed, so several days ticked in a row each show in
+   * Geçmiş and each can be unticked on its own. `options.occurrence` names the
+   * occurrence to untick; without it the most recent tick is undone.
+   */
+  async setDone(
+    id: string,
+    done: boolean,
+    now: Date = new Date(),
+    options: { occurrence?: Date | null } = {},
+  ): Promise<SetDoneResult> {
     const docPath = `${userCollection(this.userId, 'reminders')}/${id}`;
     const doc = await this.gateway.getDocument(docPath);
     const data = doc?.data;
     const repeatRule = typeof data?.repeatRule === 'string' ? data.repeatRule : null;
     const dueAt = dateFromFirestore(data?.dueAt);
     const anchorDay = typeof data?.repeatAnchorDay === 'number' ? data.repeatAnchorDay : null;
+    const completions = completionsFromFirestore(data?.completions);
 
     if (done && isRepeating(repeatRule) && dueAt) {
       // A snoozed occurrence keeps its original time, so the series does not
       // drift by the snooze length every time it is snoozed then completed.
       const occurrenceDueAt = dateFromFirestore(data?.snoozedFromDueAt) ?? dueAt;
-      const nextDueAt = calculateNextDueDate(occurrenceDueAt, repeatRule, now, anchorDay);
-      if (nextDueAt) {
+      const nextCandidate = calculateNextDueDate(occurrenceDueAt, repeatRule, now, anchorDay);
+      if (nextCandidate) {
+        const nextCompletions = [...completions, { occurrence: occurrenceDueAt, completedAt: now }]
+          .slice(-MAX_COMPLETIONS);
+        // Days already ticked off ahead of time are not due again.
+        const nextDueAt = skipCompletedOccurrences(
+          nextCandidate,
+          repeatRule,
+          new Set(nextCompletions.map((entry) => entry.occurrence.getTime())),
+          anchorDay,
+        );
         await this.gateway.updateDocument(docPath, {
           dueAt: nextDueAt,
-          // Remembered so an undo returns to exactly this occurrence, even
-          // when it was completed several periods late.
-          previousDueAt: occurrenceDueAt,
+          completions: nextCompletions,
+          previousDueAt: this.gateway.deleteField(),
           status: 'scheduled',
           notifiedAt: this.gateway.deleteField(),
           snoozedFromDueAt: this.gateway.deleteField(),
@@ -168,6 +202,38 @@ export class ReminderRepository {
       }
     }
 
+    if (!done && isRepeating(repeatRule) && dueAt && completions.length > 0) {
+      const wanted = options.occurrence?.getTime();
+      let index = wanted === undefined
+        ? completions.length - 1
+        : completions.findIndex((entry) => entry.occurrence.getTime() === wanted);
+      if (index < 0) index = completions.length - 1;
+      const undone = completions[index];
+      const remaining = completions.filter((_, i) => i !== index);
+      // The unticked day is due again unless the series is already earlier
+      // (then the current, possibly snoozed, occurrence stays as it is).
+      const movesBack = undone.occurrence < (dateFromFirestore(data?.snoozedFromDueAt) ?? dueAt);
+      const restoredDueAt = movesBack ? undone.occurrence : dueAt;
+      const lastCompleted = remaining.reduce<Date | null>(
+        (latest, entry) => (!latest || entry.completedAt > latest ? entry.completedAt : latest),
+        null,
+      );
+      await this.gateway.updateDocument(docPath, {
+        completions: remaining,
+        lastCompletedAt: lastCompleted ?? this.gateway.deleteField(),
+        previousDueAt: this.gateway.deleteField(),
+        ...(movesBack ? {
+          dueAt: restoredDueAt,
+          status: 'scheduled',
+          snoozedFromDueAt: this.gateway.deleteField(),
+          notifiedAt: this.gateway.deleteField(),
+        } : {}),
+        updatedAt: this.gateway.serverTimestamp(),
+      });
+      return { wasRepeated: false, restoredDueAt };
+    }
+
+    // Reminders completed before completions were recorded: one-step undo.
     if (!done && isRepeating(repeatRule) && dueAt && data?.lastCompletedAt != null) {
       const prevDueAt = dateFromFirestore(data?.previousDueAt)
         ?? calculatePreviousDueDate(dueAt, repeatRule, anchorDay);
@@ -180,7 +246,7 @@ export class ReminderRepository {
           notifiedAt: this.gateway.deleteField(),
           updatedAt: this.gateway.serverTimestamp(),
         });
-        return { wasRepeated: false };
+        return { wasRepeated: false, restoredDueAt: prevDueAt };
       }
     }
 
@@ -190,7 +256,7 @@ export class ReminderRepository {
       notifiedAt: this.gateway.deleteField(),
       updatedAt: this.gateway.serverTimestamp(),
     });
-    return { wasRepeated: false };
+    return { wasRepeated: false, ...(!done && dueAt ? { restoredDueAt: dueAt } : {}) };
   }
 
   /**
@@ -209,8 +275,10 @@ export class ReminderRepository {
       const data = doc?.data;
       const anchorDay = typeof data?.repeatAnchorDay === 'number' ? data.repeatAnchorDay : null;
       const base = dateFromFirestore(data?.snoozedFromDueAt) ?? item.dueAt;
-      const next = rollForwardToDay(base, item.repeatRule, startOfToday, anchorDay);
-      if (!next) continue;
+      const rolled = rollForwardToDay(base, item.repeatRule, startOfToday, anchorDay);
+      if (!rolled) continue;
+      const completed = new Set(completionsFromFirestore(data?.completions).map((entry) => entry.occurrence.getTime()));
+      const next = skipCompletedOccurrences(rolled, item.repeatRule, completed, anchorDay);
       await this.gateway.updateDocument(`${userCollection(this.userId, 'reminders')}/${item.id}`, {
         dueAt: next,
         status: 'scheduled',
