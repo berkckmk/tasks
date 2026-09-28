@@ -105,9 +105,28 @@ internal class ReminderCompletionWorker(appContext: Context, params: WorkerParam
     // advances from its original time, monthly/yearly series keep their
     // anchor day, each completed occurrence is appended to `completions`
     // (Geçmiş rows and per-day undo), and days already ticked ahead are skipped.
-    val occurrenceDueMs = snapshot.getTimestamp("snoozedFromDueAt")?.toDate()?.time ?: dueAtMs
+    val snoozedFromMs = snapshot.getTimestamp("snoozedFromDueAt")?.toDate()?.time
     val anchorDay = snapshot.getLong("repeatAnchorDay")?.toInt()
     val completedOccurrences = completedOccurrenceMs(snapshot.get("completions")).toMutableSet()
+    // The series fell behind (days missed while the app was closed) and this
+    // alarm is for a later occurrence: that occurrence is the one completed,
+    // and the days in between go to the missed list (Geçmiş), like
+    // ReminderRepository.setDone / rollForwardMissed.
+    val missedDays = mutableListOf<Long>()
+    val occurrenceDueMs: Long? = if (
+      normalizedRule != null && snoozedFromMs == null && dueAtMs != null && occurrenceMs > dueAtMs
+    ) {
+      var cursor: Long? = dueAtMs
+      var guard = 0
+      while (cursor != null && cursor < occurrenceMs && guard < 2000) {
+        if (cursor !in completedOccurrences) missedDays.add(cursor)
+        cursor = ReminderRecurrence.nextDueDate(cursor, repeatRule, cursor, anchorDay)
+        guard += 1
+      }
+      occurrenceMs
+    } else {
+      snoozedFromMs ?: dueAtMs
+    }
     if (occurrenceDueMs != null) completedOccurrences.add(occurrenceDueMs)
     val nextDueMs = if (normalizedRule != null && occurrenceDueMs != null) {
       var next = ReminderRecurrence.nextDueDate(occurrenceDueMs, repeatRule, now, anchorDay)
@@ -136,6 +155,9 @@ internal class ReminderCompletionWorker(appContext: Context, params: WorkerParam
         "snoozedFromDueAt" to FieldValue.delete(),
         "notifiedAt" to FieldValue.delete(),
         "updatedAt" to FieldValue.serverTimestamp(),
+      ) + (
+        if (missedDays.isEmpty()) emptyMap<String, Any>()
+        else mapOf<String, Any>("missedOccurrences" to FieldValue.arrayUnion(*missedDays.map { Timestamp(Date(it)) }.toTypedArray()))
       )
     } else {
       mapOf(

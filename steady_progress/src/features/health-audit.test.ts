@@ -88,14 +88,18 @@ test('2b Kaçırılan günlük ilaç: dün tamamlanmadıysa bugünün listesinde
   assert.equal(entries.length, 1, 'kaçırılan günlük ilaç Bugün ekranında hiç yok');
 });
 
-test('2c Geç tamamlanan tekrarlı hatırlatıcı geri alınınca eski tarihine dönmeli', async () => {
+test('2c Geç tamamlanan tekrarlı hatırlatıcı geri alınınca o gün Geçmiş e (yapılmadı) döner', async () => {
   const gw = new MemoryDataGateway('u');
   const repo = new ReminderRepository(gw, 'u');
   const id = await repo.save({ title: 'Methotrexat', message: '', dueAt: d(2026, 9, 1, 6), status: 'scheduled', repeatRule: 'Her hafta' });
-  await repo.setDone(id, true, d(2026, 9, 26, 10)); // 3+ hafta geç
-  await repo.setDone(id, false);
-  const item = await repo.getById(id);
-  assert.equal(item?.dueAt?.getDate(), 1, `geri alınca ${item?.dueAt?.toDateString()} oldu`);
+  await repo.setDone(id, true, d(2026, 9, 26, 10)); // 3+ hafta geç: 1 Eylül geç yapıldı, 8-15-22 kaçtı
+  let item = await repo.getById(id);
+  assert.deepEqual(item?.missedOccurrences?.map((x) => x.getDate()), [8, 15, 22]);
+  assert.equal(item?.dueAt?.getDate(), 29);
+  await repo.setDone(id, false, d(2026, 9, 26, 11));
+  item = await repo.getById(id);
+  assert.deepEqual(item?.missedOccurrences?.map((x) => x.getDate()), [1, 8, 15, 22]);
+  assert.equal(item?.dueAt?.getDate(), 29, 'seri ve alarm yerinde kalır');
 });
 
 test('2d Tekrarlamayan hatırlatıcı tamamla/geri al durumu doğru', async () => {
@@ -249,30 +253,40 @@ test('6f Yıl sonu: 31 Aralık günlük ilaç 1 Ocak a geçer', () => {
 
 // ───────────── 7. Hatırlatıcı ekranı bölümleri ─────────────
 
-test('7a Bugün tamamlanan günlük ilaç Geçmişte VE yarınki tekrarı Yaklaşanda görünür', () => {
+test('7a Bugün tamamlanan günlük ilaç Yapılanlar da VE yarınki tekrarı Yaklaşan da görünür', () => {
   const now = d(2026, 9, 26, 16);
   const sections = groupReminders([
     reminder({ id: 'duxet', dueAt: d(2026, 9, 27, 9, 20), repeatRule: 'Her gün', lastCompletedAt: d(2026, 9, 26, 9, 25) }),
   ], now);
-  assert.deepEqual(sections.pastItems.map((r) => r.id), ['duxet']);
-  assert.equal(sections.pastItems[0].status, 'completed');
+  assert.deepEqual(sections.doneItems.map((r) => r.id), ['duxet']);
+  assert.equal(sections.doneItems[0].status, 'completed');
   assert.deepEqual(sections.upcomingItems.map((r) => r.id), ['duxet']);
   assert.equal(sections.upcomingItems[0].dueAt?.getDate(), 27);
+  assert.equal(sections.missedItems.length, 0);
 });
 
-test('7b Tek seferlik tamamlanan hatırlatıcı sadece Geçmişte', () => {
+test('7b Tek seferlik tamamlanan hatırlatıcı sadece Yapılanlar da', () => {
   const sections = groupReminders([
     reminder({ id: 'fatura', dueAt: d(2026, 9, 26, 12), status: 'completed', lastCompletedAt: d(2026, 9, 26, 12, 5) }),
   ], d(2026, 9, 26, 16));
-  assert.equal(sections.pastItems.length, 1);
-  assert.equal(sections.todayItems.length + sections.upcomingItems.length, 0);
+  assert.equal(sections.doneItems.length, 1);
+  assert.equal(sections.todayItems.length + sections.upcomingItems.length + sections.missedItems.length, 0);
 });
 
-test('7c Kaçırılan günlük ilaç Bugün bölümünde', () => {
+test('7c Dün yapılmayan günlük ilaç: dün Geçmiş te, bugünkü Bugün de', () => {
   const sections = groupReminders([
     reminder({ id: 'aubagio', dueAt: d(2026, 9, 25, 13), repeatRule: 'Her gün' }),
   ], d(2026, 9, 26, 8));
-  assert.deepEqual(sections.todayItems.map((r) => r.id), ['aubagio']);
+  assert.deepEqual(sections.missedItems.map((r) => r.dueAt?.getDate()), [25]);
+  assert.deepEqual(sections.todayItems.map((r) => r.dueAt?.getDate()), [26]);
+});
+
+test('7d Zamanında yapılmayan tek seferlik hatırlatıcı Geçmiş te', () => {
+  const sections = groupReminders([
+    reminder({ id: 'fatura', dueAt: d(2026, 9, 24, 12) }),
+  ], d(2026, 9, 26, 8));
+  assert.deepEqual(sections.missedItems.map((r) => r.id), ['fatura']);
+  assert.equal(sections.todayItems.length, 0);
 });
 
 // ───────────── 8. Erteleme ve peş peşe tamamlama ─────────────
@@ -326,50 +340,86 @@ test('8d Saati bilerek değiştirilen düzenleme yeni saati kalıcı yapar', asy
   assert.equal(next.getMinutes(), 30);
 });
 
-test('8e Peş peşe 28-29-30-1 tamamlanınca Geçmiş te 4 ayrı satır olur', async () => {
+test('8e Peş peşe 28-29-30-1 tamamlanınca Yapılanlar da TEK satır (en son gün, 4 gün)', async () => {
   const { repo, id } = await dailyDuxet();
   for (let i = 0; i < 4; i += 1) await repo.setDone(id, true, d(2026, 9, 28, 10, i));
   const item = (await repo.getById(id))!;
   assert.equal(item.dueAt?.getDate(), 2); // 2 Ekim
   const sections = groupReminders([item], d(2026, 9, 28, 12));
-  assert.deepEqual(sections.pastItems.map((r) => r.historyOccurrence?.getDate()), [1, 30, 29, 28]);
+  assert.equal(sections.doneItems.length, 1);
+  assert.equal(sections.doneItems[0].dueAt?.getDate(), 1);
+  assert.equal(sections.doneItems[0].rowCount, 4);
   assert.deepEqual(sections.upcomingItems.map((r) => r.dueAt?.getDate()), [2]);
 });
 
-test('8f Ortadaki günün (29) tiki kaldırılınca sadece 29 geri gelir, diğerleri Geçmiş te kalır', async () => {
+test('8f Tik kaldırma sondan başa: 1 -> 30 -> 29 -> 28, her biri kendi gününe döner', async () => {
   const { repo, id } = await dailyDuxet();
   for (let i = 0; i < 4; i += 1) await repo.setDone(id, true, d(2026, 9, 28, 10, i));
-  const res = await repo.setDone(id, false, d(2026, 9, 28, 11), { occurrence: d(2026, 9, 29, 9, 0) });
-  assert.equal(res.restoredDueAt?.getDate(), 29);
-  const item = (await repo.getById(id))!;
-  assert.equal(item.dueAt?.getDate(), 29);
-  const sections = groupReminders([item], d(2026, 9, 28, 12));
-  assert.deepEqual(sections.pastItems.map((r) => r.historyOccurrence?.getDate()), [1, 30, 28]);
-  // 29 tekrar tamamlanınca zaten tamamlanmış 30 ve 1 atlanır.
-  await repo.setDone(id, true, d(2026, 9, 28, 13));
-  assert.equal((await repo.getById(id))!.dueAt?.getDate(), 2);
-});
-
-test('8g Tüm günlerin tiki tek tek kaldırılınca seri ilk güne (28) döner', async () => {
-  const { repo, id } = await dailyDuxet();
-  for (let i = 0; i < 4; i += 1) await repo.setDone(id, true, d(2026, 9, 28, 10, i));
-  for (const day of [[10, 1], [9, 30], [9, 29], [9, 28]]) {
-    await repo.setDone(id, false, d(2026, 9, 28, 11), { occurrence: d(2026, day[0], day[1], 9, 0) });
+  const now = d(2026, 9, 28, 11);
+  const expected: Array<[number, number | null]> = [[1, 30], [30, 29], [29, 28], [28, null]];
+  for (const [restoredDay, nextDoneRowDay] of expected) {
+    const res = await repo.setDone(id, false, now);
+    assert.equal(res.restoredDueAt?.getDate(), restoredDay);
+    const item = (await repo.getById(id))!;
+    assert.equal(item.dueAt?.getDate(), restoredDay);
+    const sections = groupReminders([item], now);
+    assert.deepEqual(sections.doneItems.map((r) => r.dueAt?.getDate()), nextDoneRowDay === null ? [] : [nextDoneRowDay]);
+    assert.equal(sections.missedItems.length, 0);
   }
-  const item = (await repo.getById(id))!;
-  assert.equal(item.dueAt?.getDate(), 28);
-  assert.equal(item.lastCompletedAt, null);
-  assert.equal(groupReminders([item], d(2026, 9, 28, 12)).pastItems.length, 0);
+  assert.equal((await repo.getById(id))!.lastCompletedAt, null);
 });
 
-test('8h Hangi gün belirtilmeden tik kaldırılırsa en son tamamlanan geri alınır', async () => {
+test('8g Dün ve öncesine ait tik kaldırılınca o gün Geçmiş e (yapılmadı) düşer, seri yerinde kalır', async () => {
   const { repo, id } = await dailyDuxet();
-  await repo.setDone(id, true, d(2026, 9, 28, 10));
-  await repo.setDone(id, true, d(2026, 9, 28, 10, 1));
-  await repo.setDone(id, false, d(2026, 9, 28, 11));
+  // 28 ve 29 yapıldı (28 Eylül'de), bugün 30 Eylül.
+  await repo.setDone(id, true, d(2026, 9, 28, 9, 5));
+  await repo.setDone(id, true, d(2026, 9, 29, 9, 5));
+  const now = d(2026, 9, 30, 8);
+  await repo.setDone(id, false, now); // 29 geri alındı -> dün
+  let item = (await repo.getById(id))!;
+  assert.equal(item.dueAt?.getDate(), 30); // seri bugünde kalır, alarm sürer
+  let sections = groupReminders([item], now);
+  assert.deepEqual(sections.missedItems.map((r) => r.dueAt?.getDate()), [29]);
+  assert.deepEqual(sections.todayItems.map((r) => r.dueAt?.getDate()), [30]);
+  await repo.setDone(id, false, now); // 28 de geri alındı
+  item = (await repo.getById(id))!;
+  sections = groupReminders([item], now);
+  assert.equal(sections.missedItems.length, 1);
+  assert.equal(sections.missedItems[0].dueAt?.getDate(), 29); // en son yapılmayan gün
+  assert.equal(sections.missedItems[0].rowCount, 2);
+});
+
+test('8h Geçmiş teki yapılmayan gün sonradan tiklenirse Yapılanlar a geçer, seri değişmez', async () => {
+  const { repo, id } = await dailyDuxet();
+  // 28 ve 29 kaçırıldı, uygulama 30'unda açıldı.
+  await repo.rollForwardMissed([(await repo.getById(id))!], d(2026, 9, 30, 8));
+  let item = (await repo.getById(id))!;
+  assert.equal(item.dueAt?.getDate(), 30);
+  assert.deepEqual(item.missedOccurrences?.map((x) => x.getDate()), [28, 29]);
+  const now = d(2026, 9, 30, 10);
+  await repo.setDone(id, true, now, { missedOccurrence: d(2026, 9, 29, 9) });
+  item = (await repo.getById(id))!;
+  assert.equal(item.dueAt?.getDate(), 30);
+  const sections = groupReminders([item], now);
+  assert.deepEqual(sections.missedItems.map((r) => r.dueAt?.getDate()), [28]);
+  assert.deepEqual(sections.doneItems.map((r) => r.dueAt?.getDate()), [29]);
+  // Yapılanlar'dan geri alınınca geçmiş gün yine Geçmiş'e döner.
+  await repo.setDone(id, false, now);
+  item = (await repo.getById(id))!;
+  assert.deepEqual(item.missedOccurrences?.map((x) => x.getDate()), [28, 29]);
+  assert.equal(item.dueAt?.getDate(), 30);
+});
+
+test('8j Uygulama kapalıyken günler kaçırıldı, bugün alarmdan tamamlandı: kaçanlar Geçmiş e, bugünkü Yapılanlar a', async () => {
+  const { repo, id } = await dailyDuxet();
+  const now = d(2026, 9, 30, 9, 2);
+  await repo.setDone(id, true, now);
   const item = (await repo.getById(id))!;
-  assert.equal(item.dueAt?.getDate(), 29);
-  assert.equal(groupReminders([item], d(2026, 9, 28, 12)).pastItems.length, 1);
+  assert.equal(item.dueAt?.getDate(), 1); // 1 Ekim
+  assert.deepEqual(item.missedOccurrences?.map((x) => x.getDate()), [28, 29]);
+  const sections = groupReminders([item], now);
+  assert.deepEqual(sections.doneItems.map((r) => r.dueAt?.getDate()), [30]);
+  assert.equal(sections.missedItems[0].rowCount, 2);
 });
 
 test('8i Önceden tamamlanan gün için alarm kurulmaz', () => {
@@ -377,4 +427,17 @@ test('8i Önceden tamamlanan gün için alarm kurulmaz', () => {
     reminder({ id: 'r', dueAt: d(2026, 9, 28, 9), repeatRule: 'Her gün', completions: [{ occurrence: d(2026, 9, 29, 9), completedAt: d(2026, 9, 28, 8) }] }),
   ], d(2026, 9, 28, 10));
   assert.equal(new Date(plan.get('r')!.timestampMs).getDate(), 30);
+});
+
+test('8k Henüz yazılmamış (seri geride) kaçırılmış gün tiklenince seri de yakalanır', async () => {
+  const { repo, id } = await dailyDuxet();
+  const now = d(2026, 9, 30, 10);
+  // rollForward çalışmadan listede 28 ve 29 Geçmiş'te görünür; 29 tiklenir.
+  const sections = groupReminders([(await repo.getById(id))!], now);
+  assert.equal(sections.missedItems[0].dueAt?.getDate(), 29);
+  await repo.setDone(id, true, now, { missedOccurrence: sections.missedItems[0].dueAt });
+  const item = (await repo.getById(id))!;
+  assert.equal(item.dueAt?.getDate(), 30);
+  assert.deepEqual(item.missedOccurrences?.map((x) => x.getDate()), [28]);
+  assert.deepEqual(groupReminders([item], now).doneItems.map((r) => r.dueAt?.getDate()), [29]);
 });

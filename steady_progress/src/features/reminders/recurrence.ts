@@ -201,3 +201,29 @@ export function skipCompletedOccurrences(
   }
   return next;
 }
+
+/**
+ * For a series that fell behind (dueAt before `startOfDay`): the occurrences
+ * that passed without being done (`missed`, oldest first) and the first
+ * occurrence on/after `startOfDay` that is not already done (`current`).
+ * A series that is not behind returns no missed days and `current = dueAt`.
+ */
+export function catchUpOccurrences(
+  dueAt: Date,
+  repeatRule: string | null | undefined,
+  startOfDay: Date,
+  completedOccurrenceMs: ReadonlySet<number> = new Set(),
+  anchorDay?: number | null,
+): { missed: Date[]; current: Date } {
+  const missed: Date[] = [];
+  let cursor = new Date(dueAt.getTime());
+  let guard = 0;
+  while (cursor.getTime() < startOfDay.getTime() && guard < 2000) {
+    if (!completedOccurrenceMs.has(cursor.getTime())) missed.push(new Date(cursor.getTime()));
+    const stepped = calculateNextDueDate(cursor, repeatRule, cursor, anchorDay);
+    if (!stepped) break;
+    cursor = stepped;
+    guard += 1;
+  }
+  return { missed, current: skipCompletedOccurrences(cursor, repeatRule, completedOccurrenceMs, anchorDay) };
+}

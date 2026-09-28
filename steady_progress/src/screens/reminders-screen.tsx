@@ -7,7 +7,6 @@ import { ReminderRepository } from '@/features/reminders/reminder-repository';
 import { ImportantAlarmService } from '@/features/reminders/important-alarm-service';
 import { cancelReminder, scheduleReminder } from '@/features/reminders/reminder-scheduler';
 import { effectiveReminderPriority, getRecurrenceDayBadge, isMedicineReminder, reminderPriorities, type ReminderItem, type ReminderPriority } from '@/features/reminders/reminder';
-import { isCompletedToday } from '@/core/data/firestore-values';
 import { groupReminders } from '@/features/reminders/reminder-sections';
 import { colors, radius, spacing, typography } from '@/theme';
 
@@ -81,7 +80,7 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
     if (!item) return;
     handledInitialId.current = initialEditId;
     if (item.status === 'completed') {
-      setHistoryOpen(true);
+      setDoneOpen(true);
     }
     openEdit(item);
   }, [initialEditId, items]);
@@ -268,19 +267,17 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
     ]);
   }
 
-  function isReminderCompletedToday(item: ReminderItem) {
-    return isCompletedToday(item.lastCompletedAt);
-  }
-
-  function isReminderDone(item: ReminderItem) {
-    return item.status === 'completed' || isReminderCompletedToday(item);
-  }
-
-  async function toggleDone(item: ReminderItem, currentIsDone?: boolean) {
-    const isDone = currentIsDone !== undefined ? currentIsDone : isReminderDone(item);
-    const done = !isDone;
-    // A Geçmiş row names the occurrence to untick; other rows undo the latest.
-    const result = await repository.setDone(item.id, done, new Date(), { occurrence: item.historyOccurrence });
+  /**
+   * Checkbox of a row. Bugün/Yaklaşan ticks the item. Yapılanlar unticks the
+   * most recent tick (again for the one before, and so on). Geçmiş ticks the
+   * missed day late.
+   */
+  async function toggleDone(item: ReminderItem) {
+    const repeating = Boolean(item.repeatRule && item.repeatRule !== 'Tekrarlama');
+    const done = item.rowRole !== 'done';
+    const result = item.rowRole === 'missed' && repeating
+      ? await repository.setDone(item.id, true, new Date(), { missedOccurrence: item.dueAt })
+      : await repository.setDone(item.id, done);
     if (result.wasRepeated && result.nextDueAt) {
       await ImportantAlarmService.schedule({
         id: item.id,
@@ -289,9 +286,9 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
         message: item.message,
         priority: item.priority,
       });
-    } else if (done) {
+    } else if (done && !repeating) {
       await ImportantAlarmService.complete(item.id);
-    } else if (result.restoredDueAt && result.restoredDueAt > new Date()) {
+    } else if (!done && result.restoredDueAt && result.restoredDueAt > new Date()) {
       await ImportantAlarmService.schedule({
         id: item.id,
         timestampMs: result.restoredDueAt.getTime(),
@@ -310,9 +307,10 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
   // Multi-selection state — matching Flutter's RemindersScreen
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [missedOpen, setMissedOpen] = useState(false);
+  const [doneOpen, setDoneOpen] = useState(false);
 
-  const { todayItems, upcomingItems, pastItems } = useMemo(() => groupReminders(items), [items]);
+  const { todayItems, upcomingItems, missedItems, doneItems } = useMemo(() => groupReminders(items), [items]);
 
   function startSelection(id: string) {
     setIsSelectionMode(true);
@@ -371,12 +369,16 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
     );
   }
 
-  function renderReminderRow(item: ReminderItem, inHistorySection = false) {
+  function renderReminderRow(item: ReminderItem) {
     const isSelected = selectedIds.has(item.id);
-    const isDone = inHistorySection ? (item.status === 'completed' || isReminderCompletedToday(item)) : false;
-    // A Geçmiş row of a repeating reminder stands for one occurrence: show
-    // that day, not the moment it was ticked.
-    const displayDate = item.historyOccurrence ?? (isDone && item.lastCompletedAt ? item.lastCompletedAt : item.dueAt);
+    const isDone = item.rowRole === 'done';
+    const repeating = Boolean(item.repeatRule && item.repeatRule !== 'Tekrarlama');
+    // A repeating reminder's Yapılanlar/Geçmiş row shows the day it stands
+    // for; a one-off done row shows when it was done.
+    const displayDate = isDone && !repeating && item.lastCompletedAt ? item.lastCompletedAt : item.dueAt;
+    const countLabel = item.rowCount && item.rowCount > 1
+      ? `${item.rowCount} gün ${isDone ? 'yapıldı' : 'yapılmadı'}`
+      : null;
     const recurrenceDayBadge = getRecurrenceDayBadge(item.repeatRule, displayDate);
     const metaParts = [
       item.category,
@@ -384,13 +386,14 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
       item.repeatRule && item.repeatRule !== 'Tekrarlama' ? item.repeatRule : null,
       recurrenceDayBadge,
       priorityLabels[item.priority],
+      countLabel,
       item.location,
       item.checklist.length ? `${item.checklist.length} alt madde` : null,
     ].filter(Boolean).join(' · ');
 
     return (
       <ListItemRow
-        key={inHistorySection ? `${item.id}_history_${item.historyOccurrence?.getTime() ?? ''}` : item.id}
+        key={`${item.id}_${item.rowRole ?? 'active'}`}
         title={item.title}
         subtitle={metaParts}
         note={item.message || null}
@@ -411,7 +414,7 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
               checked={isDone}
               accessibilityLabel={item.title}
               color={colors.tabReminders}
-              onToggle={() => void toggleDone(item, isDone).catch((reason) => setError(String(reason)))}
+              onToggle={() => void toggleDone(item).catch((reason) => setError(String(reason)))}
             />
           )
         }
@@ -428,7 +431,7 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
         trailing={
           <View style={{ alignItems: 'flex-end', gap: 4 }}>
             <Text style={{ ...typography.meta, color: colors.muted }}>{timeLabel(displayDate)}</Text>
-            {!isDone && !isSelectionMode ? (
+            {!item.rowRole && !isSelectionMode ? (
               <Pressable
                 hitSlop={8}
                 onPress={(e) => {
@@ -497,24 +500,37 @@ export function RemindersScreen({ initialEditId, onBack }: { initialEditId?: str
               Bugün için planlanan hatırlatıcı yok.
             </AppText>
           ) : (
-            todayItems.map((item) => renderReminderRow(item, false))
+            todayItems.map((item) => renderReminderRow(item))
           )}
 
           {upcomingItems.length > 0 ? (
             <>
               <SectionHeader title="Yaklaşan" count={upcomingItems.length} color={colors.tabReminders} />
-              {upcomingItems.map((item) => renderReminderRow(item, false))}
+              {upcomingItems.map((item) => renderReminderRow(item))}
             </>
           ) : null}
 
           <CollapsibleHistorySection
-            count={pastItems.length}
-            isExpanded={historyOpen}
-            onToggle={() => setHistoryOpen((prev) => !prev)}
+            title="Geçmiş"
+            count={missedItems.length}
+            isExpanded={missedOpen}
+            onToggle={() => setMissedOpen((prev) => !prev)}
             color={colors.tabReminders}
-            emptyLabel="Geçmiş hatırlatıcı bulunmuyor."
+            emptyLabel="Zamanında yapılmayan hatırlatıcı yok."
           >
-            {pastItems.map((item) => renderReminderRow(item, true))}
+            {missedItems.map((item) => renderReminderRow(item))}
+          </CollapsibleHistorySection>
+
+          <CollapsibleHistorySection
+            title="Yapılanlar"
+            icon="checkCircle"
+            count={doneItems.length}
+            isExpanded={doneOpen}
+            onToggle={() => setDoneOpen((prev) => !prev)}
+            color={colors.tabReminders}
+            emptyLabel="Henüz yapılan hatırlatıcı yok."
+          >
+            {doneItems.map((item) => renderReminderRow(item))}
           </CollapsibleHistorySection>
         </View>
       )}

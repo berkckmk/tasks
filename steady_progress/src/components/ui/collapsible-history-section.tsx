@@ -10,6 +10,8 @@ export function CollapsibleHistorySection({
   onToggle,
   color,
   emptyLabel = 'Geçmiş kayıt bulunmuyor.',
+  title = 'Geçmiş',
+  icon = 'clockClockwise',
   children,
 }: PropsWithChildren<{
   count: number;
@@ -17,6 +19,8 @@ export function CollapsibleHistorySection({
   onToggle: () => void;
   color?: string;
   emptyLabel?: string;
+  title?: string;
+  icon?: Parameters<typeof AppIcon>[0]['name'];
 }>) {
   return (
     <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
@@ -35,13 +39,13 @@ export function CollapsibleHistorySection({
           borderColor: isExpanded && color ? `${color}40` : colors.border,
         })}
         accessibilityRole="button"
-        accessibilityLabel={`Geçmiş, ${count} öğe, ${isExpanded ? 'açık' : 'kapalı'}`}
-        accessibilityHint="Geçmiş öğeleri göster veya gizle"
+        accessibilityLabel={`${title}, ${count} öğe, ${isExpanded ? 'açık' : 'kapalı'}`}
+        accessibilityHint={`${title} öğelerini göster veya gizle`}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-          <AppIcon name="clockClockwise" size={16} color={color ?? colors.muted} />
+          <AppIcon name={icon} size={16} color={color ?? colors.muted} />
           <AppText variant="title" tone="text">
-            Geçmiş
+            {title}
           </AppText>
           <View
             style={{

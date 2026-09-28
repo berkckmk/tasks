@@ -25,14 +25,28 @@ export type ReminderItem = {
   snoozedFromDueAt?: Date | null;
   /** Completed occurrences of a repeating reminder, oldest first. */
   completions?: ReminderCompletion[];
-  /** Set on a Geçmiş row: the one occurrence that row stands for. */
-  historyOccurrence?: Date | null;
+  /** Occurrences of a repeating reminder that passed undone, oldest first. */
+  missedOccurrences?: Date[];
+  /**
+   * Set on list rows built for the Yapılanlar ("done") and Geçmiş ("missed")
+   * sections: which section the row is for and how many days it stands for.
+   */
+  rowRole?: 'done' | 'missed';
+  rowCount?: number;
 };
 
 export type ReminderCompletion = {
   occurrence: Date;
   completedAt: Date;
 };
+
+export function missedFromFirestore(value: unknown): Date[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => dateFromFirestore(entry))
+    .filter((date): date is Date => date !== null)
+    .sort((a, b) => a.getTime() - b.getTime());
+}
 
 export function completionsFromFirestore(value: unknown): ReminderCompletion[] {
   if (!Array.isArray(value)) return [];
@@ -97,6 +111,7 @@ export function reminderFromDocument(id: string, data: Record<string, unknown>):
     repeatAnchorDay: typeof data.repeatAnchorDay === 'number' ? data.repeatAnchorDay : null,
     snoozedFromDueAt: dateFromFirestore(data.snoozedFromDueAt),
     completions: completionsFromFirestore(data.completions),
+    missedOccurrences: missedFromFirestore(data.missedOccurrences),
   };
 }
 

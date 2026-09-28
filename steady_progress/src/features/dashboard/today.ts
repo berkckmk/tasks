@@ -1,5 +1,5 @@
 import { habitIsScheduledOn, parseHabitTime, type Habit } from '../habits/habit.ts';
-import { isRepeating } from '../reminders/recurrence.ts';
+import { catchUpOccurrences, isRepeating } from '../reminders/recurrence.ts';
 import type { ReminderItem } from '../reminders/reminder.ts';
 import type { TaskItem } from '../tasks/task-item.ts';
 
@@ -44,15 +44,22 @@ export function buildTodayEntries({
 }) {
   const entries: TodayEntry[] = [];
   for (const reminder of reminders) {
-    // A repeating reminder missed on an earlier day is still today's to do;
-    // it is rolled forward in storage by ImportantAlarmSync, this covers the
-    // moment before that write lands.
-    const isMissedRepeating = reminder.dueAt && reminder.dueAt < startOfDay(now)
-      && reminder.status !== 'completed' && isRepeating(reminder.repeatRule);
-    const isDueToday = (reminder.dueAt && sameLocalDay(reminder.dueAt, now)) || isMissedRepeating;
+    // A repeating series that fell behind (missed days) is caught up in
+    // storage by ImportantAlarmSync; until then show today's occurrence.
+    let occurrence = reminder.dueAt;
+    if (occurrence && occurrence < startOfDay(now) && reminder.status !== 'completed' && isRepeating(reminder.repeatRule)) {
+      occurrence = catchUpOccurrences(
+        reminder.snoozedFromDueAt ?? occurrence,
+        reminder.repeatRule,
+        startOfDay(now),
+        new Set((reminder.completions ?? []).map((entry) => entry.occurrence.getTime())),
+        reminder.repeatAnchorDay,
+      ).current;
+    }
+    const isDueToday = occurrence && sameLocalDay(occurrence, now);
     const wasCompletedToday = reminder.lastCompletedAt && sameLocalDay(reminder.lastCompletedAt, now);
     if (isDueToday) {
-      entries.push({ id: reminder.id, kind: 'reminder', title: reminder.title, note: reminder.message, time: reminder.dueAt, done: reminder.status === 'completed' });
+      entries.push({ id: reminder.id, kind: 'reminder', title: reminder.title, note: reminder.message, time: occurrence, done: reminder.status === 'completed' });
     } else if (wasCompletedToday && reminder.repeatRule && reminder.repeatRule !== 'Tekrarlama') {
       entries.push({ id: reminder.id, kind: 'reminder', title: reminder.title, note: reminder.message, time: reminder.lastCompletedAt ?? null, done: true });
     }
