@@ -175,63 +175,94 @@ export const tabGradients = {
     fab: ['rgba(6, 214, 160, 0.55)', 'rgba(6, 214, 160, 0.20)'] as const,
   },
 } as const;
+/** Active slots in the navbar (4 variable slots) */
+let currentActiveNavBarSlots: readonly string[] = [
+  'reminders',
+  'index',
+  'habits',
+  'tasks',
+];
 
-export function getTabGradient(key: string) {
+export function setActiveNavBarSlots(slots: readonly string[]): void {
+  currentActiveNavBarSlots = slots;
+}
+
+export function getActiveNavBarSlots(): readonly string[] {
+  return currentActiveNavBarSlots;
+}
+
+export function normalizeTabSlotId(key: string): string {
   const k = key.toLowerCase();
-  if (k === 'reminders' || k.includes('hatırlat') || k.includes('hatirlat')) return tabGradients.reminders;
-  if (k === 'habits' || k.includes('alışkanlık') || k.includes('aliskanlik')) return tabGradients.habits;
-  if (k === 'tasks' || k.includes('görev') || k.includes('gorev')) return tabGradients.tasks;
-  if (k === 'content' || k.includes('i̇çerik') || k.includes('icerik')) return tabGradients.content;
-  if (k === 'goals' || k.includes('hedef') || k === 'goal') return tabGradients.goals;
-  if (k === 'finance' || k.includes('finans')) return tabGradients.finance;
-  if (k === 'workout' || k.includes('antrenman') || k.includes('egzersiz')) return tabGradients.workout;
-  if (k === 'learning' || k.includes('öğren') || k.includes('ogren')) return tabGradients.learning;
-  if (k === 'analytics' || k.includes('analiz') || k.includes('analytic')) return tabGradients.analytics;
-  if (k === 'reports' || k.includes('rapor') || k.includes('report')) return tabGradients.reports;
-  if (k === 'more') return tabGradients.more;
-  if (k === 'index' || k === 'today' || k.includes('bugün') || k.includes('bugun')) return tabGradients.today;
+  if (k === 'reminders' || k.includes('hatırlat') || k.includes('hatirlat')) return 'reminders';
+  if (k === 'habits' || k.includes('alışkanlık') || k.includes('aliskanlik')) return 'habits';
+  if (k === 'tasks' || k.includes('görev') || k.includes('gorev')) return 'tasks';
+  if (k === 'content' || k.includes('i̇çerik') || k.includes('icerik')) return 'content';
+  if (k === 'goals' || k.includes('hedef') || k === 'goal') return 'goals';
+  if (k === 'finance' || k.includes('finans')) return 'finance';
+  if (k === 'workout' || k.includes('antrenman') || k.includes('egzersiz')) return 'workout';
+  if (k === 'learning' || k.includes('öğren') || k.includes('ogren')) return 'learning';
+  if (k === 'analytics' || k.includes('analiz') || k.includes('analytic')) return 'analytics';
+  if (k === 'reports' || k.includes('rapor') || k.includes('report')) return 'reports';
+  if (k === 'more' || k.includes('daha')) return 'more';
+  if (k === 'index' || k === 'today' || k.includes('bugün') || k.includes('bugun')) return 'index';
+  return k;
+}
+
+function getSlotIndexForTab(key: string): number {
+  const canonical = normalizeTabSlotId(key);
+  if (canonical === 'more') return 4;
+  const idx = currentActiveNavBarSlots.findIndex(
+    (s) => s === canonical || (canonical === 'index' && s === 'today') || (canonical === 'today' && s === 'index'),
+  );
+  return idx;
+}
+
+/** Standalone / unplaced module default colors */
+export function getModuleDefaultGradient(key: string) {
+  const canonical = normalizeTabSlotId(key);
+  if (canonical === 'reminders') return tabGradients.reminders;
+  if (canonical === 'habits') return tabGradients.habits;
+  if (canonical === 'tasks') return tabGradients.tasks;
+  if (canonical === 'content') return tabGradients.content;
+  if (canonical === 'goals') return tabGradients.goals;
+  if (canonical === 'finance') return tabGradients.finance;
+  if (canonical === 'workout') return tabGradients.workout;
+  if (canonical === 'learning') return tabGradients.learning;
+  if (canonical === 'analytics') return tabGradients.analytics;
+  if (canonical === 'reports') return tabGradients.reports;
+  if (canonical === 'more') return tabGradients.more;
   return tabGradients.today;
 }
 
-export function getTabAtmosphere(key: string) {
-  return getTabGradient(key).atmosphere;
-}
-
-export function getTabFabGradient(key: string) {
-  return getTabGradient(key).fab;
-}
-
-export function getTabColor(key: string): string {
-  const k = key.toLowerCase();
-  if (k === 'reminders' || k.includes('hatırlat') || k.includes('hatirlat')) return tabColors.reminders;
-  if (k === 'habits' || k.includes('alışkanlık') || k.includes('aliskanlik')) return tabColors.habits;
-  if (k === 'tasks' || k.includes('görev') || k.includes('gorev')) return tabColors.tasks;
-  if (k === 'content' || k.includes('i̇çerik') || k.includes('icerik')) return tabColors.content;
-  if (k === 'goals' || k.includes('hedef') || k === 'goal') return tabColors.goals;
-  if (k === 'finance' || k.includes('finans')) return tabColors.finance;
-  if (k === 'workout' || k.includes('antrenman') || k.includes('egzersiz')) return tabColors.workout;
-  if (k === 'learning' || k.includes('öğren') || k.includes('ogren')) return tabColors.learning;
-  if (k === 'analytics' || k.includes('analiz') || k.includes('analytic')) return tabColors.analytics;
-  if (k === 'reports' || k.includes('rapor') || k.includes('report')) return tabColors.reports;
-  if (k === 'more') return tabColors.more;
-  if (k === 'index' || k === 'today' || k.includes('bugün') || k.includes('bugun')) return tabColors.today;
+export function getModuleDefaultColor(key: string): string {
+  const canonical = normalizeTabSlotId(key);
+  if (canonical === 'reminders') return tabColors.reminders;
+  if (canonical === 'habits') return tabColors.habits;
+  if (canonical === 'tasks') return tabColors.tasks;
+  if (canonical === 'content') return tabColors.content;
+  if (canonical === 'goals') return tabColors.goals;
+  if (canonical === 'finance') return tabColors.finance;
+  if (canonical === 'workout') return tabColors.workout;
+  if (canonical === 'learning') return tabColors.learning;
+  if (canonical === 'analytics') return tabColors.analytics;
+  if (canonical === 'reports') return tabColors.reports;
+  if (canonical === 'more') return tabColors.more;
   return tabColors.today;
 }
 
-export function getTabActiveColor(key: string): string {
-  const k = key.toLowerCase();
-  if (k === 'reminders' || k.includes('hatırlat') || k.includes('hatirlat')) return tabActiveColors.reminders;
-  if (k === 'habits' || k.includes('alışkanlık') || k.includes('aliskanlik')) return tabActiveColors.habits;
-  if (k === 'tasks' || k.includes('görev') || k.includes('gorev')) return tabActiveColors.tasks;
-  if (k === 'content' || k.includes('i̇çerik') || k.includes('icerik')) return tabActiveColors.content;
-  if (k === 'goals' || k.includes('hedef') || k === 'goal') return tabActiveColors.goals;
-  if (k === 'finance' || k.includes('finans')) return tabActiveColors.finance;
-  if (k === 'workout' || k.includes('antrenman') || k.includes('egzersiz')) return tabActiveColors.workout;
-  if (k === 'learning' || k.includes('öğren') || k.includes('ogren')) return tabActiveColors.learning;
-  if (k === 'analytics' || k.includes('analiz') || k.includes('analytic')) return tabActiveColors.analytics;
-  if (k === 'reports' || k.includes('rapor') || k.includes('report')) return tabActiveColors.reports;
-  if (k === 'more') return tabActiveColors.more;
-  if (k === 'index' || k === 'today' || k.includes('bugün') || k.includes('bugun')) return tabActiveColors.today;
+export function getModuleDefaultActiveColor(key: string): string {
+  const canonical = normalizeTabSlotId(key);
+  if (canonical === 'reminders') return tabActiveColors.reminders;
+  if (canonical === 'habits') return tabActiveColors.habits;
+  if (canonical === 'tasks') return tabActiveColors.tasks;
+  if (canonical === 'content') return tabActiveColors.content;
+  if (canonical === 'goals') return tabActiveColors.goals;
+  if (canonical === 'finance') return tabActiveColors.finance;
+  if (canonical === 'workout') return tabActiveColors.workout;
+  if (canonical === 'learning') return tabActiveColors.learning;
+  if (canonical === 'analytics') return tabActiveColors.analytics;
+  if (canonical === 'reports') return tabActiveColors.reports;
+  if (canonical === 'more') return tabActiveColors.more;
   return tabActiveColors.today;
 }
 
@@ -280,6 +311,43 @@ export function getNavBarSlotActiveColor(slotIndex: number): string {
 export function getNavBarSlotGradient(slotIndex: number) {
   const index = Math.max(0, Math.min(slotIndex, navbarSlotGradients.length - 1));
   return navbarSlotGradients[index];
+}
+
+/**
+ * Slot-aware functions: if an item is placed in a navbar slot (0-3 or More at 4),
+ * it adopts that slot's fixed color, active color, and gradient across the app.
+ * Otherwise, falls back to the module's default tone.
+ */
+export function getTabGradient(key: string) {
+  const slotIndex = getSlotIndexForTab(key);
+  if (slotIndex >= 0 && slotIndex < 5) {
+    return getNavBarSlotGradient(slotIndex);
+  }
+  return getModuleDefaultGradient(key);
+}
+
+export function getTabAtmosphere(key: string) {
+  return getTabGradient(key).atmosphere;
+}
+
+export function getTabFabGradient(key: string) {
+  return getTabGradient(key).fab;
+}
+
+export function getTabColor(key: string): string {
+  const slotIndex = getSlotIndexForTab(key);
+  if (slotIndex >= 0 && slotIndex < 5) {
+    return getNavBarSlotColor(slotIndex);
+  }
+  return getModuleDefaultColor(key);
+}
+
+export function getTabActiveColor(key: string): string {
+  const slotIndex = getSlotIndexForTab(key);
+  if (slotIndex >= 0 && slotIndex < 5) {
+    return getNavBarSlotActiveColor(slotIndex);
+  }
+  return getModuleDefaultActiveColor(key);
 }
 
 export type ColorTone =

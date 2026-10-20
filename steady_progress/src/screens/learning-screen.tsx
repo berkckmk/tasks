@@ -19,7 +19,7 @@ import {
   type LearningStatus,
   type LearningType,
 } from '@/features/learning/learning-item';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, getTabActiveColor, radius, spacing, typography } from '@/theme';
 
 type StatusFilter = 'all' | LearningStatus;
 
@@ -157,6 +157,7 @@ export function LearningScreen() {
     <>
       <ListScreenShell
         title="Öğrenme Takibi"
+        tab="learning"
         subtitle="Kitap, kurs ve podcast notlarını düzenleyin ve takip edin."
         onBack={() => router.back()}
         onAdd={openCreate}
@@ -185,7 +186,7 @@ export function LearningScreen() {
           <AppButton
             label="+ Yeni Kayıt"
             size="sm"
-            color={colors.tabMore}
+            color={getTabActiveColor('learning')}
             onPress={openCreate}
           />
         </View>

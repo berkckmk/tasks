@@ -6,7 +6,7 @@ import { AppButton, AppCard, AppText, AppTextField, Kicker, ListEditorSheet, Lis
 import { useAppData } from '@/core/data/app-data';
 import { goalCategories, goalProgress, goalProgressTypes, type Goal, type GoalCategory, type GoalProgressType, type Milestone } from '@/features/goals/goal';
 import { GoalRepository } from '@/features/goals/goal-repository';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, getTabActiveColor, radius, spacing, typography } from '@/theme';
 
 const categoryLabels: Record<GoalCategory, string> = {
   career: 'Kariyer',
@@ -112,6 +112,7 @@ export function GoalsScreen() {
     <>
       <ListScreenShell
         title="Hedefler"
+        tab="goals"
         subtitle="Büyük hedefleri kilometre taşlarına bölün ve ilerlemenizi takip edin."
         onBack={() => router.back()}
         onAdd={openCreate}
@@ -124,7 +125,7 @@ export function GoalsScreen() {
           <AppButton
             label="+ Yeni Hedef"
             size="sm"
-            color={colors.tabMore}
+            color={getTabActiveColor('goals')}
             onPress={openCreate}
           />
         </View>

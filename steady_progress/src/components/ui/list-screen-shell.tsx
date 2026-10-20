@@ -10,6 +10,7 @@ import { PageHeaderGradient } from './page-header-gradient';
 
 type ListScreenShellProps = PropsWithChildren<{
   title: string;
+  tab?: string;
   subtitle?: string;
   controls?: ReactNode;
   selectionBar?: ReactNode;
@@ -22,6 +23,7 @@ type ListScreenShellProps = PropsWithChildren<{
 /** Shared page structure for Tasks and Habits. It owns the single add affordance. */
 export function ListScreenShell({
   title,
+  tab,
   subtitle,
   controls,
   selectionBar,
@@ -32,7 +34,7 @@ export function ListScreenShell({
   children,
 }: ListScreenShellProps) {
   const insets = useSafeAreaInsets();
-  const tabKey = title.toLowerCase();
+  const tabKey = (tab ?? title).toLowerCase();
   const tabColor = getTabColor(tabKey);
   const showFab = !hideFab && Boolean(onAdd);
 

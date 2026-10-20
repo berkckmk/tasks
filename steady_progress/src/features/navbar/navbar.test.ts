@@ -103,3 +103,42 @@ test('fixed navbar slot colors provide consistent colors for 5 slots regardless 
   assert.equal(getNavBarSlotColor(10), tabColors.more);
   assert.ok(getNavBarSlotGradient(2).pill.length >= 2);
 });
+
+test('slot-aware color resolution eliminates color conflict for added tracking items', async () => {
+  const {
+    setActiveNavBarSlots,
+    getTabColor,
+    getTabActiveColor,
+    getTabGradient,
+    getNavBarSlotColor,
+    getNavBarSlotActiveColor,
+    getNavBarSlotGradient,
+    getModuleDefaultColor,
+    tabColors,
+  } = await import('../../theme/colors.ts');
+
+  // Case 1: When workout is unplaced, it uses its standalone orange tone
+  setActiveNavBarSlots(['reminders', 'index', 'habits', 'tasks']);
+  assert.equal(getTabColor('workout'), tabColors.workout);
+  assert.equal(getModuleDefaultColor('workout'), tabColors.workout);
+
+  // Case 2: When workout is placed into Slot 3 (index 2 - Green slot)
+  setActiveNavBarSlots(['reminders', 'index', 'workout', 'tasks']);
+  // Its color MUST match Slot 3 (green) across the app to prevent color clashing
+  assert.equal(getTabColor('workout'), getNavBarSlotColor(2));
+  assert.equal(getTabActiveColor('workout'), getNavBarSlotActiveColor(2));
+  assert.deepEqual(getTabGradient('workout'), getNavBarSlotGradient(2));
+
+  // Turkish title normalization works seamlessly
+  assert.equal(getTabColor('Antrenman'), getNavBarSlotColor(2));
+  assert.equal(getTabColor('egzersiz programı'), getNavBarSlotColor(2));
+
+  // Case 3: When finance is placed into Slot 1 (index 0 - Purple slot)
+  setActiveNavBarSlots(['finance', 'index', 'workout', 'tasks']);
+  assert.equal(getTabColor('finance'), getNavBarSlotColor(0));
+  assert.equal(getTabActiveColor('finance'), getNavBarSlotActiveColor(0));
+  assert.equal(getTabColor('Finans'), getNavBarSlotColor(0));
+
+  // Reset back to default slots
+  setActiveNavBarSlots(['reminders', 'index', 'habits', 'tasks']);
+});

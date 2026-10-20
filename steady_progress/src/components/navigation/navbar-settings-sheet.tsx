@@ -26,6 +26,8 @@ import { useNavBar } from '@/features/navbar/navbar-context';
 import {
   colors,
   controlSize,
+  getModuleDefaultActiveColor,
+  getModuleDefaultColor,
   getNavBarSlotActiveColor,
   getNavBarSlotColor,
   getTabActiveColor,
@@ -269,8 +271,8 @@ export function NavBarSettingsSheet() {
           {filteredItems.map((item) => {
             const placedIndex = tempSlots.indexOf(item.id);
             const isPlaced = placedIndex !== -1;
-            const tabColor = getTabColor(item.id);
-            const activeColor = getTabActiveColor(item.id);
+            const tabColor = isPlaced ? getNavBarSlotColor(placedIndex) : getModuleDefaultColor(item.id);
+            const activeColor = isPlaced ? getNavBarSlotActiveColor(placedIndex) : getModuleDefaultActiveColor(item.id);
 
             return (
               <TouchableOpacity
@@ -304,9 +306,9 @@ export function NavBarSettingsSheet() {
                 </View>
 
                 {isPlaced ? (
-                  <View style={[styles.statusBadge, { backgroundColor: hexToRgba(getNavBarSlotColor(placedIndex), 0.25) }]}>
-                    <AppIcon name="check" size={12} color={getNavBarSlotActiveColor(placedIndex)} />
-                    <Text style={[styles.statusBadgeText, { color: getNavBarSlotActiveColor(placedIndex) }]}>
+                  <View style={[styles.statusBadge, { backgroundColor: hexToRgba(tabColor, 0.25) }]}>
+                    <AppIcon name="check" size={12} color={activeColor} />
+                    <Text style={[styles.statusBadgeText, { color: activeColor }]}>
                       Slot {placedIndex + 1}
                     </Text>
                   </View>

@@ -27,7 +27,7 @@ import {
   contentTemplates,
   type ContentTemplate,
 } from '@/features/content/content-templates';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, getTabActiveColor, radius, spacing, typography } from '@/theme';
 
 const statusLabels: Record<ContentStatus, string> = {
   idea: 'Fikir',
@@ -47,6 +47,7 @@ function dateLabel(date: Date) {
 export function ContentScreen() {
   const router = useRouter();
   const { gateway, userId } = useAppData();
+  const themeColor = getTabActiveColor('content');
   const repository = useMemo(() => new ContentRepository(gateway, userId), [gateway, userId]);
   const [items, setItems] = useState<ContentItem[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -235,6 +236,7 @@ export function ContentScreen() {
     <>
       <ListScreenShell
         title="İçerik planlayıcı"
+        tab="content"
         subtitle="Sosyal medya içerik fikirlerini planlayın ve takip edin."
         onBack={() => router.back()}
         onAdd={isSelectionMode ? () => {} : openCreate}
@@ -257,7 +259,7 @@ export function ContentScreen() {
           <AppButton
             label="+ Yeni Fikir"
             size="sm"
-            color={colors.tabContent}
+            color={themeColor}
             onPress={openCreate}
           />
         </View>
@@ -269,7 +271,7 @@ export function ContentScreen() {
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-              <AppIcon name="sparkle" size={18} color={colors.tabContent} />
+              <AppIcon name="sparkle" size={18} color={themeColor} />
               <AppText variant="title">Hazır İçerik Şablonları</AppText>
             </View>
             <AppIcon
@@ -295,7 +297,7 @@ export function ContentScreen() {
                       label={plat}
                       size="sm"
                       selected={isSelected}
-                      color={colors.tabContent}
+                      color={themeColor}
                       onPress={() => setTemplatePlatform(plat)}
                     />
                   );
@@ -328,7 +330,7 @@ export function ContentScreen() {
                       >
                         <AppText variant="metaSmall" tone="muted">{tpl.suggestedTag}</AppText>
                       </View>
-                      <AppIcon name="plus" size={14} color={colors.tabContent} />
+                      <AppIcon name="plus" size={14} color={themeColor} />
                     </View>
                     <AppText variant="body" style={{ fontWeight: '600' }}>{tpl.title}</AppText>
                     <AppText variant="meta" tone="muted">{tpl.description}</AppText>
@@ -388,7 +390,7 @@ export function ContentScreen() {
       <ListEditorSheet
         presented={sheetOpen}
         title={editingId ? 'İçerik fikrini düzenle' : 'İçerik fikri ekle'}
-        accentColor={colors.tabContent}
+        accentColor={themeColor}
         error={error}
         saving={saving}
         onDismiss={close}
@@ -404,8 +406,8 @@ export function ContentScreen() {
               onPress={() => setShowModalTemplates((prev) => !prev)}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
             >
-              <AppIcon name="sparkle" size={13} color={colors.tabContent} />
-              <AppText variant="metaSmall" style={{ color: colors.tabContent }}>
+              <AppIcon name="sparkle" size={13} color={themeColor} />
+              <AppText variant="metaSmall" style={{ color: themeColor }}>
                 {showModalTemplates ? 'Şablonları Kapat' : 'Şablondan Doldur'}
               </AppText>
             </Pressable>
@@ -414,7 +416,7 @@ export function ContentScreen() {
             label="Başlık"
             placeholder="İçerik fikri başlığı"
             value={title}
-            focusedColor={colors.tabContent}
+            focusedColor={themeColor}
             onChangeText={setTitle}
             returnKeyType="done"
           />
@@ -440,7 +442,7 @@ export function ContentScreen() {
                   label={plat}
                   size="sm"
                   selected={templatePlatform === plat}
-                  color={colors.tabContent}
+                  color={themeColor}
                   onPress={() => setTemplatePlatform(plat)}
                 />
               ))}
@@ -475,7 +477,7 @@ export function ContentScreen() {
                 size="sm"
                 expand
                 selected={platforms.includes('Instagram')}
-                color={colors.tabContent}
+                color={themeColor}
                 onPress={() => togglePlatform('Instagram')}
               />
             </View>
@@ -485,7 +487,7 @@ export function ContentScreen() {
                 size="sm"
                 expand
                 selected={platforms.includes('X')}
-                color={colors.tabContent}
+                color={themeColor}
                 onPress={() => togglePlatform('X')}
               />
             </View>
@@ -495,7 +497,7 @@ export function ContentScreen() {
                 size="sm"
                 expand
                 selected={platforms.includes('TikTok')}
-                color={colors.tabContent}
+                color={themeColor}
                 onPress={() => togglePlatform('TikTok')}
               />
             </View>
@@ -507,7 +509,7 @@ export function ContentScreen() {
                 size="sm"
                 expand
                 selected={platforms.includes('Facebook')}
-                color={colors.tabContent}
+                color={themeColor}
                 onPress={() => togglePlatform('Facebook')}
               />
             </View>
@@ -517,7 +519,7 @@ export function ContentScreen() {
                 size="sm"
                 expand
                 selected={platforms.includes('YouTube')}
-                color={colors.tabContent}
+                color={themeColor}
                 onPress={() => togglePlatform('YouTube')}
               />
             </View>
@@ -527,7 +529,7 @@ export function ContentScreen() {
                 size="sm"
                 expand
                 selected={platforms.includes('Other')}
-                color={colors.tabContent}
+                color={themeColor}
                 onPress={() => togglePlatform('Other')}
               />
             </View>
@@ -542,7 +544,7 @@ export function ContentScreen() {
               label={statusLabels[value]}
               size="sm"
               selected={status === value}
-              color={colors.tabContent}
+              color={themeColor}
               onPress={() => setStatus(value)}
             />
           ))}
@@ -554,8 +556,8 @@ export function ContentScreen() {
           <AppButton
             label={publishDate ? dateLabel(publishDate) : 'Yayın tarihi belirle (isteğe bağlı)'}
             variant="secondary"
-            color={colors.tabContent}
-            icon={<AppIcon name="calendarBlank" size={18} color={colors.tabContent} />}
+            color={themeColor}
+            icon={<AppIcon name="calendarBlank" size={18} color={themeColor} />}
             onPress={() => setDatePickerOpen(true)}
           />
           {publishDate ? (
@@ -571,7 +573,7 @@ export function ContentScreen() {
           mode="date"
           minimumDate={new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() - 30)}
           maximumDate={new Date(new Date().getFullYear() + 1, new Date().getMonth(), new Date().getDate())}
-          accentColor={colors.tabContent}
+          accentColor={themeColor}
           themeVariant="light"
           positiveButton={{ label: 'Ayarla' }}
           negativeButton={{ label: 'İptal' }}

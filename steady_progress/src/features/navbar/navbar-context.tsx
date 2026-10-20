@@ -42,11 +42,21 @@ function useSafeAppData() {
   }
 }
 
+import { setActiveNavBarSlots } from '@/theme';
+
 export function NavBarProvider({ children }: PropsWithChildren) {
   const appData = useSafeAppData();
-  const [slots, setSlots] = useState<[NavSlotId, NavSlotId, NavSlotId, NavSlotId]>(() => loadSlotsLocal());
+  const [slots, setSlots] = useState<[NavSlotId, NavSlotId, NavSlotId, NavSlotId]>(() => {
+    const initial = loadSlotsLocal();
+    setActiveNavBarSlots(initial);
+    return initial;
+  });
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [activeEditSlotIndex, setActiveEditSlotIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    setActiveNavBarSlots(slots);
+  }, [slots]);
 
   // Watch remote document if appData is available
   useEffect(() => {

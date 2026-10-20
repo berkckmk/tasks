@@ -20,7 +20,7 @@ import {
   type Workout,
 } from '@/features/workout/workout';
 import { WorkoutRepository } from '@/features/workout/workout-repository';
-import { colors, spacing } from '@/theme';
+import { colors, getTabActiveColor, spacing } from '@/theme';
 
 type ExerciseInput = {
   key: number;
@@ -151,6 +151,7 @@ export function WorkoutScreen() {
     <>
       <ListScreenShell
         title="Antrenman"
+        tab="workout"
         subtitle="Antrenman ve egzersiz programlarınızı kaydedin, haftalık gelişiminizi takip edin."
         onBack={() => router.back()}
         onAdd={openCreate}
@@ -168,7 +169,7 @@ export function WorkoutScreen() {
           <AppButton
             label="+ Yeni Antrenman"
             size="sm"
-            color={colors.tabMore}
+            color={getTabActiveColor('workout')}
             onPress={openCreate}
           />
         </View>

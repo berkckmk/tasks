@@ -6,7 +6,7 @@ import { AppButton, AppCard, AppIcon, AppScreen, AppText, AppTextField, Kicker, 
 import { useAppData } from '@/core/data/app-data';
 import { expenseCategories, incomeCategories, monthlyFinanceSummary, savingsProgress, type FinanceTransaction, type SavingsGoal, type TransactionType } from '@/features/finance/finance';
 import { FinanceRepository } from '@/features/finance/finance-repository';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, getTabActiveColor, radius, spacing, typography } from '@/theme';
 
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
 
@@ -87,8 +87,8 @@ export function FinanceScreen() {
 
   return (
     <>
-      <AppScreen tab="more">
-        <PageHeaderGradient tab="more">
+      <AppScreen tab="finance">
+        <PageHeaderGradient tab="finance">
           <Pressable
             hitSlop={12}
             onPress={() => router.back()}
@@ -152,7 +152,7 @@ export function FinanceScreen() {
           <AppButton
             label="+ Yeni İşlem"
             size="sm"
-            color={colors.tabMore}
+            color={getTabActiveColor('finance')}
             onPress={openTransaction}
           />
         </View>

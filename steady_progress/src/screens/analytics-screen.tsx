@@ -42,8 +42,8 @@ export function AnalyticsScreen() {
   );
 
   return (
-    <AppScreen tab="more">
-      <PageHeaderGradient tab="more">
+    <AppScreen tab="analytics">
+      <PageHeaderGradient tab="analytics">
         <Pressable
           hitSlop={12}
           onPress={() => router.back()}

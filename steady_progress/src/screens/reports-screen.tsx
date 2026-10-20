@@ -30,8 +30,8 @@ export function ReportsScreen() {
   }, [repository]);
 
   return (
-    <AppScreen tab="more">
-      <PageHeaderGradient tab="more">
+    <AppScreen tab="reports">
+      <PageHeaderGradient tab="reports">
         <Pressable
           hitSlop={12}
           onPress={() => router.back()}
