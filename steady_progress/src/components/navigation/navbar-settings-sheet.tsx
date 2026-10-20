@@ -26,6 +26,8 @@ import { useNavBar } from '@/features/navbar/navbar-context';
 import {
   colors,
   controlSize,
+  getNavBarSlotActiveColor,
+  getNavBarSlotColor,
   getTabActiveColor,
   getTabColor,
   getTabGradient,
@@ -154,8 +156,8 @@ export function NavBarSettingsSheet() {
           {tempSlots.map((slotId, index) => {
             const item = ALL_NAV_ITEMS[slotId];
             const isSelected = selectedSlotIndex === index;
-            const tabColor = getTabColor(slotId);
-            const activeColor = getTabActiveColor(slotId);
+            const tabColor = getNavBarSlotColor(index);
+            const activeColor = getNavBarSlotActiveColor(index);
 
             return (
               <TouchableOpacity
@@ -209,8 +211,8 @@ export function NavBarSettingsSheet() {
               <AppIcon name="lockSimple" size={10} color={colors.navInactive} />
             </View>
 
-            <View style={[styles.slotIconBox, { backgroundColor: hexToRgba(colors.tabMore, 0.15) }]}>
-              <AppIcon name="dotsThreeCircle" filled color={colors.tabMore} size={18} />
+            <View style={[styles.slotIconBox, { backgroundColor: hexToRgba(getNavBarSlotColor(4), 0.15) }]}>
+              <AppIcon name="dotsThreeCircle" filled color={getNavBarSlotActiveColor(4)} size={18} />
             </View>
 
             <Text style={[styles.slotLabel, { color: colors.navInactive }]} numberOfLines={1}>
@@ -302,9 +304,9 @@ export function NavBarSettingsSheet() {
                 </View>
 
                 {isPlaced ? (
-                  <View style={[styles.statusBadge, { backgroundColor: hexToRgba(tabColor, 0.25) }]}>
-                    <AppIcon name="check" size={12} color={activeColor} />
-                    <Text style={[styles.statusBadgeText, { color: activeColor }]}>
+                  <View style={[styles.statusBadge, { backgroundColor: hexToRgba(getNavBarSlotColor(placedIndex), 0.25) }]}>
+                    <AppIcon name="check" size={12} color={getNavBarSlotActiveColor(placedIndex)} />
+                    <Text style={[styles.statusBadgeText, { color: getNavBarSlotActiveColor(placedIndex) }]}>
                       Slot {placedIndex + 1}
                     </Text>
                   </View>

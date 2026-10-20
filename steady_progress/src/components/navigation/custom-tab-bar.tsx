@@ -15,9 +15,9 @@ import {
   colors,
   controlSize,
   fonts,
-  getTabActiveColor,
-  getTabColor,
-  getTabGradient,
+  getNavBarSlotActiveColor,
+  getNavBarSlotColor,
+  getNavBarSlotGradient,
   hexToRgba,
   radius,
   spacing,
@@ -68,9 +68,9 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
             const targetRoute = state.routes.find((r) => r.name === tabId);
             const routeKey = targetRoute?.key ?? tabId;
 
-            const tabColor = getTabColor(tabId);
-            const activeColor = getTabActiveColor(tabId);
-            const gradient = getTabGradient(tabId);
+            const tabColor = getNavBarSlotColor(index);
+            const activeColor = getNavBarSlotActiveColor(index);
+            const gradient = getNavBarSlotGradient(index);
 
             const onPress = () => {
               if (targetRoute) {

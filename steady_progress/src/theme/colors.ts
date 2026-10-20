@@ -235,6 +235,53 @@ export function getTabActiveColor(key: string): string {
   return tabActiveColors.today;
 }
 
+/**
+ * Fixed slot colors for the 5 navbar items:
+ * Slot 0: Purple (Reminders tone)
+ * Slot 1: Peach / Warm Orange (Today tone)
+ * Slot 2: Green (Habits tone)
+ * Slot 3: Pink (Tasks tone)
+ * Slot 4: Cyan / Blue (More tone)
+ */
+export const navbarSlotColors = [
+  tabColors.reminders,
+  tabColors.today,
+  tabColors.habits,
+  tabColors.tasks,
+  tabColors.more,
+] as const;
+
+export const navbarSlotActiveColors = [
+  tabActiveColors.reminders,
+  tabActiveColors.today,
+  tabActiveColors.habits,
+  tabActiveColors.tasks,
+  tabActiveColors.more,
+] as const;
+
+export const navbarSlotGradients = [
+  tabGradients.reminders,
+  tabGradients.today,
+  tabGradients.habits,
+  tabGradients.tasks,
+  tabGradients.more,
+] as const;
+
+export function getNavBarSlotColor(slotIndex: number): string {
+  const index = Math.max(0, Math.min(slotIndex, navbarSlotColors.length - 1));
+  return navbarSlotColors[index];
+}
+
+export function getNavBarSlotActiveColor(slotIndex: number): string {
+  const index = Math.max(0, Math.min(slotIndex, navbarSlotActiveColors.length - 1));
+  return navbarSlotActiveColors[index];
+}
+
+export function getNavBarSlotGradient(slotIndex: number) {
+  const index = Math.max(0, Math.min(slotIndex, navbarSlotGradients.length - 1));
+  return navbarSlotGradients[index];
+}
+
 export type ColorTone =
   | 'text'
   | 'note'

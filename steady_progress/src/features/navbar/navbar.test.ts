@@ -61,3 +61,45 @@ test('sanitizeNavbarSlots fills fallbacks on invalid, partial or duplicate slots
   const unique = new Set(sanitized);
   assert.equal(unique.size, 4);
 });
+
+test('fixed navbar slot colors provide consistent colors for 5 slots regardless of module', async () => {
+  const {
+    navbarSlotColors,
+    navbarSlotActiveColors,
+    navbarSlotGradients,
+    getNavBarSlotColor,
+    getNavBarSlotActiveColor,
+    getNavBarSlotGradient,
+    tabColors,
+    tabActiveColors,
+  } = await import('../../theme/colors.ts');
+
+  assert.equal(navbarSlotColors.length, 5);
+  assert.equal(navbarSlotActiveColors.length, 5);
+  assert.equal(navbarSlotGradients.length, 5);
+
+  // Slot 0 (Item 1) is Purple (reminders tone)
+  assert.equal(getNavBarSlotColor(0), tabColors.reminders);
+  assert.equal(getNavBarSlotActiveColor(0), tabActiveColors.reminders);
+
+  // Slot 1 (Item 2) is Peach (today tone)
+  assert.equal(getNavBarSlotColor(1), tabColors.today);
+  assert.equal(getNavBarSlotActiveColor(1), tabActiveColors.today);
+
+  // Slot 2 (Item 3) is Green (habits tone)
+  assert.equal(getNavBarSlotColor(2), tabColors.habits);
+  assert.equal(getNavBarSlotActiveColor(2), tabActiveColors.habits);
+
+  // Slot 3 (Item 4) is Pink (tasks tone)
+  assert.equal(getNavBarSlotColor(3), tabColors.tasks);
+  assert.equal(getNavBarSlotActiveColor(3), tabActiveColors.tasks);
+
+  // Slot 4 (Item 5 - More) is Blue (more tone)
+  assert.equal(getNavBarSlotColor(4), tabColors.more);
+  assert.equal(getNavBarSlotActiveColor(4), tabActiveColors.more);
+
+  // Bounds clamping
+  assert.equal(getNavBarSlotColor(-1), tabColors.reminders);
+  assert.equal(getNavBarSlotColor(10), tabColors.more);
+  assert.ok(getNavBarSlotGradient(2).pill.length >= 2);
+});
