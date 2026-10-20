@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "1012303591315-4qek1mmqgp2fmufrmug4vps275km6uf8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.steadyprogress.steady_progress",
+            "certificate_hash": "87193b3875962d55eadf1473d271d2d6a21423ab"
+          }
+        },
+        {
           "client_id": "1012303591315-95nekgj63ffhc26sbrjrt3sm3i48pm0r.apps.googleusercontent.com",
           "client_type": 3
         }

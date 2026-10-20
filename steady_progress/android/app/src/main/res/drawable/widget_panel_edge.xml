@@ -15,5 +15,5 @@
     <solid android:color="@android:color/transparent" />
     <stroke
         android:width="1dp"
-        android:color="@color/nocturne_divider" />
+        android:color="#EAEAEA" />
 </shape>

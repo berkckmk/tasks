@@ -5,11 +5,9 @@
     Anatomy, per the handoff: toggle 21 · time 51dp tabular · title flex-1
     ellipsised · kind label 14sp · type icon 18. Gap 8.
 
-    The muted steps are the widget's raised ramp, not the app's — see
-    WidgetPalette's "Why the muted steps are higher than the app's". Every
-    TextView here also carries a `nocturne_text_shadow` blur, which is what
-    keeps light type readable when the panel is turned down and the wallpaper
-    behind it is bright.
+    The muted steps are the widget's monochrome white/grey ramp, not the app's
+    section accent colours. Text stays sharp; glow is reserved for icon and
+    outline drawables.
 
     `fontFeatureSettings="tnum"` on the time is not cosmetic — the time column
     is a fixed 51dp and misaligns without tabular figures, which is visible
@@ -65,10 +63,6 @@
         android:textSize="14.5sp"
         android:fontFamily="@font/inter_semibold"
         android:textColor="@color/nocturne_text_caption"
-        android:shadowColor="@color/nocturne_text_shadow"
-        android:shadowDx="0"
-        android:shadowDy="1"
-        android:shadowRadius="3"
         android:fontFeatureSettings="tnum"
         android:maxLines="1"
         android:gravity="end" />
@@ -82,10 +76,6 @@
         android:textSize="15.5sp"
         android:fontFamily="@font/inter_regular"
         android:textColor="@color/nocturne_text"
-        android:shadowColor="@color/nocturne_text_shadow"
-        android:shadowDx="0"
-        android:shadowDy="1"
-        android:shadowRadius="3"
         android:maxLines="1"
         android:ellipsize="end" />
 
@@ -105,10 +95,6 @@
             android:fontFamily="@font/inter_regular"
             android:includeFontPadding="false"
             android:textColor="@color/nocturne_text_caption"
-            android:shadowColor="@color/nocturne_text_shadow"
-            android:shadowDx="0"
-            android:shadowDy="1"
-            android:shadowRadius="3"
             android:maxLines="1" />
 
         <ImageView

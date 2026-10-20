@@ -9,6 +9,10 @@ if (project.hasProperty('firebaseProduction') || file("src/production/google-ser
 }
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
+def localProductionSigningFile = file("${System.getProperty('user.home')}/.android/steady-progress-release/signing.json")
+def localProductionSigning = localProductionSigningFile.exists()
+    ? new groovy.json.JsonSlurper().parse(localProductionSigningFile)
+    : null
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -109,12 +113,12 @@ android {
             keyPassword 'android'
         }
         productionUpdate {
-            // The installed 1.0.0 build was verified against this existing
-            // local key. Keep credentials outside the repository.
-            storeFile file("${System.getProperty('user.home')}/.android/debug.keystore")
-            storePassword 'android'
-            keyAlias 'androiddebugkey'
-            keyPassword 'android'
+            // Reinstallations use the persistent local release key when present.
+            // Keep the legacy fallback for machines that still have that key.
+            storeFile file(localProductionSigning?.storeFile ?: "${System.getProperty('user.home')}/.android/debug.keystore")
+            storePassword localProductionSigning?.storePassword ?: 'android'
+            keyAlias localProductionSigning?.keyAlias ?: 'androiddebugkey'
+            keyPassword localProductionSigning?.keyPassword ?: 'android'
         }
     }
     flavorDimensions "environment"

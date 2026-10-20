@@ -16,8 +16,8 @@
     <!-- ===== Nocturne, fixed. Used by the widget's own surfaces. ===== -->
     <color name="nocturne_surface">#232532</color>
     <color name="nocturne_ink">#292B31</color>
-    <color name="nocturne_accent_900">#2B2741</color>
-    <color name="nocturne_text">#F2F2F6</color>
+    <color name="nocturne_accent_900">#292B31</color>
+    <color name="nocturne_text">#FFFFFF</color>
     <!--
         The muted ramp, flattened to a near-white band.
 
@@ -37,22 +37,18 @@
         over a mid-grey wallpaper with no panel, the old caption step read a
         clear grey against its title; these read as one family.
 
-        The shadow in `nocturne_text_shadow` does the rest.
+        Glow now belongs to icon and outline drawables, not text.
     -->
     <!-- text at 92% — the note step. -->
-    <color name="nocturne_text_note">#EBF2F2F6</color>
-    <!-- text at 89%, 87%, 85%, 72%: the muted ramp, flattened. -->
-    <color name="nocturne_text_muted">#E3F2F2F6</color>
-    <color name="nocturne_text_inactive">#DEF2F2F6</color>
-    <color name="nocturne_text_caption">#D9F2F2F6</color>
-    <color name="nocturne_text_unchecked">#B8F2F2F6</color>
-    <color name="nocturne_accent">#A79BE8</color>
-    <!-- accent-300: the accent at paragraph size. -->
-    <color name="nocturne_ink_accent">#DEDBFF</color>
-    <!-- accent at 65% — the scope chip's border. -->
-    <color name="nocturne_accent_40">#A6A79BE8</color>
-    <!-- Hairline: text at 28%. -->
-    <color name="nocturne_divider">#47F2F2F6</color>
+    <color name="nocturne_text_note">#C8C8C8</color>
+    <color name="nocturne_text_muted">#C8C8C8</color>
+    <color name="nocturne_text_inactive">#909090</color>
+    <color name="nocturne_text_caption">#C8C8C8</color>
+    <color name="nocturne_text_unchecked">#909090</color>
+    <color name="nocturne_accent">#FFFFFF</color>
+    <color name="nocturne_ink_accent">#FFFFFF</color>
+    <color name="nocturne_accent_40">#EAEAEA</color>
+    <color name="nocturne_divider">#555555</color>
 
     <!--
         The shadow every piece of widget text carries.
@@ -72,7 +68,7 @@
         into a grey haze that is worse than no shadow at all. Both ends were
         rendered and compared — see docs/ANDROID_WIDGET.md.
     -->
-    <color name="nocturne_text_shadow">#E6060711</color>
+    <color name="nocturne_text_shadow">#00000000</color>
 
     <!-- The launch window's ground: the app's own `bg`. See
          drawable/launch_background.xml. -->

@@ -1,7 +1,5 @@
 package com.steadyprogress.steady_progress.widget
 
-import android.graphics.Color
-
 /**
  * Nocturne, as ARGB ints.
  *
@@ -24,11 +22,10 @@ import android.graphics.Color
  * between steps is what fails, not just the floor: a step far enough below
  * white to read as secondary on one wallpaper reads as dirty on the next.
  *
- * So every step below is within 15 points of full white, and the hierarchy is
- * carried by size and weight instead. Every TextView in the widget layouts
- * also carries a `nocturne_text_shadow` blur, which is what gives light type
- * a dark neighbour when the panel gives it none. Change one of these and
- * change `res/values/colors.xml` with it — the two copies are load-bearing.
+ * The current home-screen treatment is intentionally monochrome: task text is
+ * pure white, supporting labels are grey, and glow is kept to icons and
+ * outlines. Change one of these and change `res/values/colors.xml` with it —
+ * the two copies are load-bearing.
  *
  * ## Text colours vs icon colours
  *
@@ -50,15 +47,15 @@ import android.graphics.Color
 object WidgetPalette {
 
     // -- Text: ARGB, alpha honoured. ---------------------------------------
-    const val TEXT = 0xFFF2F2F6.toInt()
-    const val ACCENT = 0xFFA79BE8.toInt()
-    const val INK_ACCENT = 0xFFDEDBFF.toInt()
+    const val TEXT = 0xFFFFFFFF.toInt()
+    const val ACCENT = 0xFFFFFFFF.toInt()
+    const val INK_ACCENT = 0xFFFFFFFF.toInt()
 
-    /** `text` at 92% — the note step. */
-    val TEXT_NOTE = fade(0.92)
+    /** Secondary copy. */
+    const val TEXT_NOTE = 0xFFC8C8C8.toInt()
 
-    /** `text` at 85% — captions and the time column. */
-    val TEXT_CAPTION = fade(0.85)
+    /** Captions and the time column. */
+    const val TEXT_CAPTION = 0xFFC8C8C8.toInt()
 
     /**
      * A completed row drops to 72% — the one step allowed to fall out of the
@@ -67,32 +64,29 @@ object WidgetPalette {
      * Applied to the text colours rather than to the view, because RemoteViews
      * exposes no `setAlpha` for a TextView. Same result, one fewer view.
      */
-    val TEXT_DONE = fade(0.72)
+    const val TEXT_DONE = 0xFF909090.toInt()
 
     // -- Icons: opaque colour + a separate alpha. --------------------------
     // See the class doc. Each pair is one muted step from the design.
 
-    /** An unchecked circle: `text` at 72%. */
+    /** An unchecked circle: pure white. */
     const val ICON_UNCHECKED = TEXT
-    val ALPHA_UNCHECKED = alpha(0.72)
+    const val ALPHA_UNCHECKED = 255
 
     /** A checked circle: the accent, at full strength. */
     const val ICON_CHECKED = ACCENT
     const val ALPHA_FULL = 255
 
-    /** The row's small type mark: `text` at 78%. */
+    /** The row's small type mark: white with controlled alpha. */
     const val ICON_TYPE = TEXT
-    val ALPHA_TYPE = alpha(0.78)
+    val ALPHA_TYPE = alpha(0.92)
 
     /** The empty state's glyph: `text` at 78%. */
     const val ICON_EMPTY = TEXT
-    val ALPHA_EMPTY = alpha(0.78)
+    val ALPHA_EMPTY = alpha(0.92)
 
     /** A completed row's icons fade with its text. */
     val ALPHA_DONE = alpha(0.72)
-
-    private fun fade(value: Double): Int =
-        Color.argb(alpha(value), 0xF2, 0xF2, 0xF6)
 
     private fun alpha(value: Double): Int = (value * 255).toInt()
 }

@@ -80,7 +80,7 @@ object WidgetRenderer {
             val rgb = when (groundKey.lowercase()) {
                 "surface" -> 0x232532
                 "ink" -> 0x292B31
-                "accent" -> 0x2B2741
+                "accent" -> 0x292B31
                 else -> 0x232532
             }
             val alpha = ((opacity.coerceIn(0, 100) / 100f) * 255).toInt()
@@ -195,6 +195,14 @@ object WidgetRenderer {
                     val rowTimeId = resId(context, "row_time", "id")
                     if (rowTimeId != 0) {
                         row.setTextViewText(rowTimeId, item.time)
+                        row.setTextColor(
+                            rowTimeId,
+                            if (item.completed) {
+                                WidgetRendererVisualSpec.COLOR_TEXT_DONE
+                            } else {
+                                WidgetRendererVisualSpec.COLOR_TEXT_CAPTION
+                            }
+                        )
                     }
 
                     val rowTitleId = resId(context, "row_title", "id")
@@ -212,6 +220,14 @@ object WidgetRenderer {
                     // Kind text is hidden per requirement (only icon is displayed)
                     val rowKindId = resId(context, "row_kind", "id")
                     if (rowKindId != 0) {
+                        row.setTextColor(
+                            rowKindId,
+                            if (item.completed) {
+                                WidgetRendererVisualSpec.COLOR_TEXT_DONE
+                            } else {
+                                WidgetRendererVisualSpec.COLOR_TEXT_CAPTION
+                            }
+                        )
                         row.setViewVisibility(rowKindId, View.GONE)
                     }
 
@@ -246,7 +262,7 @@ object WidgetRenderer {
                         row.setOnClickFillInIntent(rowToggleId, toggleFillIn)
                     }
 
-                    // Row Type Icon colored with exact app section color
+                    // Row type icons stay monochrome to match the launcher theme.
                     val rowIconId = resId(context, "row_icon", "id")
                     if (rowIconId != 0) {
                         val (iconRes, iconColor) = when {

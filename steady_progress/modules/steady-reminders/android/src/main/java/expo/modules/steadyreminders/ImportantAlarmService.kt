@@ -153,20 +153,19 @@ class ImportantAlarmService : Service() {
       if (it != 0) it else applicationContext.applicationInfo.icon
     }
 
-    return NotificationCompat.Builder(applicationContext, ReminderChannels.IMPORTANT_REMINDER_ALARMS)
+    val policy = ReminderNotificationPolicies.forPriority("important")
+    val builder = NotificationCompat.Builder(applicationContext, policy.channelId)
       .setSmallIcon(iconRes)
       .setContentTitle(title)
       .setContentText(if (message.isNotBlank()) message else "Önemli hatırlatıcı zamanı geldi")
-      .setPriority(NotificationCompat.PRIORITY_MAX)
-      .setCategory(NotificationCompat.CATEGORY_ALARM)
-      .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
       .setOngoing(true)
       .setAutoCancel(false)
       .setContentIntent(fullScreenPendingIntent)
       .setFullScreenIntent(fullScreenPendingIntent, true)
       .addAction(0, "10 dk Ertele", snoozePendingIntent)
       .addAction(0, "Tamamlandı", completePendingIntent)
-      .build()
+
+    return ReminderNotificationPolicies.applyTo(builder, policy).build()
   }
 
   private fun startAlarmSound() {

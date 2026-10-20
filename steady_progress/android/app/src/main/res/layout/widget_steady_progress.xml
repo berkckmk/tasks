@@ -85,10 +85,6 @@
                 android:fontFamily="@font/inter_semibold"
                 android:letterSpacing="0.08"
                 android:textColor="@color/nocturne_ink_accent"
-                android:shadowColor="@color/nocturne_text_shadow"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="3"
                 android:maxLines="1"
                 android:text="@string/widget_scope_today" />
 
@@ -101,10 +97,6 @@
                 android:textSize="14.5sp"
                 android:fontFamily="@font/inter_semibold"
                 android:textColor="@color/nocturne_text_note"
-                android:shadowColor="@color/nocturne_text_shadow"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="3"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -168,10 +160,6 @@
                 android:textSize="17sp"
                 android:fontFamily="@font/inter_semibold"
                 android:textColor="@color/nocturne_text"
-                android:shadowColor="@color/nocturne_text_shadow"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="3"
                 android:text="@string/widget_empty_title" />
 
             <TextView
@@ -182,10 +170,6 @@
                 android:textSize="14sp"
                 android:fontFamily="@font/inter_regular"
                 android:textColor="@color/nocturne_text_muted"
-                android:shadowColor="@color/nocturne_text_shadow"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="3"
                 android:text="@string/widget_empty_message" />
         </LinearLayout>
 
@@ -207,10 +191,6 @@
                 android:textSize="14sp"
                 android:fontFamily="@font/inter_regular"
                 android:textColor="@color/nocturne_text_caption"
-                android:shadowColor="@color/nocturne_text_shadow"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="3"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
@@ -226,10 +206,6 @@
                 android:textSize="14sp"
                 android:fontFamily="@font/inter_semibold"
                 android:textColor="@color/nocturne_ink_accent"
-                android:shadowColor="@color/nocturne_text_shadow"
-                android:shadowDx="0"
-                android:shadowDy="1"
-                android:shadowRadius="3"
                 android:text="@string/widget_footer_action" />
         </LinearLayout>
     </LinearLayout>

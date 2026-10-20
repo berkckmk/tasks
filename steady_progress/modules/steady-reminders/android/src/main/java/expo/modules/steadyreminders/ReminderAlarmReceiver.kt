@@ -73,22 +73,15 @@ internal class ReminderAlarmReceiver : BroadcastReceiver() {
       if (it != 0) it else context.applicationInfo.icon
     }
 
-    val builder = NotificationCompat.Builder(context, ReminderChannels.idFor(priority))
+    val policy = ReminderNotificationPolicies.forPriority(priority)
+    val builder = NotificationCompat.Builder(context, policy.channelId)
       .setSmallIcon(iconRes)
       .setContentTitle(title)
       .setContentText(message)
       .setAutoCancel(true)
       .setContentIntent(contentIntent)
 
-    if (priority == "low") {
-      builder
-        .setPriority(NotificationCompat.PRIORITY_LOW)
-        .setSilent(true)
-    } else {
-      builder
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        .setCategory(NotificationCompat.CATEGORY_REMINDER)
-    }
+    ReminderNotificationPolicies.applyTo(builder, policy)
 
     try {
       NotificationManagerCompat.from(context).notify(id.hashCode(), builder.build())

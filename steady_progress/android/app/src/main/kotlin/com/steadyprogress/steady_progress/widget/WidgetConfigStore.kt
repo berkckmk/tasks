@@ -57,7 +57,7 @@ enum class WidgetScope(val key: String, val label: String) {
 enum class WidgetGround(val key: String, val label: String, val rgb: Int) {
     SURFACE("surface", "Surface", 0x232532),
     INK("ink", "Ink", 0x292B31),
-    ACCENT("accent", "Accent", 0x2B2741),
+    ACCENT("accent", "Accent", 0x292B31),
 
     /** No panel at all: content floating on the wallpaper. */
     NONE("none", "None", 0x000000);
