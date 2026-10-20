@@ -14,6 +14,8 @@ import { WidgetMutationDrain } from '@/features/widget/widget-mutation-drain';
 import { ProductionDataHost } from '@/features/auth/production-data-host';
 import { WebNotificationsHost } from '@/features/notifications/web-notifications-host';
 
+import { NavBarProvider } from '@/features/navbar/navbar-context';
+
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     'Inter-Regular': require('../../assets/fonts/Inter-Regular.ttf'),
@@ -33,7 +35,9 @@ export default function RootLayout() {
       <StatusBar style="dark" />
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <ProductionDataHost>
-          <AppNavigator />
+          <NavBarProvider>
+            <AppNavigator />
+          </NavBarProvider>
         </ProductionDataHost>
       </View>
     </SafeAreaProvider>

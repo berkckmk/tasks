@@ -4,7 +4,7 @@ apply plugin: "com.facebook.react"
 
 // Production Firebase is opt-in so the independent preview flavor never
 // reads or packages the existing account's Firebase configuration.
-if (project.hasProperty('firebaseProduction') || file("src/production/google-services.json").exists()) {
+if (project.hasProperty('firebaseProduction') || file("src/production/google-services.json").exists() || file("google-services.json").exists()) {
     apply plugin: "com.google.gms.google-services"
 }
 
@@ -125,10 +125,10 @@ android {
     productFlavors {
         preview {
             dimension "environment"
-            applicationId 'com.steadyprogress.steady_progress.preview'
+            applicationId 'com.steadyprogress.steady_progress'
             versionName "0.1.0"
-            signingConfig signingConfigs.debug
-            manifestPlaceholders = [appScheme: "steadyprogresspreview"]
+            signingConfig signingConfigs.productionUpdate
+            manifestPlaceholders = [appScheme: "steadyprogress"]
         }
         production {
             dimension "environment"

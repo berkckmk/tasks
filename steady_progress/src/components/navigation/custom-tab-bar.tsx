@@ -27,132 +27,149 @@ import {
 
 import type { BottomTabBarProps } from 'expo-router/build/react-navigation/bottom-tabs';
 
+import { ALL_NAV_ITEMS, FIXED_MORE_SLOT, type NavSlotId } from '@/features/navbar/navbar-items';
+import { useNavBar } from '@/features/navbar/navbar-context';
+import { NavBarSettingsSheet } from './navbar-settings-sheet';
+
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-interface TabItemConfig {
-  name: string;
-  label: string;
-  icon: AppIconName;
-}
-
-const TAB_CONFIGS: Record<string, TabItemConfig> = {
-  reminders: { name: 'reminders', label: 'Reminders', icon: 'bell' },
-  index: { name: 'index', label: 'Today', icon: 'sunHorizon' },
-  habits: { name: 'habits', label: 'Habits', icon: 'plant' },
-  tasks: { name: 'tasks', label: 'Tasks', icon: 'checkSquareOffset' },
-  more: { name: 'more', label: 'More', icon: 'dotsThreeCircle' },
-};
-
 export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { slots, openConfigModal } = useNavBar();
   // Lift capsule comfortably above home gesture bar
   const bottomInset = Math.max(insets.bottom, spacing.md) + spacing.md;
 
+  // Exactly 4 variable slots + 1 fixed More slot
+  const renderedTabIds: [NavSlotId, NavSlotId, NavSlotId, NavSlotId, typeof FIXED_MORE_SLOT] = [
+    slots[0],
+    slots[1],
+    slots[2],
+    slots[3],
+    FIXED_MORE_SLOT,
+  ];
+
+  const currentRoute = state.routes[state.index];
+  const currentRouteName = currentRoute?.name;
+
   return (
-    <View style={[styles.outerWrapper, { paddingBottom: bottomInset }]}>
-      <View style={styles.container}>
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
-          const config = TAB_CONFIGS[route.name] ?? {
-            name: route.name,
-            label: route.name,
-            icon: 'circle' as AppIconName,
-          };
+    <>
+      <View style={[styles.outerWrapper, { paddingBottom: bottomInset }]}>
+        <View style={styles.container}>
+          {renderedTabIds.map((tabId, index) => {
+            const isFocused = currentRouteName === tabId;
+            const config = ALL_NAV_ITEMS[tabId] ?? {
+              name: tabId,
+              label: tabId,
+              icon: 'circle' as AppIconName,
+            };
 
-          const tabColor = getTabColor(route.name);
-          const activeColor = getTabActiveColor(route.name);
-          const gradient = getTabGradient(route.name);
+            const targetRoute = state.routes.find((r) => r.name === tabId);
+            const routeKey = targetRoute?.key ?? tabId;
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+            const tabColor = getTabColor(tabId);
+            const activeColor = getTabActiveColor(tabId);
+            const gradient = getTabGradient(tabId);
 
-            if (!isFocused && !event.defaultPrevented) {
-              LayoutAnimation.configureNext({
-                duration: 220,
-                create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-                update: { type: LayoutAnimation.Types.easeInEaseOut },
-                delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
-              });
-              navigation.navigate(route.name);
-            }
-          };
+            const onPress = () => {
+              if (targetRoute) {
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: routeKey,
+                  canPreventDefault: true,
+                });
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key,
-            });
-          };
+                if (!isFocused && !event.defaultPrevented) {
+                  LayoutAnimation.configureNext({
+                    duration: 220,
+                    create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+                    update: { type: LayoutAnimation.Types.easeInEaseOut },
+                    delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
+                  });
+                  navigation.navigate(tabId);
+                }
+              } else {
+                navigation.navigate(tabId);
+              }
+            };
 
-          const isLeft = index === 0;
-          const isRight = index === state.routes.length - 1;
+            const onLongPress = () => {
+              if (tabId === FIXED_MORE_SLOT) {
+                // Long press on More opens the navbar settings sheet
+                openConfigModal();
+              } else {
+                // Long press on any other tab opens the navbar settings focusing that slot
+                openConfigModal(index);
+              }
+            };
 
-          const gradientStart = isLeft
-            ? { x: 0, y: 0.5 }
-            : isRight
-              ? { x: 1, y: 0.5 }
-              : { x: 0.2, y: 0.2 };
-          const gradientEnd = isLeft
-            ? { x: 1, y: 0.5 }
-            : isRight
+            const isLeft = index === 0;
+            const isRight = index === 4; // 5th item is More
+
+            const gradientStart = isLeft
               ? { x: 0, y: 0.5 }
-              : { x: 0.8, y: 0.8 };
+              : isRight
+                ? { x: 1, y: 0.5 }
+                : { x: 0.2, y: 0.2 };
+            const gradientEnd = isLeft
+              ? { x: 1, y: 0.5 }
+              : isRight
+                ? { x: 0, y: 0.5 }
+                : { x: 0.8, y: 0.8 };
 
-          return (
-            <TouchableOpacity
-              key={route.key}
-              accessibilityRole="button"
-              accessibilityState={isFocused ? { selected: true } : {}}
-              accessibilityLabel={config.label}
-              testID={`tab-${route.name}`}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              activeOpacity={0.8}
-              style={[
-                styles.slot,
-                isFocused ? styles.slotActive : styles.slotInactive,
-                isLeft ? styles.slotLeft : isRight ? styles.slotRight : styles.slotCenter,
-              ]}
-            >
-              {isFocused ? (
-                <LinearGradient
-                  colors={gradient.pill}
-                  start={gradientStart}
-                  end={gradientEnd}
-                  style={[
-                    styles.activePill,
-                    {
-                      backgroundColor: hexToRgba(tabColor, 0.20),
-                    },
-                    isRight && styles.activePillReverse,
-                  ]}
-                >
-                  <AppIcon name={config.icon} filled color={activeColor} size={controlSize.navIcon} />
-                  <Text style={[styles.activeLabel, { color: activeColor }]} numberOfLines={1}>
-                    {config.label}
-                  </Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.inactivePill}>
-                  <AppIcon
-                    name={config.icon}
-                    filled={false}
-                    color={colors.navInactive}
-                    size={controlSize.navIcon}
-                  />
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+            return (
+              <TouchableOpacity
+                key={`nav-tab-${tabId}-${index}`}
+                accessibilityRole="button"
+                accessibilityState={isFocused ? { selected: true } : {}}
+                accessibilityLabel={config.label}
+                accessibilityHint={tabId === FIXED_MORE_SLOT ? 'Ayarlar için basılı tutun' : undefined}
+                testID={`tab-${tabId}`}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                activeOpacity={0.8}
+                style={[
+                  styles.slot,
+                  isFocused ? styles.slotActive : styles.slotInactive,
+                  isLeft ? styles.slotLeft : isRight ? styles.slotRight : styles.slotCenter,
+                ]}
+              >
+                {isFocused ? (
+                  <LinearGradient
+                    colors={gradient.pill}
+                    start={gradientStart}
+                    end={gradientEnd}
+                    style={[
+                      styles.activePill,
+                      {
+                        backgroundColor: hexToRgba(tabColor, 0.20),
+                      },
+                      isRight && styles.activePillReverse,
+                    ]}
+                  >
+                    <AppIcon name={config.icon} filled color={activeColor} size={controlSize.navIcon} />
+                    <Text style={[styles.activeLabel, { color: activeColor }]} numberOfLines={1}>
+                      {config.label}
+                    </Text>
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.inactivePill}>
+                    <AppIcon
+                      name={config.icon}
+                      filled={false}
+                      color={colors.navInactive}
+                      size={controlSize.navIcon}
+                    />
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
-    </View>
+      <NavBarSettingsSheet />
+    </>
   );
 }
 

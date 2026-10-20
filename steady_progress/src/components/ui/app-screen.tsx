@@ -14,14 +14,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, getTabAtmosphere, spacing } from '@/theme';
 
-const TAB_ORDER = ['reminders', 'today', 'habits', 'tasks', 'more'] as const;
-const TAB_ROUTES: Record<string, string> = {
-  reminders: '/main/reminders',
-  today: '/main',
-  habits: '/main/habits',
-  tasks: '/main/tasks',
-  more: '/main/more',
-};
+import { useNavBar } from '@/features/navbar/navbar-context';
+
+function getRouteForTab(tabKey: string): string {
+  if (tabKey === 'index' || tabKey === 'today') return '/main';
+  return `/main/${tabKey}`;
+}
 
 type AppScreenProps = PropsWithChildren<{
   tab?: string;
@@ -32,32 +30,37 @@ type AppScreenProps = PropsWithChildren<{
 export function AppScreen({ children, tab, contentStyle, scrollProps }: AppScreenProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { allTabs } = useNavBar();
+
+  const tabOrder = allTabs.map((t) => (t === 'index' ? 'today' : t));
+  const normalizedTab = tab === 'index' ? 'today' : tab;
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        if (!tab || !TAB_ORDER.includes(tab as any)) return false;
+        if (!normalizedTab || !tabOrder.includes(normalizedTab as any)) return false;
         return Math.abs(gestureState.dx) > 24 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 2;
       },
       onMoveShouldSetPanResponderCapture: (_, gestureState) => {
-        if (!tab || !TAB_ORDER.includes(tab as any)) return false;
+        if (!normalizedTab || !tabOrder.includes(normalizedTab as any)) return false;
         return Math.abs(gestureState.dx) > 24 && Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 2;
       },
       onPanResponderRelease: (_, gestureState) => {
-        if (!tab) return;
-        const currentIndex = TAB_ORDER.indexOf(tab as any);
+        if (!normalizedTab) return;
+        const currentIndex = tabOrder.indexOf(normalizedTab as any);
         if (currentIndex === -1) return;
 
-        if (gestureState.dx < -55 && currentIndex < TAB_ORDER.length - 1) {
+        if (gestureState.dx < -55 && currentIndex < tabOrder.length - 1) {
           LayoutAnimation.configureNext({
             duration: 200,
             create: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
             update: { type: LayoutAnimation.Types.easeInEaseOut },
             delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
           });
-          router.navigate(TAB_ROUTES[TAB_ORDER[currentIndex + 1]] as any);
+          const nextTab = allTabs[currentIndex + 1];
+          router.navigate(getRouteForTab(nextTab) as any);
         } else if (gestureState.dx > 55 && currentIndex > 0) {
           LayoutAnimation.configureNext({
             duration: 200,
@@ -65,7 +68,8 @@ export function AppScreen({ children, tab, contentStyle, scrollProps }: AppScree
             update: { type: LayoutAnimation.Types.easeInEaseOut },
             delete: { type: LayoutAnimation.Types.easeInEaseOut, property: LayoutAnimation.Properties.opacity },
           });
-          router.navigate(TAB_ROUTES[TAB_ORDER[currentIndex - 1]] as any);
+          const prevTab = allTabs[currentIndex - 1];
+          router.navigate(getRouteForTab(prevTab) as any);
         }
       },
     })

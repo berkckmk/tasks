@@ -18,9 +18,14 @@
     "noEmit": true
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
+  ],
+  "exclude": [
+    "functions",
+    "functions-sync",
+    "node_modules"
   ]
 }

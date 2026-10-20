@@ -1,6 +1,7 @@
 import { router, type Href } from 'expo-router';
-import { View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { AppIcon, AppScreen, AppText, Kicker, ListItemRow, PageHeaderGradient } from '@/components/ui';
+import { useNavBar } from '@/features/navbar/navbar-context';
 import { colors, radius, spacing, type AppIconName, type ColorTone } from '@/theme';
 
 type MoreItem = {
@@ -10,7 +11,8 @@ type MoreItem = {
   icon: AppIconName;
   tone: ColorTone;
   badgeBg: keyof typeof colors;
-  route: Href;
+  route?: Href;
+  onPress?: () => void;
 };
 
 type MoreGroup = {
@@ -29,7 +31,7 @@ const groups: MoreGroup[] = [
         icon: 'plant',
         tone: 'accent',
         badgeBg: 'section',
-        route: '/habits',
+        route: '/main/habits',
       },
       {
         id: 'goals',
@@ -38,7 +40,7 @@ const groups: MoreGroup[] = [
         icon: 'target',
         tone: 'accent',
         badgeBg: 'section',
-        route: '/goals',
+        route: '/main/goals',
       },
       {
         id: 'content',
@@ -47,7 +49,7 @@ const groups: MoreGroup[] = [
         icon: 'notePencil',
         tone: 'accent',
         badgeBg: 'section',
-        route: '/content',
+        route: '/main/content',
       },
     ],
   },
@@ -61,7 +63,7 @@ const groups: MoreGroup[] = [
         icon: 'wallet',
         tone: 'accent',
         badgeBg: 'section',
-        route: '/finance',
+        route: '/main/finance',
       },
       {
         id: 'workout',
@@ -70,7 +72,7 @@ const groups: MoreGroup[] = [
         icon: 'barbell',
         tone: 'accent',
         badgeBg: 'section',
-        route: '/workout',
+        route: '/main/workout',
       },
       {
         id: 'learning',
@@ -79,7 +81,7 @@ const groups: MoreGroup[] = [
         icon: 'bookOpen',
         tone: 'accent',
         badgeBg: 'section',
-        route: '/learning',
+        route: '/main/learning',
       },
     ],
   },
@@ -93,7 +95,7 @@ const groups: MoreGroup[] = [
         icon: 'chartLine',
         tone: 'accent',
         badgeBg: 'section',
-        route: '/analytics',
+        route: '/main/analytics',
       },
       {
         id: 'reports',
@@ -102,7 +104,7 @@ const groups: MoreGroup[] = [
         icon: 'fileText',
         tone: 'accent',
         badgeBg: 'section',
-        route: '/reports',
+        route: '/main/reports',
       },
     ],
   },
@@ -150,6 +152,8 @@ const groups: MoreGroup[] = [
 ];
 
 export function MoreScreen() {
+  const { openConfigModal } = useNavBar();
+
   return (
     <AppScreen tab="more">
       <PageHeaderGradient tab="more">
@@ -158,6 +162,42 @@ export function MoreScreen() {
           <AppText tone="muted">Tüm yardımcı modüller ve tercihler tek merkezde.</AppText>
         </View>
       </PageHeaderGradient>
+
+      {/* QUICK NAVBAR CUSTOMIZATION PROMPT */}
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => openConfigModal()}
+        style={{
+          backgroundColor: colors.surfaceElevated,
+          borderRadius: radius.card,
+          borderWidth: 1,
+          borderColor: colors.border,
+          padding: spacing.md,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.sm,
+        }}
+      >
+        <View
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: radius.md,
+            backgroundColor: colors.section,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <AppIcon name="slidersHorizontal" filled tone="accent" size={20} />
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <AppText variant="title">Alt Barı Özelleştir</AppText>
+          <AppText tone="muted" variant="caption">
+            4 takip alanını düzenle (More butonuna basılı tutarak da açabilirsin)
+          </AppText>
+        </View>
+        <AppIcon name="caretRight" tone="muted" size={16} />
+      </TouchableOpacity>
 
       {groups.map((group) => (
         <View key={group.title} style={{ gap: spacing.sm }}>
@@ -168,7 +208,13 @@ export function MoreScreen() {
                 key={item.id}
                 title={item.label}
                 subtitle={item.description}
-                onPress={() => router.push(item.route)}
+                onPress={() => {
+                  if (item.onPress) {
+                    item.onPress();
+                  } else if (item.route) {
+                    router.push(item.route);
+                  }
+                }}
                 leading={
                   <View
                     style={{

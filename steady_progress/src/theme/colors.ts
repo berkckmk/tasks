@@ -67,6 +67,12 @@ export const tabColors = {
   tasks: '#FF86EC',
   more: '#86DBFF',
   content: '#D97A53',
+  goals: '#48CAE4',
+  finance: '#2EC4B6',
+  workout: '#FF9F1C',
+  learning: '#8338EC',
+  analytics: '#3A86FF',
+  reports: '#06D6A0',
 } as const;
 
 export type TabKey = keyof typeof tabColors;
@@ -79,6 +85,12 @@ export const tabActiveColors = {
   tasks: '#B32598',
   more: '#147294',
   content: '#B04E24',
+  goals: '#0077B6',
+  finance: '#0E7490',
+  workout: '#C2561A',
+  learning: '#5A189A',
+  analytics: '#1D4ED8',
+  reports: '#0F7A5E',
 } as const;
 
 export function hexToRgba(hex: string, alpha: number): string {
@@ -126,6 +138,42 @@ export const tabGradients = {
     atmosphere: ['rgba(217, 122, 83, 0.22)', 'rgba(217, 122, 83, 0.06)', 'rgba(232, 228, 220, 0.0)'] as const,
     fab: ['rgba(217, 122, 83, 0.55)', 'rgba(217, 122, 83, 0.20)'] as const,
   },
+  goals: {
+    pill: ['rgba(72, 202, 228, 0.45)', 'rgba(72, 202, 228, 0.05)'] as const,
+    header: ['rgba(72, 202, 228, 0.26)', 'rgba(72, 202, 228, 0.09)', 'rgba(232, 228, 220, 0.0)'] as const,
+    atmosphere: ['rgba(72, 202, 228, 0.20)', 'rgba(72, 202, 228, 0.06)', 'rgba(232, 228, 220, 0.0)'] as const,
+    fab: ['rgba(72, 202, 228, 0.55)', 'rgba(72, 202, 228, 0.20)'] as const,
+  },
+  finance: {
+    pill: ['rgba(46, 196, 182, 0.45)', 'rgba(46, 196, 182, 0.05)'] as const,
+    header: ['rgba(46, 196, 182, 0.26)', 'rgba(46, 196, 182, 0.09)', 'rgba(232, 228, 220, 0.0)'] as const,
+    atmosphere: ['rgba(46, 196, 182, 0.20)', 'rgba(46, 196, 182, 0.06)', 'rgba(232, 228, 220, 0.0)'] as const,
+    fab: ['rgba(46, 196, 182, 0.55)', 'rgba(46, 196, 182, 0.20)'] as const,
+  },
+  workout: {
+    pill: ['rgba(255, 159, 28, 0.45)', 'rgba(255, 159, 28, 0.05)'] as const,
+    header: ['rgba(255, 159, 28, 0.26)', 'rgba(255, 159, 28, 0.09)', 'rgba(232, 228, 220, 0.0)'] as const,
+    atmosphere: ['rgba(255, 159, 28, 0.20)', 'rgba(255, 159, 28, 0.06)', 'rgba(232, 228, 220, 0.0)'] as const,
+    fab: ['rgba(255, 159, 28, 0.55)', 'rgba(255, 159, 28, 0.20)'] as const,
+  },
+  learning: {
+    pill: ['rgba(131, 56, 236, 0.45)', 'rgba(131, 56, 236, 0.05)'] as const,
+    header: ['rgba(131, 56, 236, 0.26)', 'rgba(131, 56, 236, 0.09)', 'rgba(232, 228, 220, 0.0)'] as const,
+    atmosphere: ['rgba(131, 56, 236, 0.20)', 'rgba(131, 56, 236, 0.06)', 'rgba(232, 228, 220, 0.0)'] as const,
+    fab: ['rgba(131, 56, 236, 0.55)', 'rgba(131, 56, 236, 0.20)'] as const,
+  },
+  analytics: {
+    pill: ['rgba(58, 134, 255, 0.45)', 'rgba(58, 134, 255, 0.05)'] as const,
+    header: ['rgba(58, 134, 255, 0.26)', 'rgba(58, 134, 255, 0.09)', 'rgba(232, 228, 220, 0.0)'] as const,
+    atmosphere: ['rgba(58, 134, 255, 0.20)', 'rgba(58, 134, 255, 0.06)', 'rgba(232, 228, 220, 0.0)'] as const,
+    fab: ['rgba(58, 134, 255, 0.55)', 'rgba(58, 134, 255, 0.20)'] as const,
+  },
+  reports: {
+    pill: ['rgba(6, 214, 160, 0.45)', 'rgba(6, 214, 160, 0.05)'] as const,
+    header: ['rgba(6, 214, 160, 0.26)', 'rgba(6, 214, 160, 0.09)', 'rgba(232, 228, 220, 0.0)'] as const,
+    atmosphere: ['rgba(6, 214, 160, 0.20)', 'rgba(6, 214, 160, 0.06)', 'rgba(232, 228, 220, 0.0)'] as const,
+    fab: ['rgba(6, 214, 160, 0.55)', 'rgba(6, 214, 160, 0.20)'] as const,
+  },
 } as const;
 
 export function getTabGradient(key: string) {
@@ -134,7 +182,13 @@ export function getTabGradient(key: string) {
   if (k === 'habits' || k.includes('alışkanlık') || k.includes('aliskanlik')) return tabGradients.habits;
   if (k === 'tasks' || k.includes('görev') || k.includes('gorev')) return tabGradients.tasks;
   if (k === 'content' || k.includes('i̇çerik') || k.includes('icerik')) return tabGradients.content;
-  if (k === 'more' || k.includes('goal') || k.includes('hedef') || k.includes('workout') || k.includes('learn') || k.includes('öğren') || k.includes('ogren') || k.includes('finance') || k.includes('finans') || k.includes('analytic') || k.includes('report')) return tabGradients.more;
+  if (k === 'goals' || k.includes('hedef') || k === 'goal') return tabGradients.goals;
+  if (k === 'finance' || k.includes('finans')) return tabGradients.finance;
+  if (k === 'workout' || k.includes('antrenman') || k.includes('egzersiz')) return tabGradients.workout;
+  if (k === 'learning' || k.includes('öğren') || k.includes('ogren')) return tabGradients.learning;
+  if (k === 'analytics' || k.includes('analiz') || k.includes('analytic')) return tabGradients.analytics;
+  if (k === 'reports' || k.includes('rapor') || k.includes('report')) return tabGradients.reports;
+  if (k === 'more') return tabGradients.more;
   if (k === 'index' || k === 'today' || k.includes('bugün') || k.includes('bugun')) return tabGradients.today;
   return tabGradients.today;
 }
@@ -153,7 +207,13 @@ export function getTabColor(key: string): string {
   if (k === 'habits' || k.includes('alışkanlık') || k.includes('aliskanlik')) return tabColors.habits;
   if (k === 'tasks' || k.includes('görev') || k.includes('gorev')) return tabColors.tasks;
   if (k === 'content' || k.includes('i̇çerik') || k.includes('icerik')) return tabColors.content;
-  if (k === 'more' || k.includes('goal') || k.includes('hedef') || k.includes('workout') || k.includes('learn') || k.includes('öğren') || k.includes('ogren') || k.includes('finance') || k.includes('finans') || k.includes('analytic') || k.includes('report')) return tabColors.more;
+  if (k === 'goals' || k.includes('hedef') || k === 'goal') return tabColors.goals;
+  if (k === 'finance' || k.includes('finans')) return tabColors.finance;
+  if (k === 'workout' || k.includes('antrenman') || k.includes('egzersiz')) return tabColors.workout;
+  if (k === 'learning' || k.includes('öğren') || k.includes('ogren')) return tabColors.learning;
+  if (k === 'analytics' || k.includes('analiz') || k.includes('analytic')) return tabColors.analytics;
+  if (k === 'reports' || k.includes('rapor') || k.includes('report')) return tabColors.reports;
+  if (k === 'more') return tabColors.more;
   if (k === 'index' || k === 'today' || k.includes('bugün') || k.includes('bugun')) return tabColors.today;
   return tabColors.today;
 }
@@ -164,7 +224,13 @@ export function getTabActiveColor(key: string): string {
   if (k === 'habits' || k.includes('alışkanlık') || k.includes('aliskanlik')) return tabActiveColors.habits;
   if (k === 'tasks' || k.includes('görev') || k.includes('gorev')) return tabActiveColors.tasks;
   if (k === 'content' || k.includes('i̇çerik') || k.includes('icerik')) return tabActiveColors.content;
-  if (k === 'more' || k.includes('goal') || k.includes('hedef') || k.includes('workout') || k.includes('learn') || k.includes('öğren') || k.includes('ogren') || k.includes('finance') || k.includes('finans') || k.includes('analytic') || k.includes('report')) return tabActiveColors.more;
+  if (k === 'goals' || k.includes('hedef') || k === 'goal') return tabActiveColors.goals;
+  if (k === 'finance' || k.includes('finans')) return tabActiveColors.finance;
+  if (k === 'workout' || k.includes('antrenman') || k.includes('egzersiz')) return tabActiveColors.workout;
+  if (k === 'learning' || k.includes('öğren') || k.includes('ogren')) return tabActiveColors.learning;
+  if (k === 'analytics' || k.includes('analiz') || k.includes('analytic')) return tabActiveColors.analytics;
+  if (k === 'reports' || k.includes('rapor') || k.includes('report')) return tabActiveColors.reports;
+  if (k === 'more') return tabActiveColors.more;
   if (k === 'index' || k === 'today' || k.includes('bugün') || k.includes('bugun')) return tabActiveColors.today;
   return tabActiveColors.today;
 }

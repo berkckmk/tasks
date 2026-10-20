@@ -23,6 +23,13 @@ export default function MainTabs() {
       <Tabs.Screen name="index" options={{ title: 'Today' }} />
       <Tabs.Screen name="habits" options={{ title: 'Habits' }} />
       <Tabs.Screen name="tasks" options={{ title: 'Tasks' }} />
+      <Tabs.Screen name="goals" options={{ title: 'Goals' }} />
+      <Tabs.Screen name="content" options={{ title: 'Content' }} />
+      <Tabs.Screen name="finance" options={{ title: 'Finance' }} />
+      <Tabs.Screen name="workout" options={{ title: 'Workout' }} />
+      <Tabs.Screen name="learning" options={{ title: 'Learning' }} />
+      <Tabs.Screen name="analytics" options={{ title: 'Analytics' }} />
+      <Tabs.Screen name="reports" options={{ title: 'Reports' }} />
       <Tabs.Screen name="more" options={{ title: 'More' }} />
     </Tabs>
   );
