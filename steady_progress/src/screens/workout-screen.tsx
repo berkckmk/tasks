@@ -550,51 +550,88 @@ function RoutineDayCard({
       ) : (
         <>
           <View style={{ gap: spacing.xs }}>
-            {day.exercises.map((ex, idx) => (
-              <View
-                key={ex.id}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  paddingVertical: spacing.sm,
-                  borderBottomWidth: idx < day.exercises.length - 1 ? 1 : 0,
-                  borderBottomColor: colors.divider,
-                  gap: spacing.sm,
-                }}
-              >
-                <View style={{ flex: 1, gap: 2 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
-                    <Text style={{ ...typography.metaSmall, color: colors.muted, width: 20 }}>
-                      {idx + 1}.
-                    </Text>
-                    <Text style={{ ...typography.title, color: colors.text, flex: 1 }}>
-                      {ex.name}
-                    </Text>
-                  </View>
-                  {ex.intensityNote ? (
-                    <View style={{ paddingLeft: 28 }}>
-                      <Text style={{ ...typography.metaSmall, color: colors.muted }}>
-                        {ex.intensityNote}
+            {day.exercises.map((ex, idx) => {
+              const prevEx = idx > 0 ? day.exercises[idx - 1] : null;
+              const isNewGroup = ex.muscleGroup && (!prevEx || prevEx.muscleGroup !== ex.muscleGroup);
+
+              return (
+                <View key={ex.id} style={{ gap: spacing.xs }}>
+                  {isNewGroup ? (
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: spacing.xs,
+                        marginTop: idx > 0 ? spacing.sm : spacing.xs,
+                        paddingTop: idx > 0 ? spacing.xs : 0,
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: 4,
+                          height: 14,
+                          borderRadius: radius.pill,
+                          backgroundColor: themeActive,
+                        }}
+                      />
+                      <Text
+                        style={{
+                          ...typography.metaSmall,
+                          color: themeActive,
+                          fontWeight: '700',
+                          letterSpacing: 0.5,
+                        }}
+                      >
+                        {ex.muscleGroup}
                       </Text>
                     </View>
                   ) : null}
-                </View>
 
-                <View
-                  style={{
-                    paddingHorizontal: spacing.sm,
-                    paddingVertical: 3,
-                    borderRadius: radius.pill,
-                    backgroundColor: hexToRgba(themeColor, 0.18),
-                  }}
-                >
-                  <Text style={{ ...typography.metaSmall, color: themeActive, fontWeight: '700' }}>
-                    {ex.setsReps}
-                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      paddingVertical: spacing.sm,
+                      borderBottomWidth: idx < day.exercises.length - 1 ? 1 : 0,
+                      borderBottomColor: colors.divider,
+                      gap: spacing.sm,
+                    }}
+                  >
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs }}>
+                        <Text style={{ ...typography.metaSmall, color: colors.muted, width: 20 }}>
+                          {idx + 1}.
+                        </Text>
+                        <Text style={{ ...typography.title, color: colors.text, flex: 1 }}>
+                          {ex.name}
+                        </Text>
+                      </View>
+                      {ex.intensityNote ? (
+                        <View style={{ paddingLeft: 28 }}>
+                          <Text style={{ ...typography.metaSmall, color: colors.muted }}>
+                            {ex.intensityNote}
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    <View
+                      style={{
+                        paddingHorizontal: spacing.sm,
+                        paddingVertical: 3,
+                        borderRadius: radius.pill,
+                        backgroundColor: hexToRgba(themeColor, 0.18),
+                      }}
+                    >
+                      <Text style={{ ...typography.metaSmall, color: themeActive, fontWeight: '700' }}>
+                        {ex.setsReps}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
 
           <AppButton
